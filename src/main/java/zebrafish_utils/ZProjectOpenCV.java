@@ -16,6 +16,7 @@ import org.scijava.app.StatusService;
 import java.io.File;
 
 import org.bytedeco.opencv.global.opencv_core;
+import zebrafish_utils.config.ZFConfigs;
 
 import static org.bytedeco.opencv.global.opencv_imgcodecs.imwrite;
 

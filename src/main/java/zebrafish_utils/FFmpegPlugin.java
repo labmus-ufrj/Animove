@@ -17,6 +17,8 @@ import org.scijava.widget.Button;
 import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
 import org.scijava.app.StatusService;
+import zebrafish_utils.config.FFmpegMessageTypes;
+import zebrafish_utils.config.ZFConfigs;
 
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
@@ -41,7 +43,7 @@ public class FFmpegPlugin implements Command, Interactive {
     @Parameter
     private StatusService statusService;
 
-    @Parameter(label = "Arquivo de Entrada", style = FileWidget.OPEN_STYLE, callback = "updateOutputName", persist = false, required = false)
+    @Parameter(label = FFmpegMessageTypes.INPUT_FILE_LABEL.toString(), style = FileWidget.OPEN_STYLE, callback = "updateOutputName", persist = false, required = false)
     private File inputFile;
     @Parameter(label = "Abrir um frame e completar dados", callback = "previewFrame")
     private Button previewButton;
@@ -129,7 +131,9 @@ public class FFmpegPlugin implements Command, Interactive {
                 }
                 File outputDirectory = outputFile.getParentFile();
                 String baseName = outputFile.getName().replaceFirst("[.][^.]+$", "");
-                log.info("Iniciando processamento Multi-Crop para " + roiManager.getCount() + " ROIs...");
+
+                log.info("Starting Multi-Crop processing for " + roiManager.getCount() + " ROIs...");
+
                 int roiIndex = 0;
                 for (Roi roi : roiManager.getRoisAsArray()) {
                     statusService.showStatus(roiIndex++, roiManager.getCount(), "Processando Multi-Crop: " + roi.getName());
@@ -151,7 +155,7 @@ public class FFmpegPlugin implements Command, Interactive {
                                 "Erro de ROI", DialogPrompt.MessageType.ERROR_MESSAGE);
                         return;
                     }
-                    log.info("Usando a ROI ativa: " + singleRoi.getName());
+                    log.info("Using active ROI: " + singleRoi.getName());
                 }
                 processVideo(outputFile, singleRoi, isPosview, false);
             }
@@ -161,7 +165,7 @@ public class FFmpegPlugin implements Command, Interactive {
                         "Processo Concluído", DialogPrompt.MessageType.INFORMATION_MESSAGE);
             }
         } catch (Exception e) {
-            log.error("Ocorreu um erro fatal no processamento.", e);
+            log.error("A fatal error occurred during processing.", e);
             uiService.showDialog("Ocorreu um erro: " + e.getMessage(),
                     "Erro Inesperado", DialogPrompt.MessageType.ERROR_MESSAGE);
         }
@@ -205,7 +209,7 @@ public class FFmpegPlugin implements Command, Interactive {
             }
 
         } catch (Exception e) {
-            log.warn("Não foi possível abrir um preview do arquivo (pode não ser um vídeo válido): " + inputFile.getName());
+            log.warn("Could not open a preview of the file (it may not be a valid video): " + inputFile.getName());
             log.error(e);
             uiService.showDialog("Não foi possível abrir um preview do arquivo (pode não ser um vídeo válido): " + inputFile.getName(),
                     "Erro", DialogPrompt.MessageType.ERROR_MESSAGE);
@@ -282,7 +286,7 @@ public class FFmpegPlugin implements Command, Interactive {
         ProcessBuilder pb = new ProcessBuilder(commandList);
         pb.redirectErrorStream(true);
 
-        log.info("Iniciando processamento para: " + currentOutputFile.getName());
+        log.info("Starting processing for: " + currentOutputFile.getName());
 
         Process process = pb.start();
         BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -413,22 +417,6 @@ public class FFmpegPlugin implements Command, Interactive {
         if (horizontalFlip) filterChain.add("hflip");
         if (verticalFlip) filterChain.add("vflip");
 
-//        int rotationSum = Integer.parseInt(rotation.replaceAll("°", "")) + (int) exifRotation;
-//        log.info("Exif Rotation: " + exifRotation + " | Rotation Sum: " + rotationSum + " | RotationDialog: " + rotation);
-//        switch (rotationSum){
-//            case 90:
-//            case -270:
-//                filterChain.add("transpose=1");
-//                break;
-//            case 270:
-//            case -90:
-//                filterChain.add("transpose=2");
-//                break;
-//            case 180:
-//            case -180:
-//                filterChain.add("transpose=2,transpose=2");
-//                break;
-//        }
         if (roi != null) {
             java.awt.Rectangle bounds = roi.getBounds();
             String cropString = "crop=" + bounds.width + ":" + bounds.height + ":" + bounds.x + ":" + bounds.y;
