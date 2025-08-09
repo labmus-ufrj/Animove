@@ -12,7 +12,6 @@ import org.scijava.plugin.Plugin;
 import org.scijava.ui.DialogPrompt;
 import org.scijava.ui.UIService;
 import org.scijava.app.StatusService;
-import zebrafish_utils.config.ZFConfigs;
 
 import java.io.File;
 

@@ -17,8 +17,6 @@ import org.scijava.widget.Button;
 import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
 import org.scijava.app.StatusService;
-import zebrafish_utils.config.FFmpegMessageTypes;
-import zebrafish_utils.config.ZFConfigs;
 
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
@@ -43,7 +41,7 @@ public class FFmpegPlugin implements Command, Interactive {
     @Parameter
     private StatusService statusService;
 
-    @Parameter(label = FFmpegMessageTypes.INPUT_FILE_LABEL.toString(), style = FileWidget.OPEN_STYLE, callback = "updateOutputName", persist = false, required = false)
+    @Parameter(label = "Arquivo de Entrada", style = FileWidget.OPEN_STYLE, callback = "updateOutputName", persist = false, required = false)
     private File inputFile;
     @Parameter(label = "Abrir um frame e completar dados", callback = "previewFrame")
     private Button previewButton;
