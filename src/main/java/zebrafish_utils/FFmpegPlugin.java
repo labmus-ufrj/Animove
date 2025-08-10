@@ -1,3 +1,6 @@
+/**
+ * Package containing utilities for processing zebrafish-related video and image data.
+ */
 package zebrafish_utils;
 
 import ij.ImagePlus;
@@ -31,7 +34,18 @@ import java.util.regex.Pattern;
 
 import static org.bytedeco.ffmpeg.global.avutil.*;
 
-// Using Interactive to achieve the non-modal behaviour
+/**
+ * A command for video processing and conversion using FFmpeg.
+ * This plugin provides functionality for:
+ * - Converting videos between different formats and codecs
+ * - Applying transformations (crop, rotation, flipping)
+ * - Adjusting video quality and frame rate
+ * - Generating preview frames and posview images
+ * - Processing multiple regions of interest (ROIs)
+ * <p>
+ * This is an interactive plugin that maintains UI responsiveness during processing
+ * by running operations in background threads. This also means it is non-blocking by nature.
+ */
 @Plugin(type = Command.class, menuPath = ZFConfigs.ffmpegPath)
 public class FFmpegPlugin implements Command, Interactive {
 
@@ -196,9 +210,9 @@ public class FFmpegPlugin implements Command, Interactive {
     /**
      * Validates the input parameters before video processing.
      * Checks if:
-     * - Input and output files are specified
-     * - Output file doesn't already exist
-     * - Posview mode is not used with Multi-Crop
+     * 1. Input and output files are specified
+     * 2. Output file doesn't already exist
+     * 3. Posview mode is not used with Multi-Crop
      *
      * @param isPosview true if processing is for posview generation, false otherwise
      * @return true if all inputs are valid, false if any validation fails
