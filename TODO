@@ -1,3 +1,5 @@
+-> Zproject darkest and average rotate the video in different ways. Find out why and fix it.
+
 -> some error occurs when processing the whole video with zproject (1998 out of 2001 frames or something)
     - -> image calc is not waiting for completion before saying its done (probably the same thing some issue with OpenCV)
 
