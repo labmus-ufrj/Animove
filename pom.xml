@@ -97,7 +97,7 @@
     </developers>
 
     <properties>
-        <package-name>zebrafish_utils</package-name>
+        <package-name>labmus.zebrafish_utils</package-name>
         <license.licenseName>GPLv3</license.licenseName>
         <license.copyrightOwners>LabMus UFRJ</license.copyrightOwners>
     </properties>

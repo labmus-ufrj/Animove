@@ -1,7 +1,7 @@
 /**
  * Package containing utilities for processing zebrafish-related video and image data.
  */
-package zebrafish_utils;
+package labmus.zebrafish_utils;
 
 import ij.ImagePlus;
 import ij.gui.Roi;
@@ -35,13 +35,13 @@ import java.util.regex.Pattern;
 import static org.bytedeco.ffmpeg.global.avutil.*;
 
 /**
- * A command for video processing and conversion using FFmpeg.
+ * A SciJava Command for video processing and conversion using FFmpeg.
  * This plugin provides functionality for:
- * - Converting videos between different formats and codecs
- * - Applying transformations (crop, rotation, flipping)
- * - Adjusting video quality and frame rate
- * - Generating preview frames and posview images
- * - Processing multiple regions of interest (ROIs)
+ * 1. Converting videos between different formats and codecs
+ * 2. Applying transformations (crop, rotation, flipping)
+ * 3. Adjusting video quality and frame rate
+ * 4. Generating preview frames and posview images
+ * 5. Processing multiple regions of interest (ROIs)
  * <p>
  * This is an interactive plugin that maintains UI responsiveness during processing
  * by running operations in background threads. This also means it is non-blocking by nature.
@@ -97,6 +97,9 @@ public class FFmpegPlugin implements Command, Interactive {
     private ImagePlus previewImagePlus;
     private ImagePlus posviewImagePlus;
 
+    /**
+     * Runs once when the plugin inits, it's a framework feature.
+     */
     @Override
     public void run() {
         if (!ZFConfigs.checkJavaCV()) {

@@ -1,4 +1,4 @@
-package zebrafish_utils;
+package labmus.zebrafish_utils;
 
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.FFmpegFrameRecorder;

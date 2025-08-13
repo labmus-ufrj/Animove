@@ -1,7 +1,7 @@
 // was coding this but gave up dw will come back later
 
 
-//package zebrafish_utils;
+//package labmus.zebrafish_utils;
 //
 //import ij.IJ;
 //import ij.ImagePlus;
