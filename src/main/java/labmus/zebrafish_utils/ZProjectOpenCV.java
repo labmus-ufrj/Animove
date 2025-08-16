@@ -42,11 +42,11 @@ public class ZProjectOpenCV implements Command {
     @Parameter(label = "Output Image", style = "save", persist = false)
     private File outputFile;
 
-    @Parameter(label = "Processing Mode", choices = {"Darkest (Min)", "Average", "Brightest (Max)", "Sum"}, persist = false)
+    @Parameter(label = "Processing Mode", choices = {"Darkest (Min)", "Average", "Brightest (Max)", "Sum"}, callback = "updateOutputName", persist = false)
     private String mode = "Darkest (Min)";
 
     @Parameter(label = "Convert to Grayscale", persist = false)
-    private boolean convertToGrayscale = false;
+    private boolean convertToGrayscale = true;
 
     @Parameter(label = "Initial Frame", min = "0", persist = false)
     private int startFrame = 0;
@@ -203,20 +203,38 @@ public class ZProjectOpenCV implements Command {
 
     /**
      * Callback method to update the output filename when an input file changes.
-     * Generates a unique output filename by appending "_processed" and the appropriate extension.
+     * Generates a unique output filename by appending a mode-matching suffix and the appropriate extension.
      */
     protected void updateOutputName() {
         if (inputFile == null || !inputFile.exists()) {
             return;
         }
+
+        String suffix = "_";
+
+        switch (mode) {
+            case "Darkest (Min)":
+                suffix += "darkest";
+                break;
+            case "Brightest (Max)":
+                suffix += "brightest";
+                break;
+            case "Average":
+                suffix += "avg";
+                break;
+            case "Sum":
+                suffix += "sum";
+                break;
+        }
+
         String parentDir = inputFile.getParent();
         String baseName = inputFile.getName().replaceFirst("[.][^.]+$", "");
-        File testFile = new File(parentDir, baseName + "_processed.tiff");
+        File testFile = new File(parentDir, baseName + suffix + ".tiff");
 
         int count = 2;
         while (testFile.exists()) {
             // naming the file with a sequential number to avoid overwriting
-            testFile = new File(parentDir, baseName + "_processed" + count + ".tiff");
+            testFile = new File(parentDir, baseName + suffix + count + ".tiff");
             count++;
         }
         outputFile = testFile;
