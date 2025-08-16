@@ -28,6 +28,12 @@ import static org.bytedeco.opencv.global.opencv_imgproc.COLOR_BGR2GRAY;
 /**
  * Generated this from the other class, mainly with gemini-2.5pro
  * still testing it, not able to work it out yet.
+ *
+ * It needs some 2Gb binaries. May ditch the idea.
+ *
+ * <a href="https://github.com/bytedeco/javacpp-presets/tree/master/opencv#the-pomxml-build-file">docs</a>
+ *
+ * <a href="https://github.com/bytedeco/javacv/issues/1767">related issue</a>
  */
 @Plugin(type = Command.class, menuPath = ZFConfigs.avgPath + " (CUDA)")
 public class ZProjectOpenCVCuda implements Command {
@@ -72,11 +78,12 @@ public class ZProjectOpenCVCuda implements Command {
             return;
         }
 
-        // Check for CUDA-enabled devices
+/*        // Check for CUDA-enabled devices
+// soooo you dont do that
         if (getCudaEnabledDeviceCount() == 0) {
             uiService.showDialog("No CUDA-enabled GPU found. This plugin requires a compatible NVIDIA GPU.", "CUDA Error", DialogPrompt.MessageType.ERROR_MESSAGE);
             return;
-        }
+        }*/
 
         if (inputFile == null || !inputFile.exists()) {
             uiService.showDialog("Select a valid video file.", "Input Error");
