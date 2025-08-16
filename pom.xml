@@ -121,22 +121,6 @@
             <artifactId>imagej-legacy</artifactId>
         </dependency>
 
-        <!-- Additional dependencies required to use CUDA and cuDNN -->
-        <!--
-        &lt;!&ndash; https://mvnrepository.com/artifact/org.bytedeco/opencv-platform-gpu &ndash;&gt;
-        <dependency>
-            <groupId>org.bytedeco</groupId>
-            <artifactId>opencv-platform-gpu</artifactId>
-            <version>4.11.0-1.5.12</version>
-        </dependency>
-
-        &lt;!&ndash; https://mvnrepository.com/artifact/org.bytedeco/cuda-platform-redist &ndash;&gt;
-        <dependency>
-            <groupId>org.bytedeco</groupId>
-            <artifactId>cuda-platform-redist</artifactId>
-            <version>12.6-9.5-1.5.11</version>
-        </dependency>
--->
         <dependency>
             <groupId>org.bytedeco</groupId>
             <artifactId>javacv-platform</artifactId>
