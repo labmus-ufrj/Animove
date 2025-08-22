@@ -1,6 +1,3 @@
-/**
- * Package containing utilities for processing zebrafish-related video and image data.
- */
 package labmus.zebrafish_utils;
 
 import ij.ImagePlus;
