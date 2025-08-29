@@ -18,6 +18,9 @@ public abstract class ZFConfigs {
     public static final String avgPath = prePath + "Z project";
     public static final String imgCalcPath = prePath + "Image Calculator";
 
+    private static final String embryosPath = prePath + "Embryos Analysis>";
+    public static final String roisPath = embryosPath + "Create ROIs";
+
     private static final String minimalRequiredVersion = "1.5.10";
     private static final String components = "ffmpeg, opencv";
 

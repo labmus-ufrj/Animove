@@ -113,7 +113,7 @@ public class FFmpegPlugin implements Command, Interactive {
      * Callback method for the "Process" button.
      * Initiates video processing with no posview generation.
      */
-    public void runProcessing() {
+    private void runProcessing() {
         startProcessingThread(false);
     }
 
@@ -121,7 +121,7 @@ public class FFmpegPlugin implements Command, Interactive {
      * Callback method for the "Posview" button.
      * Initiates video processing with posview generation.
      */
-    public void showPosview() {
+    private void showPosview() {
         startProcessingThread(true);
     }
 
@@ -129,7 +129,7 @@ public class FFmpegPlugin implements Command, Interactive {
      * Callback method to update the output filename when an input file changes.
      * Generates a unique output filename by appending "_processed" and the appropriate extension.
      */
-    protected void updateOutputName() {
+    private void updateOutputName() {
         if (inputFile == null || !inputFile.exists()) {
             return;
         }
@@ -186,7 +186,7 @@ public class FFmpegPlugin implements Command, Interactive {
      * Callback method to update output file extension when codec changes.
      * Updates extension to .avi for mjpeg codec or .mp4 for other codecs.
      */
-    protected void updateOutputFileExtension() {
+    private void updateOutputFileExtension() {
         if (outputFile == null) return;
         String baseName = outputFile.getName().replaceFirst("[.][^.]+$", "");
         String newExtension = outputCodec.equals("mjpeg") ? ".avi" : ".mp4";
@@ -200,7 +200,7 @@ public class FFmpegPlugin implements Command, Interactive {
      * @param isPosview true if processing should generate a posview image,
      *                  false for normal video processing
      */
-    public void startProcessingThread(boolean isPosview) {
+    private void startProcessingThread(boolean isPosview) {
         if (!isInputsValid(isPosview)) return;
 
         // We can't do this in the same thread as the UI and ImageJ. Everything will freeze.
@@ -387,7 +387,7 @@ public class FFmpegPlugin implements Command, Interactive {
         // Add filters if not preview mode
         if (!isPreview) {
             commandList.add("-vf");
-            commandList.add("\"" + buildVideoFilter(cropRoi, AV_PIX_FMT_BGR24, exifRotation) + "\"");
+            commandList.add("\"" + buildVideoFilter(cropRoi, -1, exifRotation) + "\"");
         }
 
         // Add output file
@@ -576,11 +576,13 @@ public class FFmpegPlugin implements Command, Interactive {
         if (grayScale) {
             pixelFormat = AV_PIX_FMT_GRAY8;
         }
-        String pixFmtName = org.bytedeco.ffmpeg.global.avutil.av_get_pix_fmt_name(pixelFormat).getString();
-        if (pixFmtName == null) {
-            pixFmtName = "bgr24"; //default
+        if (pixelFormat > -1) {
+            String pixFmtName = org.bytedeco.ffmpeg.global.avutil.av_get_pix_fmt_name(pixelFormat).getString();
+            if (pixFmtName == null) {
+                pixFmtName = "bgr24"; //default
+            }
+            filterChain.add("format=" + pixFmtName);
         }
-        filterChain.add("format=" + pixFmtName);
         return filterChain.toString();
     }
 
@@ -591,7 +593,7 @@ public class FFmpegPlugin implements Command, Interactive {
      * @param quality Quality value from 1-10 where 1 is lowest and 10 is highest
      * @return The mapped quality parameter value for the specific codec
      */
-    public static String mapQualityToCodec(String codec, int quality) {
+    private static String mapQualityToCodec(String codec, int quality) {
         switch (codec) {
             case "libx264":
             case "libx265":
