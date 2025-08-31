@@ -50,8 +50,8 @@ public class ZFHelperMethods implements Command {
             activeDisplay = imageDisplayService.getActiveImageDisplay();
         }
 
-        log.info(Arrays.toString(getRealMinMax(activeDisplay, null, statusService, log)));
-        log.info(Arrays.toString(getRealMinMax(activeDisplay, IJ.getImage().getRoi(), statusService, log)));
+        log.info(Arrays.toString(getRealMinMax(activeDisplay, null, statusService)));
+        log.info(Arrays.toString(getRealMinMax(activeDisplay, IJ.getImage().getRoi(), statusService)));
     }
 
     /**
@@ -67,7 +67,7 @@ public class ZFHelperMethods implements Command {
      * @return long array containing [globalMin, globalMax] pixel values
      */
     // there's absolutely no need for a 64bit return here. let's ignore that. I like 64bit images.
-    public static long[] getRealMinMax(ImageDisplay imageDisplay, Roi roi, StatusService statusService, Logger log) {
+    public static long[] getRealMinMax(ImageDisplay imageDisplay, Roi roi, StatusService statusService) {
         long millis = System.currentTimeMillis();
 
         long[] minMaxCount = null;
@@ -83,8 +83,6 @@ public class ZFHelperMethods implements Command {
         if (statusService != null) {
             statusService.showStatus("min/max at " + Math.round(minMaxCount[2] / ((System.currentTimeMillis() - millis) * 1000.0)) + " pixels/us");
         }
-        log.info("time: " + (System.currentTimeMillis() - millis) + " ms");
-        log.info("count: " + minMaxCount[2] + " pixels");
         return new long[]{minMaxCount[0], minMaxCount[1]};
     }
 
