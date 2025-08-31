@@ -1,10 +1,6 @@
 -> some error occurs when processing the whole video with zproject (1998 out of 2001 frames or something)
     - -> image calc is not waiting for completion before saying its done (probably the same thing some issue with OpenCV)
 
--> FFmpeg has weird methods public and protected should all be private - done
-
--> Paloma said codecs arent working properly on windows player - done. pixel format was causin it. fixed: just change that when needed
-
 -> proximo programa em python: image calculator!
 
 -> test image calc more overall
