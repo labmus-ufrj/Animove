@@ -6,6 +6,7 @@ import ij.Menus;
 import ij.Prefs;
 import ij.plugin.frame.Recorder;
 import net.imagej.updater.CommandLine;
+import org.bytedeco.javacpp.Loader;
 import org.scijava.util.AppUtils;
 
 import javax.swing.*;
@@ -13,6 +14,8 @@ import java.util.Arrays;
 import java.util.Hashtable;
 
 public abstract class ZFConfigs {
+    public static final String ffmpeg = Loader.load(org.bytedeco.ffmpeg.ffmpeg.class);
+
     private static final String prePath = "ZF Utils>";
     public static final String ffmpegPath = prePath + "FFmpeg";
     public static final String avgPath = prePath + "Z project";
@@ -22,6 +25,8 @@ public abstract class ZFConfigs {
     private static final String embryosPath = prePath + "Embryos Analysis>";
     public static final String roisPath = embryosPath + "Create ROIs";
     public static final String analyzeEmbryos = embryosPath + "Analyze";
+
+    public static final String scorePath = prePath + "Score Analysis";
 
     private static final String minimalRequiredVersion = "1.5.10";
     private static final String components = "ffmpeg, opencv";

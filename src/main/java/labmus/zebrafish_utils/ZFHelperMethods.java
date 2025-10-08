@@ -1,26 +1,26 @@
 package labmus.zebrafish_utils;
 
 import ij.IJ;
+import ij.ImageJ;
 import ij.ImagePlus;
 import ij.gui.Roi;
 import net.imagej.Dataset;
+import net.imagej.ImgPlus;
 import net.imagej.display.ImageDisplay;
 import net.imagej.display.ImageDisplayService;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.img.display.imagej.ImageJFunctions;
+import net.imglib2.loops.LoopBuilder;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.view.IntervalView;
-import net.imglib2.view.Views;
+import net.imglib2.type.numeric.integer.IntType;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
 import org.scijava.log.LogService;
-import org.scijava.log.Logger;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.ui.UIService;
-import net.imglib2.loops.LoopBuilder;
 
-import java.awt.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
@@ -40,18 +40,72 @@ public class ZFHelperMethods implements Command {
     @Parameter
     private StatusService statusService;
 
+    @Parameter(label = "min", min = "0", persist = false)
+    private int min = 0;
+
+    @Parameter(label = "max", min = "0", persist = false)
+    private int max = 255;
+
+    @Parameter(label = "value", min = "0", persist = false)
+    private int value = 128;
+
     @Override
     public void run() {
         IJ.run("Console");
-        ImageDisplay activeDisplay = imageDisplayService.getActiveImageDisplay();
 
-        if (activeDisplay == null) {
-            IJ.createImage("Untitled", "8-bit noise", 512, 512, 100).show();
-            activeDisplay = imageDisplayService.getActiveImageDisplay();
-        }
+        log.info((int)map(value, 0, 255, min, max));
 
-        log.info(Arrays.toString(getRealMinMax(activeDisplay, null, statusService)));
-        log.info(Arrays.toString(getRealMinMax(activeDisplay, IJ.getImage().getRoi(), statusService)));
+//        ImageDisplay activeDisplay = imageDisplayService.getActiveImageDisplay();
+//
+//        if (activeDisplay == null) {
+//            IJ.createImage("Untitled", "8-bit noise", 512, 512, 100).show();
+//            activeDisplay = imageDisplayService.getActiveImageDisplay();
+//        }
+//
+//        setMinMax(activeDisplay, 0, 255, log);
+
+    }
+
+    /**
+     * We need this to keep the abstraction T
+     */
+    private static <T extends RealType<T>> ImagePlus wrapWithType(Dataset datasetToWrap) {
+        RandomAccessibleInterval<T> raiTyped = (RandomAccessibleInterval<T>) datasetToWrap;
+        return ImageJFunctions.wrap(raiTyped, datasetToWrap.getName());
+    }
+
+
+    public static void setMinMax(ImageDisplay activeDisplay, long min, long max, LogService log ) {
+        Dataset dataset = (Dataset) activeDisplay.getActiveView().getData();
+        ImagePlus imagePlus = wrapWithType(dataset);
+
+        double displayRangeMin = imagePlus.getDisplayRangeMin();
+        double displayRangeMax = imagePlus.getDisplayRangeMax();
+
+        log.info(displayRangeMin + displayRangeMax);
+
+        LoopBuilder.setImages(dataset).multiThreaded()
+                .forEachChunk(chunk -> {
+                    chunk.forEachPixel(realType -> {
+                        realType.setReal(map(realType.getRealDouble(), displayRangeMin, displayRangeMax, min, max));
+                    });
+                    return null;
+                });
+    }
+
+    /**
+     * Transforms a value from one numeric scale to another.
+     *
+     * @param value              The number to be transformed.
+     * @param originalScaleStart The minimum value of the original scale (X).
+     * @param originalScaleEnd   The maximum value of the original scale (Y).
+     * @param newScaleStart      The minimum value of the new scale (Z).
+     * @param newScaleEnd        The maximum value of the new scale (W).
+     * @return The equivalent value in the new scale.
+     */
+    public static double map(double value, double originalScaleStart, double originalScaleEnd, double newScaleStart, double newScaleEnd) {
+        // linear interpolation
+        return newScaleStart + ((value - originalScaleStart) * (newScaleEnd - newScaleStart)) / (originalScaleEnd - originalScaleStart);
     }
 
     /**

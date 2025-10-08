@@ -354,9 +354,8 @@ public class FFmpegPlugin implements Command, Interactive {
         // Build FFmpeg command
         // Start by getting the binary path from bytedeco's lib
         // yep that's a thing, and that's how this works
-        String ffmpeg = Loader.load(org.bytedeco.ffmpeg.ffmpeg.class);
         ArrayList<String> commandList = new ArrayList<>();
-        commandList.add(ffmpeg);
+        commandList.add(ZFConfigs.ffmpeg);
 
         // Add input file and start time
         commandList.add("-ss");
