@@ -38,10 +38,10 @@ import java.util.Objects;
 public class ScoreAnalysis implements Command, Interactive, MouseListener, MouseMotionListener {
 
     @Parameter(label = "XML File", style = FileWidget.OPEN_STYLE, persist = false, required = false)
-    private File xmlFile = new File("E:\\score_auto\\conhecendo\\conhecendo.xml");
+    private File xmlFile;
 
     @Parameter(label = "Source video", style = FileWidget.OPEN_STYLE, persist = false, required = false)
-    private File videoFile = new File("E:\\score_auto\\conhecendo\\conhecendo.mp4");
+    private File videoFile;
 
     @Parameter(label = "Open Frame", callback = "displayImage")
     private Button btn;
@@ -93,6 +93,8 @@ public class ScoreAnalysis implements Command, Interactive, MouseListener, Mouse
     private void process() {
         ArrayList<ArrayList<Float>> data = iterateOverXML(false);
         ResultsTable rt = new ResultsTable();
+        rt.setNaNEmptyCells(true); // prism reads 0.00 as zeros and requires manual fixing
+        // NaN just gets deleted when pasting
 
         // Iterate through each inner list, treating it as a column.
         for (int colIndex = 0; colIndex < data.size(); colIndex++) {
@@ -205,7 +207,8 @@ public class ScoreAnalysis implements Command, Interactive, MouseListener, Mouse
 
     private float getScore(float x, float calMin, float calMax) {
         float a = (x - calMin) / (calMax - calMin);
-        return a * Float.parseFloat("10");
+        float b = a * 10f;
+        return Math.max(0, Math.min(10, b));
     }
 
     private Document getXML() throws ParserConfigurationException, SAXException, IOException {
