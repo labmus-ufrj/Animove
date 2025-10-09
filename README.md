@@ -8,7 +8,7 @@ Description
 1.  **Download the Plugin:** 
     - The latest version of the plugin is a `.jar` file located in the  [`target/`](https://github.com/labmus-ufrj/tracking-plugin/tree/main/target)directory of this project.
     
-    - Choose the file with sources. **DO NOT** download both of them.
+    - Choose the file **WITHOUT** -sources in the filename. **DO NOT** download both of them.
 
 2.  **Locate Your Fiji Installation:**
     - Find where you have Fiji installed on your computer. This is often in your `Documents` or `Program Files` folder.
