@@ -31,8 +31,9 @@ import java.awt.event.MouseMotionListener;
 import java.awt.geom.GeneralPath;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Objects;
+import java.util.*;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Plugin(type = Command.class, menuPath = ZFConfigs.scorePath)
 public class ScoreAnalysis implements Command, Interactive, MouseListener, MouseMotionListener {
@@ -40,8 +41,11 @@ public class ScoreAnalysis implements Command, Interactive, MouseListener, Mouse
     @Parameter(label = "XML File", style = FileWidget.OPEN_STYLE, persist = false, required = false)
     private File xmlFile;
 
-    @Parameter(label = "Source video", style = FileWidget.OPEN_STYLE, persist = false, required = false)
+    @Parameter(label = "Source Video", style = FileWidget.OPEN_STYLE, persist = false, required = false)
     private File videoFile;
+
+    @Parameter(label = "Fix Missing Spots", persist = false)
+    private boolean fixSpots = true;
 
     @Parameter(label = "Open Frame", callback = "displayImage")
     private Button btn;
@@ -91,7 +95,7 @@ public class ScoreAnalysis implements Command, Interactive, MouseListener, Mouse
     }
 
     private void process() {
-        ArrayList<ArrayList<Float>> data = iterateOverXML(false);
+        List<ArrayList<Float>> data = iterateOverXML(false);
         ResultsTable rt = new ResultsTable();
         rt.setNaNEmptyCells(true); // prism reads 0.00 as zeros and requires manual fixing
         // NaN just gets deleted when pasting
@@ -116,8 +120,8 @@ public class ScoreAnalysis implements Command, Interactive, MouseListener, Mouse
         rt.show("My Experiment Data");
     }
 
-    private ArrayList<ArrayList<Float>> iterateOverXML(boolean setMinMax) {
-        ArrayList<ArrayList<Float>> trackScores = new ArrayList<>();
+    private List<ArrayList<Float>> iterateOverXML(boolean setMinMax) {
+        ArrayList<HashMap<Integer,Float>> trackScores = new ArrayList<>(); // the easy way not the right way
         try {
             if (!xmlFile.exists()) {
                 throw new Exception("Input file does not exist.");
@@ -134,8 +138,6 @@ public class ScoreAnalysis implements Command, Interactive, MouseListener, Mouse
             Node tracks = doc.getElementsByTagName("Tracks").item(0);
             Calibration cal = videoFrame.getCalibration();
 
-            cal.setFunction(Calibration.STRAIGHT_LINE, cal.getCoefficients(), "mm");
-
             String xmlUnit = tracks.getAttributes().getNamedItem("spaceUnits").getNodeValue();
             if (!Objects.equals(cal.getXUnit(), xmlUnit)) {
                 throw new Exception("Calibrate the image frame to match the XML file's space units: " + xmlUnit);
@@ -151,7 +153,8 @@ public class ScoreAnalysis implements Command, Interactive, MouseListener, Mouse
 
             // Iterate over each <particle> element
             for (int i = 0; i < particleList.getLength(); i++) {
-                ArrayList<Float> scores = new ArrayList<>();
+                HashMap<Integer,Float> scores = new HashMap<>();
+//                ArrayList<Float> scores = new ArrayList<>();
                 Node particleNode = particleList.item(i);
 
                 if (particleNode.getNodeType() == Node.ELEMENT_NODE) {
@@ -177,7 +180,7 @@ public class ScoreAnalysis implements Command, Interactive, MouseListener, Mouse
                                 localMax = x;
                             }
                             float score = getScore(x, calMin, calMax);
-                            scores.add(score);
+                            scores.put(Integer.parseInt(detectionElement.getAttribute("t")), score);
 
                         }
                     }
@@ -201,8 +204,28 @@ public class ScoreAnalysis implements Command, Interactive, MouseListener, Mouse
             state = STATE.NONE;
         }
 
-        return trackScores;
+        return fixMissingSpots(trackScores);
 
+    }
+
+    private List<ArrayList<Float>> fixMissingSpots(ArrayList<HashMap<Integer,Float>> trackScores) {
+        if (fixSpots){
+            int biggestTime = trackScores.stream().mapToInt(hashmap ->
+                    hashmap.keySet().stream().max(Comparator.naturalOrder()).get()).max().getAsInt(); // using this on a spotless track will crash it. dont do it ig
+            for (HashMap<Integer,Float> hashmap : trackScores) {
+                for (int i = 0; i <= biggestTime; i++) {
+                    if (!hashmap.containsKey(i) && hashmap.containsKey(i-1)) {
+                        hashmap.put(i, hashmap.get(i-1));
+                    }
+                }
+                for (int i = biggestTime; i >= 0; i--) {
+                    if (!hashmap.containsKey(i)) {
+                        hashmap.put(i, hashmap.get(i+1));
+                    }
+                }
+            }
+        }
+        return trackScores.stream().map(hashmap -> new ArrayList<>(hashmap.values())).collect(Collectors.toList());
     }
 
     private float getScore(float x, float calMin, float calMax) {
