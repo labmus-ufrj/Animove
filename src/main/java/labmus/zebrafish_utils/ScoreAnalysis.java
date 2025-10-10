@@ -29,10 +29,17 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.GeneralPath;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Plugin(type = Command.class, menuPath = ZFConfigs.scorePath)
@@ -253,11 +260,19 @@ public class ScoreAnalysis implements Command, Interactive, MouseListener, Mouse
             min = (int) (videoFrame.getWidth() * 0.9);
             max = (int) (videoFrame.getWidth() * 0.1);
 
-            EventQueue.invokeLater(() -> {
-                videoFrame.getCanvas().addMouseListener(this);
-                videoFrame.getCanvas().addMouseMotionListener(this);
-                drawOverlay();
-            });
+            // this is the nice way of doing this instead of Thread.sleep()
+            ScheduledExecutorService scheduler =
+                    Executors.newSingleThreadScheduledExecutor();
+            scheduler.schedule(() -> {
+                if (videoFrame.getCanvas() != null){
+                    videoFrame.getCanvas().addMouseListener(this);
+                    videoFrame.getCanvas().addMouseMotionListener(this);
+                    drawOverlay();
+                    scheduler.shutdown();
+                }
+            }, 100, TimeUnit.MILLISECONDS);
+
+
         } catch (Exception e) {
             log.error(e);
             uiService.showDialog(e.getLocalizedMessage(),
@@ -293,6 +308,12 @@ public class ScoreAnalysis implements Command, Interactive, MouseListener, Mouse
         pb.redirectErrorStream(true);
 
         Process process = pb.start();
+        try(BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))){
+            String line;
+            while ((line = reader.readLine()) != null) {
+                log.info(line);
+            }
+        }
         process.waitFor();
 
         if (videoFrame != null && videoFrame.getWindow() != null) {

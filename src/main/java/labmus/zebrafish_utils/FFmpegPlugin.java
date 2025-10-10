@@ -401,23 +401,22 @@ public class FFmpegPlugin implements Command, Interactive {
         log.info("Starting processing for: " + currentOutputFile.getName());
 
         Process process = pb.start();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        try(BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))){
+            // Monitor progress
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String regex = "frame=\\s*(\\d+)";
+                Pattern pattern = Pattern.compile(regex);
+                Matcher matcher = pattern.matcher(line);
 
-        // Monitor progress
-        String line;
-        while ((line = reader.readLine()) != null) {
-            String regex = "frame=\\s*(\\d+)";
-            Pattern pattern = Pattern.compile(regex);
-            Matcher matcher = pattern.matcher(line);
+                if (matcher.find()) {
+                    statusService.showStatus(Integer.parseInt(matcher.group(1)), totalFramesToProcess,
+                            "Processing " + currentOutputFile.getName());
+                }
 
-            if (matcher.find()) {
-                statusService.showStatus(Integer.parseInt(matcher.group(1)), totalFramesToProcess,
-                        "Processing " + currentOutputFile.getName());
+                log.info(line);
             }
-
-            log.info(line);
         }
-        reader.close();
         process.waitFor();
 
         // Show preview/posview if needed
