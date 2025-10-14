@@ -26,6 +26,7 @@ import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.StringJoiner;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -204,7 +205,8 @@ public class FFmpegPlugin implements Command, Interactive {
         if (!isInputsValid(isPosview)) return;
 
         // We can't do this in the same thread as the UI and ImageJ. Everything will freeze.
-        new Thread(() -> executeProcessing(isPosview)).start();
+        Executors.newSingleThreadExecutor().submit(() -> executeProcessing(isPosview));
+//        new Thread(() -> executeProcessing(isPosview)).start();
     }
 
     /**

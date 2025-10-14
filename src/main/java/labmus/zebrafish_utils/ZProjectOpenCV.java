@@ -125,7 +125,7 @@ public class ZProjectOpenCV implements Command {
                         accumulator = new Mat();
                         switch (mode) {
                             case "Average":
-                                currentFrame.convertTo(accumulator, convertToGrayscale ? opencv_core.CV_64FC1 : opencv_core.CV_64FC3);
+                                currentFrame.convertTo(accumulator, convertToGrayscale ? opencv_core.CV_32FC1 : opencv_core.CV_32FC3);
                                 break;
                             case "Sum":
                                 currentFrame.convertTo(accumulator, convertToGrayscale ? opencv_core.CV_32SC1 : opencv_core.CV_32SC3);
@@ -196,7 +196,7 @@ public class ZProjectOpenCV implements Command {
             statusService.clearStatus();
 
         } catch (Exception e) {
-            log.error("A fatal error occurred during processing", e);
+            log.error(e);
             uiService.showDialog("A fatal error occurred during processing: \n" + e.getMessage(), "Plugin Error", DialogPrompt.MessageType.ERROR_MESSAGE);
         }
     }

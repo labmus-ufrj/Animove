@@ -22,6 +22,9 @@ public abstract class ZFConfigs {
     public static final String imgCalcPath = prePath + "Image Calculator";
     public static final String helperPath = prePath + "Helper";
 
+    public static final String heatmapImage = prePath + "Heatmap Analysis>Generate Heatmap Images";
+    public static final String heatmapVideo = prePath + "Heatmap Analysis>Generate Heatmap Videos";
+
     private static final String embryosPath = prePath + "Embryos Analysis>";
     public static final String roisPath = embryosPath + "Create ROIs";
     public static final String analyzeEmbryos = embryosPath + "Analyze";
