@@ -88,6 +88,11 @@ public class ZFHelperMethods implements Command {
         LoopBuilder.setImages(dataset).multiThreaded()
                 .forEachChunk(chunk -> {
                     chunk.forEachPixel(realType -> {
+//                        valor atual: realType.getRealDouble()
+//                        novo min: min
+//                        novo max: max
+
+//                        COMO MAPEAR ESSA MUDANÇA????????
                         realType.setReal(map(realType.getRealDouble(), displayRangeMin, displayRangeMax, min, max));
                     });
                     return null;

@@ -1,6 +1,5 @@
 package labmus.zebrafish_utils;
 
-import ij.ImagePlus;
 import ij.plugin.FolderOpener;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Frame;
@@ -27,9 +26,9 @@ import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.bytedeco.opencv.global.opencv_core.CV_16UC1;
 import static org.bytedeco.opencv.global.opencv_imgcodecs.imwrite;
-import static org.bytedeco.opencv.global.opencv_imgproc.*;
+import static org.bytedeco.opencv.global.opencv_imgproc.COLOR_BGR2GRAY;
+import static org.bytedeco.opencv.global.opencv_imgproc.cvtColor;
 import static org.opencv.core.Core.NORM_MINMAX;
 
 @Plugin(type = Command.class, menuPath = ZFConfigs.heatmapVideo)
