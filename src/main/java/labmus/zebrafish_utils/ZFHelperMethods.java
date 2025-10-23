@@ -67,7 +67,8 @@ public class ZFHelperMethods implements Command {
     }
 
     /**
-     * We need this to keep the abstraction T
+     *  We need this to keep the abstraction T
+     *  i didnt get it as well dw
      */
     private static <T extends RealType<T>> ImagePlus wrapWithType(Dataset datasetToWrap) {
         RandomAccessibleInterval<T> raiTyped = (RandomAccessibleInterval<T>) datasetToWrap;

@@ -38,10 +38,6 @@ public class ROICreator implements Command, Interactive {
     @Parameter(label = "Process", callback = "execute")
     private Button executeButton;
 
-    static {
-//        IJ.run("Console");
-    }
-
     @Override
     public void run() {
         if (!checkForImage()) {
@@ -133,7 +129,7 @@ public class ROICreator implements Command, Interactive {
      */
     public static int[] getFactors(int num) {
         if (num <= 0) {
-            return null; // ou lançar uma exceção, dependendo do caso de uso
+            return null;
         }
 
         int raiz = (int) Math.sqrt(num);
@@ -144,6 +140,6 @@ public class ROICreator implements Command, Interactive {
             }
         }
 
-        return new int[]{1, num}; // Caso o número seja primo
+        return new int[]{1, num}; // maybe its prime
     }
 }
