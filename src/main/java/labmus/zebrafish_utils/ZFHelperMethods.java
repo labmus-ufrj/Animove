@@ -3,7 +3,11 @@ package labmus.zebrafish_utils;
 import ij.IJ;
 import ij.ImageJ;
 import ij.ImagePlus;
+import ij.ImageStack;
 import ij.gui.Roi;
+import ij.plugin.frame.ContrastAdjuster;
+import ij.process.ColorProcessor;
+import ij.process.ImageProcessor;
 import net.imagej.Dataset;
 import net.imagej.ImgPlus;
 import net.imagej.display.ImageDisplay;
@@ -24,6 +28,7 @@ import org.scijava.ui.UIService;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.IntStream;
 
 /**
  * Not for use during prod, this class has useful code snippets used
@@ -36,7 +41,7 @@ public class ZFHelperMethods implements Command {
     @Parameter
     private UIService uiService;
     @Parameter
-    private ImageDisplayService imageDisplayService;
+    private ImagePlus imagePlus;
     @Parameter
     private StatusService statusService;
 
@@ -53,7 +58,7 @@ public class ZFHelperMethods implements Command {
     public void run() {
         IJ.run("Console");
 
-        log.info((int)map(value, 0, 255, min, max));
+//        log.info((int)map(value, 0, 255, min, max));
 
 //        ImageDisplay activeDisplay = imageDisplayService.getActiveImageDisplay();
 //
@@ -62,13 +67,68 @@ public class ZFHelperMethods implements Command {
 //            activeDisplay = imageDisplayService.getActiveImageDisplay();
 //        }
 //
-//        setMinMax(activeDisplay, 0, 255, log);
+        apply(imagePlus, imagePlus.getProcessor(), min, max);
+        // FALTA ATUALIZAR A VIEW PARA O USUÁRIO VER A MUDANÇA!!
 
     }
 
+    void apply(ImagePlus imp, ImageProcessor ip, int min, int max) {
+//        min = (int) imp.getDisplayRangeMin();
+//        max = (int) imp.getDisplayRangeMax();
+        int depth = imp.getBitDepth();
+        if (imp.getType() == ImagePlus.COLOR_RGB) {
+            applyRGBStack(imp);
+            return;
+        }
+        ip.resetMinAndMax();
+        int range = 256;
+        if (depth == 16) {
+            range = 65536;
+            int defaultRange = ImagePlus.getDefault16bitRange();
+            if (defaultRange > 0)
+                range = (int) Math.pow(2, defaultRange) - 1;
+        }
+        int tableSize = depth == 16 ? 65536 : 256;
+        int[] table = new int[tableSize];
+        for (int i = 0; i < tableSize; i++) {
+            if (i <= min)
+                table[i] = 0;
+            else if (i >= max)
+                table[i] = range - 1;
+            else
+                table[i] = (int) (((double) (i - min) / (max - min)) * range);
+        }
+        ImageProcessor mask = imp.getMask();
+        applyOtherStack(imp, mask, table);
+        if (depth == 16) {
+            imp.setDisplayRange(0, range - 1);
+        }
+    }
+
+    void applyRGBStack(ImagePlus imp) {
+        ImageStack stack = imp.getStack();
+        IntStream.rangeClosed(1, stack.getSize())
+                .forEach(i -> {
+                    ImageProcessor ip = stack.getProcessor(i);
+                    ip.setMinAndMax(min, max);
+                });
+    }
+
+    void applyOtherStack(ImagePlus imp, ImageProcessor mask, int[] table) {
+        ImageStack stack = imp.getStack();
+        IntStream.rangeClosed(1, stack.getSize())
+                .forEach(i -> {
+                    ImageProcessor ip = stack.getProcessor(i);
+                    if (mask != null) ip.snapshot();
+                    ip.applyTable(table);
+                    ip.reset(mask);
+//                    ip.setMinAndMax(min, max);
+                });
+    }
+
     /**
-     *  We need this to keep the abstraction T
-     *  i didnt get it as well dw
+     * We need this to keep the abstraction T
+     * i didnt get it as well dw
      */
     private static <T extends RealType<T>> ImagePlus wrapWithType(Dataset datasetToWrap) {
         RandomAccessibleInterval<T> raiTyped = (RandomAccessibleInterval<T>) datasetToWrap;
@@ -76,27 +136,33 @@ public class ZFHelperMethods implements Command {
     }
 
 
-    public static void setMinMax(ImageDisplay activeDisplay, long min, long max, LogService log ) {
-        Dataset dataset = (Dataset) activeDisplay.getActiveView().getData();
-        ImagePlus imagePlus = wrapWithType(dataset);
+    public static void setMinMax(ImagePlus imagePlus, long min, long max, LogService log) {
+        ImageStack stack = imagePlus.getStack();
 
-        double displayRangeMin = imagePlus.getDisplayRangeMin();
-        double displayRangeMax = imagePlus.getDisplayRangeMax();
+        log.info("Aqui, size: " + stack.getSize());
 
-        log.info(displayRangeMin + displayRangeMax);
-
-        LoopBuilder.setImages(dataset).multiThreaded()
-                .forEachChunk(chunk -> {
-                    chunk.forEachPixel(realType -> {
-//                        valor atual: realType.getRealDouble()
-//                        novo min: min
-//                        novo max: max
-
-//                        COMO MAPEAR ESSA MUDANÇA????????
-                        realType.setReal(map(realType.getRealDouble(), displayRangeMin, displayRangeMax, min, max));
-                    });
-                    return null;
+        IntStream.rangeClosed(1, stack.getSize())
+                .forEach(i -> {
+                    ImageProcessor ip = stack.getProcessor(i);
+                    log.info("setando aqui");
+                    log.info("max: " + max);
+                    ip.setMinAndMax(min, max);
                 });
+
+        imagePlus.updateAndDraw();
+
+//        LoopBuilder.setImages(dataset).multiThreaded()
+//                .forEachChunk(chunk -> {
+//                    chunk.forEachPixel(realType -> {
+////                        valor atual: realType.getRealDouble()
+////                        novo min: min
+////                        novo max: max
+//
+////                        COMO MAPEAR ESSA MUDANÇA????????
+//                        realType.setReal(map(realType.getRealDouble(), displayRangeMin, displayRangeMax, min, max));
+//                    });
+//                    return null;
+//                });
     }
 
     /**
