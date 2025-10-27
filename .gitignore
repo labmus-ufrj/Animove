@@ -4,3 +4,4 @@
 /target/*
 !/target/*.jar
 /.idea/
+/docs/site/
