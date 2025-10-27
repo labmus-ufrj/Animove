@@ -22,7 +22,7 @@ public abstract class ZFConfigs {
     private static final String analysisPath = prePath + "Analysis>";
 
     public static final String ffmpegPath = toolsPath + "FFmpeg";
-    public static final String avgPath = toolsPath + "Z project";
+    public static final String avgPath = toolsPath + "Z-project";
     public static final String imgCalcPath = toolsPath + "Image Calculator";
     public static final String helperPath = toolsPath + "Helper";
 
