@@ -69,14 +69,13 @@ public class ImageCalculator implements Command {
 
             grabber.start();
 
-            int totalFrames = grabber.getLengthInFrames();
+            int totalFrames = grabber.getLengthInFrames() - 1; // frame numbers are 0-indexed
+
             int actualStartFrame = Math.max(0, startFrame);
             int actualEndFrame = (endFrame <= 0 || endFrame > totalFrames) ? totalFrames : endFrame;
-
             if (actualStartFrame >= actualEndFrame) {
-                throw new Exception("Start frame must be less than the end frame.");
+                throw new Exception("Initial frame must be before end frame.");
             }
-
             int framesToProcess = actualEndFrame - actualStartFrame;
             statusService.showStatus("Processing " + framesToProcess + " frames from " + videoFile.getName());
 

@@ -1,6 +1,3 @@
--> some error occurs when processing the whole video with zproject (1998 out of 2001 frames or something)
-    - -> image calc is not waiting for completion before saying its done (probably the same thing some issue with OpenCV)
-
 -> proximo programa em python: image calculator!
 
 -> FFmpeg plugin repeats the first frame of videos converted to AVI (probably to all of them), doing it from blank->end
