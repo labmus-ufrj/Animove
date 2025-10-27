@@ -5,9 +5,12 @@ import ij.ImageJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.gui.Roi;
+import ij.measure.Measurements;
 import ij.plugin.frame.ContrastAdjuster;
 import ij.process.ColorProcessor;
 import ij.process.ImageProcessor;
+import ij.process.ImageStatistics;
+import ij.process.StackStatistics;
 import net.imagej.Dataset;
 import net.imagej.ImgPlus;
 import net.imagej.display.ImageDisplay;
@@ -45,14 +48,14 @@ public class ZFHelperMethods implements Command {
     @Parameter
     private StatusService statusService;
 
-    @Parameter(label = "min", min = "0", persist = false)
-    private int min = 0;
-
-    @Parameter(label = "max", min = "0", persist = false)
-    private int max = 255;
-
-    @Parameter(label = "value", min = "0", persist = false)
-    private int value = 128;
+//    @Parameter(label = "min", min = "0", persist = false)
+//    private int min = 0;
+//
+//    @Parameter(label = "max", min = "0", persist = false)
+//    private int max = 255;
+//
+//    @Parameter(label = "value", min = "0", persist = false)
+//    private int value = 128;
 
     @Override
     public void run() {
@@ -66,20 +69,52 @@ public class ZFHelperMethods implements Command {
 //            IJ.createImage("Untitled", "8-bit noise", 512, 512, 100).show();
 //            activeDisplay = imageDisplayService.getActiveImageDisplay();
 //        }
-//
-        apply(imagePlus, imagePlus.getProcessor(), min, max);
-        // FALTA ATUALIZAR A VIEW PARA O USUÁRIO VER A MUDANÇA!!
+
+//        {
+//            long init = System.currentTimeMillis();
+//            ImageStack stack = imagePlus.getStack();
+//            for (int i = 1; i <= stack.size(); i++) {
+////                stack.getProcessor(i).getStatistics(); takes too long
+//                ImageStatistics.getStatistics(stack.getProcessor(i), 0, null);
+//            }
+//            log.info("Time3: " + (System.currentTimeMillis() - init));
+//        }
+
+//        IJ.run(imagePlus, "Select None", "");
+//        otherwise we'll have a ROI-only histogram
+        ImageStatistics stats = new StackStatistics(imagePlus);
+        log.info(Arrays.toString(getMinAndMaxFromHistogram(stats.getHistogram())));
+
+//        apply(imagePlus, imagePlus.getProcessor(), min, max);
 
     }
 
-    void apply(ImagePlus imp, ImageProcessor ip, int min, int max) {
-//        min = (int) imp.getDisplayRangeMin();
-//        max = (int) imp.getDisplayRangeMax();
+    long[] getMinAndMaxFromHistogram(long[] data) {
+        long firstIndex = 0;
+        for (int i = 0; i < data.length; i++) {
+            if (data[i] != 0) {
+                firstIndex = i;
+                break;
+            }
+        }
+        for (int i = data.length - 1; i >= 0; i--) {
+            if (data[i] != 0) {
+                return new long[]{firstIndex, i};
+            }
+        }
+        return null; // won't happen
+    }
+
+    /**
+     * modified version of ij/plugin/filter/LutApplier.java
+     */
+    void apply(ImagePlus imp, double min, double max) {
         int depth = imp.getBitDepth();
         if (imp.getType() == ImagePlus.COLOR_RGB) {
-            applyRGBStack(imp);
+            applyRGBStack(imp, min, max);
             return;
         }
+        ImageProcessor ip = imp.getProcessor();
         ip.resetMinAndMax();
         int range = 256;
         if (depth == 16) {
@@ -103,9 +138,10 @@ public class ZFHelperMethods implements Command {
         if (depth == 16) {
             imp.setDisplayRange(0, range - 1);
         }
+        imp.updateAndDraw();
     }
 
-    void applyRGBStack(ImagePlus imp) {
+    void applyRGBStack(ImagePlus imp, double min, double max) {
         ImageStack stack = imp.getStack();
         IntStream.rangeClosed(1, stack.getSize())
                 .forEach(i -> {
@@ -122,7 +158,6 @@ public class ZFHelperMethods implements Command {
                     if (mask != null) ip.snapshot();
                     ip.applyTable(table);
                     ip.reset(mask);
-//                    ip.setMinAndMax(min, max);
                 });
     }
 
