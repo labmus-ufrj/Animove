@@ -5,7 +5,7 @@ repo_url: https://github.com/labmus-ufrj/tracking-plugin/
 repo_name: labmus-ufrj/tracking-plugin
 
 theme:
-  name: "material"
+  name: "material" # https://squidfunk.github.io/mkdocs-material/
 #  name: "readthedocs"
 #  prev_next_buttons_location : "top"
   icon:
