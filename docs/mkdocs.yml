@@ -1,10 +1,23 @@
 site_name: "ZF Utils"
 site_description: "A zero-cost, easy-to-use and high-resolution system to evaluate swimming performance in zebrafish adults and embryos"
 site_author: "LabMus - UFRJ"
+repo_url: https://github.com/labmus-ufrj/tracking-plugin/
+repo_name: labmus-ufrj/tracking-plugin
 
 theme:
-  name: "readthedocs"
-  prev_next_buttons_location : "top"
+  name: "material"
+#  name: "readthedocs"
+#  prev_next_buttons_location : "top"
+  icon:
+    logo: fontawesome/solid/fish
+    repo: fontawesome/brands/github
+  features:
+    - navigation.instant
+    - navigation.path
+    - navigation.tracking
+    - search.suggest
+    - search.highlight
+site_url: https://tracking-plugin.vercel.app/
 
 nav:
   - 'Home': 'index.md'
@@ -23,8 +36,8 @@ nav:
       - 'Calculate Score Gradient': 'analysis/score-gradient.md'
       - 'Calculate Score Sectors': 'analysis/score-sectors.md'
       - 'Embryos':
-          - 'Quantify Heatmap' : 'analysis/quantify-heatmap.md'
-          - 'Extract Frequency Data' : 'analysis/frequency-data.md'
+          - 'Quantify Heatmap': 'analysis/quantify-heatmap.md'
+          - 'Extract Frequency Data': 'analysis/frequency-data.md'
 
 markdown_extensions:
   - admonition # "note" or "warning" boxes
