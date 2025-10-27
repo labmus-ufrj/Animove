@@ -1,36 +1,16 @@
 package labmus.zebrafish_utils;
 
 import ij.IJ;
-import ij.ImageJ;
 import ij.ImagePlus;
 import ij.ImageStack;
-import ij.gui.Roi;
-import ij.measure.Measurements;
-import ij.plugin.frame.ContrastAdjuster;
-import ij.process.ColorProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ImageStatistics;
 import ij.process.StackStatistics;
-import net.imagej.Dataset;
-import net.imagej.ImgPlus;
-import net.imagej.display.ImageDisplay;
-import net.imagej.display.ImageDisplayService;
-import net.imglib2.Cursor;
-import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.img.display.imagej.ImageJFunctions;
-import net.imglib2.loops.LoopBuilder;
-import net.imglib2.type.numeric.RealType;
-import net.imglib2.type.numeric.integer.IntType;
-import org.scijava.app.StatusService;
 import org.scijava.command.Command;
 import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
-import org.scijava.ui.UIService;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.IntStream;
 
 /**
@@ -39,58 +19,36 @@ import java.util.stream.IntStream;
  */
 @Plugin(type = Command.class, menuPath = ZFConfigs.helperPath)
 public class ZFHelperMethods implements Command {
+
     @Parameter
     private LogService log;
     @Parameter
+    private ImagePlus imagePlus;
+    /*
+    @Parameter
     private UIService uiService;
     @Parameter
-    private ImagePlus imagePlus;
-    @Parameter
     private StatusService statusService;
-
-//    @Parameter(label = "min", min = "0", persist = false)
-//    private int min = 0;
-//
-//    @Parameter(label = "max", min = "0", persist = false)
-//    private int max = 255;
-//
-//    @Parameter(label = "value", min = "0", persist = false)
-//    private int value = 128;
+     */
 
     @Override
     public void run() {
         IJ.run("Console");
-
-
-//        IJ.run(imagePlus, "Select None", "");
-//        otherwise we'll have a ROI-only histogram
-        ImageStatistics stats = new StackStatistics(imagePlus);
-        log.info(Arrays.toString(getMinAndMaxFromHistogram(stats.getHistogram())));
-
-//        apply(imagePlus, imagePlus.getProcessor(), min, max);
-
+        autoAdjustBrightnessStack(imagePlus, false, log);
     }
 
-    long[] getMinAndMaxFromHistogram(long[] data) {
-        long firstIndex = 0;
-        for (int i = 0; i < data.length; i++) {
-            if (data[i] != 0) {
-                firstIndex = i;
-                break;
-            }
+    public static void autoAdjustBrightnessStack(ImagePlus imp, boolean useROI, LogService log) {
+        if (!useROI) {
+            IJ.run(imp, "Select None", "");
         }
-        for (int i = data.length - 1; i >= 0; i--) {
-            if (data[i] != 0) {
-                return new long[]{firstIndex, i};
-            }
-        }
-        return null; // won't happen
+        ImageStatistics stats = new StackStatistics(imp);
+        apply(imp, stats.min, stats.max);
     }
 
     /**
      * modified version of ij/plugin/filter/LutApplier.java
      */
-    void apply(ImagePlus imp, double min, double max) {
+    private static void apply(ImagePlus imp, double min, double max) {
         int depth = imp.getBitDepth();
         if (imp.getType() == ImagePlus.COLOR_RGB) {
             applyRGBStack(imp, min, max);
@@ -123,7 +81,7 @@ public class ZFHelperMethods implements Command {
         imp.updateAndDraw();
     }
 
-    void applyRGBStack(ImagePlus imp, double min, double max) {
+    private static void applyRGBStack(ImagePlus imp, double min, double max) {
         ImageStack stack = imp.getStack();
         IntStream.rangeClosed(1, stack.getSize())
                 .forEach(i -> {
@@ -132,7 +90,7 @@ public class ZFHelperMethods implements Command {
                 });
     }
 
-    void applyOtherStack(ImagePlus imp, ImageProcessor mask, int[] table) {
+    private static void applyOtherStack(ImagePlus imp, ImageProcessor mask, int[] table) {
         ImageStack stack = imp.getStack();
         IntStream.rangeClosed(1, stack.getSize())
                 .forEach(i -> {
