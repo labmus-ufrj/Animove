@@ -70,8 +70,6 @@ public class HeatmapVideo implements Command, Interactive {
         }
 
         Executors.newSingleThreadExecutor().submit(this::executeProcessing);
-
-        // juntar frames em um video
     }
 
     private void executeProcessing() {

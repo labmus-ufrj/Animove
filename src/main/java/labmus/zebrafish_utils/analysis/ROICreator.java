@@ -10,6 +10,7 @@ import net.imagej.display.ImageDisplay;
 import net.imagej.display.ImageDisplayService;
 import org.scijava.ItemVisibility;
 import org.scijava.command.Command;
+import org.scijava.command.DynamicCommand;
 import org.scijava.command.Interactive;
 import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
@@ -19,7 +20,7 @@ import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 
 @Plugin(type = Command.class, menuPath = ZFConfigs.roisPath)
-public class ROICreator implements Command, Interactive {
+public class ROICreator extends DynamicCommand implements Interactive {
     @Parameter
     private LogService log;
     @Parameter

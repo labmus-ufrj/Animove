@@ -1,7 +1,9 @@
 package labmus.zebrafish_utils.processing;
 
+import ij.IJ;
 import ij.plugin.FolderOpener;
 import labmus.zebrafish_utils.ZFConfigs;
+import net.imagej.display.ImageDisplay;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.OpenCVFrameConverter;
@@ -10,8 +12,11 @@ import org.bytedeco.opencv.opencv_core.Mat;
 import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
+import org.scijava.command.DynamicCommand;
 import org.scijava.command.Interactive;
+import org.scijava.event.EventService;
 import org.scijava.log.LogService;
+import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.ui.DialogPrompt;
@@ -25,6 +30,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -35,7 +42,7 @@ import static org.bytedeco.opencv.global.opencv_imgproc.cvtColor;
 import static org.opencv.core.Core.NORM_MINMAX;
 
 @Plugin(type = Command.class, menuPath = ZFConfigs.heatmapImages)
-public class HeatmapImages implements Command, Interactive {
+public class HeatmapImages extends DynamicCommand implements Interactive {
 
     @Parameter(label = "Input Video", style = FileWidget.OPEN_STYLE, callback = "updateOutputName", persist = false, required = false)
     private File inputFile;
@@ -45,6 +52,9 @@ public class HeatmapImages implements Command, Interactive {
 
     @Parameter(label = "Grayscale", persist = false)
     private boolean convertToGrayscale = false;
+
+    @Parameter(label = "Lookup Table", persist = false, initializer = "initLUT")
+    private String lut = "";
 
     @Parameter(label = "Don't save, open in ImageJ instead", persist = false, description = "Files won't be saved to the specified Output Folder. Instead, they'll be opened in ImageJ")
     private boolean openResultInstead = false;
@@ -64,7 +74,7 @@ public class HeatmapImages implements Command, Interactive {
     @Parameter(label = "End")
     private boolean doEndInterval = true;
 
-    @Parameter(label = "Interval")
+    @Parameter(label = "Interval", initializer = "")
     private String endInterval = "30601-36000";
 
     @Parameter(label = "Custom")
@@ -85,6 +95,8 @@ public class HeatmapImages implements Command, Interactive {
 
     @Override
     public void run() {
+        IJ.run("Console", "");
+        log.info(Arrays.toString(IJ.getLuts()));
     }
 
     private void generate() {
@@ -97,7 +109,6 @@ public class HeatmapImages implements Command, Interactive {
 
         Executors.newSingleThreadExecutor().submit(this::executeProcessing);
 
-        // juntar frames em um video
     }
 
     private void executeProcessing() {
@@ -249,5 +260,11 @@ public class HeatmapImages implements Command, Interactive {
             count++;
         }
         outputDir = testFile;
+    }
+
+    public void initLUT() {
+        final MutableModuleItem<String> item =
+                getInfo().getMutableInput("lut", String.class);
+        item.setChoices(Arrays.asList(IJ.getLuts()));
     }
 }
