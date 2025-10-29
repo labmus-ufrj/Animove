@@ -41,9 +41,6 @@ public class ROICreator implements Command, Interactive {
 
     @Override
     public void run() {
-        if (!checkForImage()) {
-            return;
-        }
         initUnit(imageDisplayService.getActiveImageDisplay());
     }
 

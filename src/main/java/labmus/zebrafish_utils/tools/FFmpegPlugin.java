@@ -100,14 +100,7 @@ public class FFmpegPlugin implements Command, Interactive {
      */
     @Override
     public void run() {
-        if (!ZFConfigs.checkJavaCV()) {
-            return; // if the user chooses to ignore this nothing will work anyway
-        }
-/*
-//          Debugging related stuff
-          FFmpegLogCallback.set();
-          ij.IJ.run("Console");
-*/
+//        FFmpegLogCallback.set();
     }
 
     /**
@@ -403,7 +396,7 @@ public class FFmpegPlugin implements Command, Interactive {
         log.info("Starting processing for: " + currentOutputFile.getName());
 
         Process process = pb.start();
-        try(BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))){
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             // Monitor progress
             String line;
             while ((line = reader.readLine()) != null) {

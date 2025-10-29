@@ -54,12 +54,6 @@ public class ImageCalculator implements Command {
     @Override
     public void run() {
 
-        if (!ZFConfigs.checkJavaCV()){
-            return;
-        }
-
-        ij.IJ.run("Console");
-
         if (!ensureFilesAreSelected()) {
             return;
         }

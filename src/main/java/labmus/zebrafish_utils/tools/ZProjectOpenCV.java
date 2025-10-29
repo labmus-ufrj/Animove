@@ -65,10 +65,6 @@ public class ZProjectOpenCV implements Command {
     @Override
     public void run() {
 
-        if (!ZFConfigs.checkJavaCV()) {
-            return;
-        }
-
         if (inputFile == null || !inputFile.exists()) {
             uiService.showDialog("Select a valid video file.", "Input Error");
             return;

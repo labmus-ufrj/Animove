@@ -85,13 +85,7 @@ public class ScoreAnalysis implements Command, Interactive, MouseListener, Mouse
 
     @Override
     public void run() {
-        if (!ZFConfigs.checkJavaCV()) {
-            return; // if the user chooses to ignore this nothing will work anyway
-        }
         IJ.setTool("rectangle"); // zoom and others get in the way
-
-//        ij.IJ.run("Console");
-//        IJ.run("Set Scale...", "distance=424.0755 known=130 unit=mm global");
     }
 
     private void loadFromXML() {

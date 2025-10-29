@@ -59,10 +59,6 @@ public class HeatmapVideo implements Command, Interactive {
 
     @Override
     public void run() {
-        if (!ZFConfigs.checkJavaCV()) {
-            return; // if the user chooses to ignore this nothing will work anyway
-        }
-//        ij.IJ.run("Console");
     }
 
     private void generate() {

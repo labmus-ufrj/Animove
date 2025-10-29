@@ -1,14 +1,97 @@
 package labmus.zebrafish_utils.tools;
 
+import ij.IJ;
+import ij.Macro;
+import ij.Menus;
+import ij.Prefs;
+import ij.plugin.frame.Recorder;
+import jdk.nashorn.internal.scripts.JO;
 import labmus.zebrafish_utils.ZFConfigs;
+import net.imagej.updater.CommandLine;
 import org.scijava.command.Command;
 import org.scijava.plugin.Plugin;
+import org.scijava.util.AppUtils;
+
+import javax.swing.*;
+import java.util.Arrays;
+import java.util.Hashtable;
 
 @Plugin(type = Command.class, menuPath = ZFConfigs.checkDepsPath)
-public class CheckDependencies implements Command{
+public class CheckDependencies implements Command {
+
+    private static final String minimalRequiredVersion = "1.5.10";
+    private static final String components = "ffmpeg, opencv";
 
     @Override
     public void run() {
-        ZFConfigs.checkJavaCV();
+        if (checkJavaCV()) {
+            JOptionPane.showMessageDialog(
+                    null,
+                    "Dependencies installed successfully",
+                    "Success",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+        }
+    }
+
+    // adapted from https://github.com/anotherche/imagej-ffmpeg-video
+    // great project, check it out
+    public static boolean checkJavaCV() {
+
+        String javaCVInstallCommand = "Install JavaCV libraries";
+        Hashtable table = Menus.getCommands();
+        String javaCVInstallClassName = (String) table.get(javaCVInstallCommand);
+        if (javaCVInstallClassName == null) {
+//            int result = JOptionPane.showConfirmDialog(null,
+//                    "<html><h2>JavaCV Installer not found.</h2>"
+//                            + "<br>Please install it from from JavaCVInstaller update site:"
+//                            + "<br>https://sites.imagej.net/JavaCVInstaller/"
+//                            + "<br>Do you whant it to be installed now for you?"
+//                            + "<br><i>you need to restart ImageJ after the install</i></html>",
+//                    "JavaCV check", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+//            if (result == JOptionPane.YES_OPTION) {
+            net.imagej.updater.CommandLine updCmd = new net.imagej.updater.CommandLine(
+                    AppUtils.getBaseDirectory("ij.dir", CommandLine.class, "updater"), 80);
+            updCmd.addOrEditUploadSite("JavaCVInstaller", "https://sites.imagej.net/JavaCVInstaller/", null, null,
+                    false);
+            net.imagej.updater.CommandLine updCmd2 = new net.imagej.updater.CommandLine(
+                    AppUtils.getBaseDirectory("ij.dir", CommandLine.class, "updater"), 80);
+            updCmd2.update(Arrays.asList("plugins/JavaCV_Installer/JavaCV_Installer.jar"));
+            IJ.run("Refresh Menus");
+            table = Menus.getCommands();
+            javaCVInstallClassName = (String) table.get(javaCVInstallCommand);
+            if (javaCVInstallClassName == null) {
+                IJ.showMessage("JavaCV check",
+                        "Failed to install JavaCV Installer plugin.\nPlease install it manually\n from from JavaCVInstaller update site:\nhttps://sites.imagej.net/JavaCVInstaller.");
+            }
+//            }
+            IJ.showMessage("ZF Utils", "Almost done. Restart ImageJ and re-run ZF-Utils > Check Dependencies.");
+            return false;
+        }
+
+        String installerCommand = "version=" + minimalRequiredVersion + " select_installation_option=[Install missing] "
+                + "treat_selected_version_as_minimal_required " + components;
+
+        boolean saveRecorder = Recorder.record; // save state of the macro Recorder
+        Recorder.record = false; // disable the macro Recorder to avoid the JavaCV installer plugin being
+        // recorded instead of this plugin
+        String saveMacroOptions = Macro.getOptions();
+        IJ.run("Install JavaCV libraries", installerCommand);
+        if (saveMacroOptions != null)
+            Macro.setOptions(saveMacroOptions);
+        Recorder.record = saveRecorder; // restore the state of the macro Recorder
+
+        String result = Prefs.get("javacv.install_result", "");
+        String launcherResult = Prefs.get("javacv.install_result_launcher", "");
+        if (!(result.equalsIgnoreCase("success") && launcherResult.equalsIgnoreCase("success"))) {
+            if (result.indexOf("restart") > -1 || launcherResult.indexOf("restart") > -1) {
+                IJ.showMessage("ZF Utils", "Restart ImageJ to continue dependencies installation.");
+                return false;
+            } else {
+                IJ.log("JavaCV installation failed. Trying to use JavaCV as is...");
+                return true;
+            }
+        }
+        return true;
     }
 }
