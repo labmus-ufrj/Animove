@@ -9,3 +9,6 @@
 -> Extract Frequency Data
 -> Calculate Score Sectors
 -> Extract Tracking Data
+
+
+-> move ZFConfigs.checkJavaCV(); to ZFHelperMethods

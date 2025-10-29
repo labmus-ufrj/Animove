@@ -1,5 +1,6 @@
-package labmus.zebrafish_utils;
+package labmus.zebrafish_utils.tools;
 
+import labmus.zebrafish_utils.ZFConfigs;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.FFmpegFrameRecorder;
 import org.bytedeco.javacv.Frame;
@@ -14,6 +15,7 @@ import org.scijava.ui.UIService;
 import org.scijava.app.StatusService;
 
 import java.io.File;
+import java.util.concurrent.Executors;
 
 import static org.bytedeco.opencv.global.opencv_core.add;
 import static org.bytedeco.opencv.global.opencv_core.subtract;
@@ -63,6 +65,9 @@ public class ImageCalculator implements Command {
         }
 
         statusService.showStatus("Starting video processing...");
+
+        // this needs to be done in another thread...
+//        Executors.newSingleThreadExecutor().submit(this::executeProcessing);
 
         try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(videoFile);
              OpenCVFrameConverter.ToMat converter = new OpenCVFrameConverter.ToMat()) {

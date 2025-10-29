@@ -1,6 +1,7 @@
-package labmus.zebrafish_utils;
+package labmus.zebrafish_utils.tools;
 
 import ij.ImagePlus;
+import labmus.zebrafish_utils.ZFConfigs;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.OpenCVFrameConverter;

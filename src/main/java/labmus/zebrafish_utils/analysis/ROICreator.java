@@ -1,8 +1,9 @@
-package labmus.zebrafish_utils;
+package labmus.zebrafish_utils.analysis;
 
 import ij.IJ;
 import ij.ImagePlus;
 import ij.plugin.frame.RoiManager;
+import labmus.zebrafish_utils.ZFConfigs;
 import net.imagej.Dataset;
 import net.imagej.axis.CalibratedAxis;
 import net.imagej.display.ImageDisplay;

@@ -1,9 +1,9 @@
-package labmus.zebrafish_utils;
+package labmus.zebrafish_utils.tools;
 
 import ij.ImagePlus;
 import ij.gui.Roi;
 import ij.plugin.frame.RoiManager;
-import org.bytedeco.javacpp.Loader;
+import labmus.zebrafish_utils.ZFConfigs;
 import org.bytedeco.javacv.*;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;

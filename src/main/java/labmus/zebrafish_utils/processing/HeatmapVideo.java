@@ -1,6 +1,7 @@
-package labmus.zebrafish_utils;
+package labmus.zebrafish_utils.processing;
 
 import ij.plugin.FolderOpener;
+import labmus.zebrafish_utils.ZFConfigs;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.OpenCVFrameConverter;
@@ -129,7 +130,7 @@ public class HeatmapVideo implements Command, Interactive {
                                 0,               // Alpha: The minimum value of the target range
                                 65535,           // Beta: The maximum for 16-bit unsigned (2^16-1)
                                 NORM_MINMAX,     // Norm type: remains the same
-                                convertToGrayscale ? opencv_core.CV_16UC1 : opencv_core.CV_16UC3,        // Dtype: changed to 16-bit unsigned single channel
+                                convertToGrayscale ? opencv_core.CV_16UC1 : opencv_core.CV_16UC3,
                                 null        // Mask: optional
                         );
                         imwrite(filename, tempFrame);
@@ -142,6 +143,7 @@ public class HeatmapVideo implements Command, Interactive {
             }
 
             if (openResultInstead){
+                // open the folder with images as a virtual stack
                 uiService.show(FolderOpener.open(tempDir.getAbsolutePath(), "virtual"));
             } else {
                 createVideo(grabber.getFrameRate(), tempDir, grabber.getLengthInFrames() - 1);
@@ -174,7 +176,7 @@ public class HeatmapVideo implements Command, Interactive {
                 log.info(line);
             }
         }
-        process.waitFor();
+        process.waitFor(); // dw we have another thread
     }
 
     private Process createFFmpegProcess(double fps, File tempDir) throws IOException {

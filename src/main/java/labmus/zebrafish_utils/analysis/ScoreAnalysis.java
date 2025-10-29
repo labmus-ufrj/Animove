@@ -1,4 +1,4 @@
-package labmus.zebrafish_utils;
+package labmus.zebrafish_utils.analysis;
 
 import ij.IJ;
 import ij.ImagePlus;
@@ -7,8 +7,7 @@ import ij.gui.Roi;
 import ij.gui.ShapeRoi;
 import ij.measure.Calibration;
 import ij.measure.ResultsTable;
-import net.imagej.Dataset;
-import net.imagej.axis.CalibratedAxis;
+import labmus.zebrafish_utils.ZFConfigs;
 import org.scijava.command.Command;
 import org.scijava.command.Interactive;
 import org.scijava.log.LogService;
