@@ -1,6 +1,5 @@
 package labmus.zebrafish_utils.tools;
 
-import ij.IJ;
 import ij.ImagePlus;
 import labmus.zebrafish_utils.ZFConfigs;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
@@ -20,7 +19,6 @@ import org.scijava.ui.UIService;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
@@ -34,6 +32,7 @@ import static org.bytedeco.opencv.global.opencv_imgproc.cvtColor;
  * "Darkest (Min)", "Brightest (Max)", "Average", and "Sum". The plugin also supports optional conversion
  * to grayscale and can handle specific frame ranges for processing.
  */
+@SuppressWarnings({"FieldCanBeLocal"})
 @Plugin(type = Command.class, menuPath = ZFConfigs.avgPath)
 public class ZProjectOpenCV extends DynamicCommand {
 
@@ -90,7 +89,7 @@ public class ZProjectOpenCV extends DynamicCommand {
     private File outputFile;
 
     @Parameter(label = "Processing Mode", callback = "updateOutputName", initializer = "initProc", persist = false)
-    private String mode = "Darkest (Min)";
+    private String mode = "";
 
     @Parameter(label = "Convert to Grayscale", persist = false)
     private boolean convertToGrayscale = true;
@@ -118,7 +117,7 @@ public class ZProjectOpenCV extends DynamicCommand {
         statusService.showStatus(0, 100, "Starting processing...");
 
         try {
-            Mat resultMat = something(OperationMode.fromText(mode), inputFile, convertToGrayscale, startFrame, endFrame, statusService, log);
+            Mat resultMat = applyVideoOperation(OperationMode.fromText(mode), inputFile, convertToGrayscale, startFrame, endFrame, statusService);
 
             imwrite(outputFile.getAbsolutePath(), resultMat);
 
@@ -137,135 +136,6 @@ public class ZProjectOpenCV extends DynamicCommand {
             log.error(e);
             uiService.showDialog("A fatal error occurred during processing: \n" + e.getMessage(), "Plugin Error", DialogPrompt.MessageType.ERROR_MESSAGE);
         }
-
-        /*
-        try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile)) {
-
-            grabber.start();
-
-            int totalFrames = grabber.getLengthInFrames() - 1; // frame numbers are 0-indexed
-
-            int actualStartFrame = Math.max(0, startFrame); // TODO: i think this sould be startFrame - 1
-            int actualEndFrame = (endFrame <= 0 || endFrame > totalFrames) ? totalFrames : endFrame;
-            if (actualStartFrame >= actualEndFrame) {
-                throw new Exception("Initial frame must be before end frame.");
-            }
-            int framesToProcess = actualEndFrame - actualStartFrame;
-
-            statusService.showStatus("Processing " + (framesToProcess) + " frames from " + inputFile.getName());
-
-            grabber.setFrameNumber(actualStartFrame);
-
-
-            // it's better to declare these two here
-            // for secret and random memory things
-            Frame jcvFrame;
-            Mat currentFrame;
-            Mat accumulator = null;
-            int framesProcessedCount = 0;
-
-            for (int i = actualStartFrame; i < actualEndFrame; i++) {
-                jcvFrame = grabber.grabImage();
-                if (jcvFrame == null || jcvFrame.image == null) {
-                    uiService.showDialog("Read terminated prematurely at frame " + i, "Plugin Error", DialogPrompt.MessageType.ERROR_MESSAGE);
-                    break;
-                }
-
-                // No one knows why, and it took a few days to figure out why, but
-                // you NEED a new converter every frame here. Dw about it, it doesn't leak.
-                try (OpenCVFrameConverter.ToMat cnv = new OpenCVFrameConverter.ToMat()) {
-                    Mat currentFrameColor = cnv.convert(jcvFrame);
-
-                    // check if we should be converting to grayscale
-                    if (convertToGrayscale && currentFrameColor.channels() > 1) {
-                        currentFrame = new Mat();
-                        cvtColor(currentFrameColor, currentFrame, COLOR_BGR2GRAY);
-                    } else {
-                        currentFrame = currentFrameColor;
-                    }
-
-                    if (currentFrame == null || currentFrame.isNull()) continue;
-
-                    if (accumulator == null) {
-                        accumulator = new Mat();
-                        switch (OperationMode.valueOf(mode)) {
-                            case AVG:
-                                currentFrame.convertTo(accumulator, convertToGrayscale ? opencv_core.CV_32FC1 : opencv_core.CV_32FC3);
-                                break;
-                            case SUM:
-                                currentFrame.convertTo(accumulator, convertToGrayscale ? opencv_core.CV_32SC1 : opencv_core.CV_32SC3);
-                                break;
-                            default: // Darkest and Brightest
-                                // using convertTo() instead of clone() fixes the 180° flipping issue
-                                currentFrame.convertTo(accumulator, currentFrame.type());
-                                break;
-                        }
-                    } else {
-                        switch (OperationMode.valueOf(mode)) {
-                            case MIN:
-                                opencv_core.min(accumulator, currentFrame, accumulator);
-                                break;
-                            case MAX:
-                                opencv_core.max(accumulator, currentFrame, accumulator);
-                                break;
-                            case AVG:
-                                try (Mat tempFloatFrame = new Mat()) {
-                                    currentFrame.convertTo(tempFloatFrame, convertToGrayscale ? opencv_core.CV_64FC1 : opencv_core.CV_64FC3);
-                                    opencv_core.add(accumulator, tempFloatFrame, accumulator);
-                                }
-                                break;
-                            case SUM:
-                                try (Mat tempIntFrame = new Mat()) {
-                                    currentFrame.convertTo(tempIntFrame, convertToGrayscale ? opencv_core.CV_32SC1 : opencv_core.CV_32SC3);
-                                    opencv_core.add(accumulator, tempIntFrame, accumulator);
-                                }
-                                break;
-                        }
-                    }
-
-                    currentFrame.close();
-                    currentFrameColor.close();
-                    framesProcessedCount++;
-                    statusService.showProgress(framesProcessedCount, framesToProcess);
-                    statusService.showStatus(String.format("Processing frame %d/%d...", framesProcessedCount, framesToProcess));
-                }
-            }
-
-            if (accumulator == null) {
-                throw new Exception("No frames were processed.");
-            }
-
-            Mat resultMat;
-            if (mode.equals("Average")) {
-                resultMat = new Mat();
-                double scale = 1.0 / framesProcessedCount;
-                accumulator.convertTo(resultMat, opencv_core.CV_8UC3, scale, 0);
-            } else {
-                resultMat = accumulator;
-            }
-
-            imwrite(outputFile.getAbsolutePath(), resultMat);
-
-            if (resultMat != accumulator) {
-                resultMat.close();
-            }
-            accumulator.close();
-
-
-            if (openResult) {
-                uiService.show(new ImagePlus(outputFile.getAbsolutePath()));
-            }
-
-            log.info("Processing done.");
-            uiService.showDialog("Image saved as " + outputFile.getAbsolutePath(),
-                    "Processing Done", DialogPrompt.MessageType.INFORMATION_MESSAGE);
-            statusService.clearStatus();
-
-        } catch (Exception e) {
-            log.error(e);
-            uiService.showDialog("A fatal error occurred during processing: \n" + e.getMessage(), "Plugin Error", DialogPrompt.MessageType.ERROR_MESSAGE);
-        }
-        */
     }
 
     /**
@@ -280,13 +150,13 @@ public class ZProjectOpenCV extends DynamicCommand {
      * @param mode               The operation mode to apply to the frames (MIN, MAX, AVG, SUM).
      * @param inputFile          The input video file.
      * @param convertToGrayscale Whether to convert the frames to grayscale before processing.
-     * @param startFrame         The starting frame of the range to process (inclusive). TODO: inclusive??
-     * @param endFrame           The ending frame of the range to process (exclusive). TODO: exclusive??
+     * @param startFrame         The starting frame of the range to process (one-indexed, inclusive).
+     * @param endFrame           The ending frame of the range to process (one-indexed, inclusive).
      * @param statusService      Service for displaying status and progress updates. (nullable)
      * @return The resulting processed image as a Mat object.
      * @throws Exception If the operation cannot be completed (e.g., invalid frame range, no frames processed).
      */
-    public static Mat something(OperationMode mode, File inputFile, boolean convertToGrayscale, int startFrame, int endFrame, StatusService statusService, LogService log) throws Exception {
+    public static Mat applyVideoOperation(OperationMode mode, File inputFile, boolean convertToGrayscale, int startFrame, int endFrame, StatusService statusService) throws Exception {
         try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile)) {
 
             grabber.start();
@@ -295,7 +165,6 @@ public class ZProjectOpenCV extends DynamicCommand {
 
             int actualStartFrame = Math.max(0, startFrame - 1);
             int actualEndFrame = (endFrame-1 <= 0 || endFrame-1 > totalFrames) ? totalFrames : endFrame-1;
-            log.info("[ "+actualStartFrame+" - "+actualEndFrame+" ]" );
             if (actualStartFrame >= actualEndFrame) {
                 throw new Exception("Initial frame must be before end frame.");
             }
@@ -444,5 +313,6 @@ public class ZProjectOpenCV extends DynamicCommand {
         final MutableModuleItem<String> item =
                 getInfo().getMutableInput("mode", String.class);
         item.setChoices(Arrays.stream(OperationMode.values()).map(OperationMode::getText).collect(Collectors.toList()));
+//        this.mode = OperationMode.MIN.getText();
     }
 }
