@@ -94,6 +94,9 @@ public class ZProjectOpenCV extends DynamicCommand {
     @Parameter(label = "Convert to Grayscale", persist = false)
     private boolean convertToGrayscale = true;
 
+    @Parameter(label = "Invert before operation", persist = false)
+    private boolean invertVideo = true;
+
     @Parameter(label = "Initial Frame", min = "1", description = "inclusive", persist = false)
     private int startFrame = 1;
 
@@ -117,7 +120,7 @@ public class ZProjectOpenCV extends DynamicCommand {
         statusService.showStatus(0, 100, "Starting processing...");
 
         try {
-            Mat resultMat = applyVideoOperation(OperationMode.fromText(mode), inputFile, convertToGrayscale, startFrame, endFrame, statusService);
+            Mat resultMat = applyVideoOperation(OperationMode.fromText(mode), inputFile, convertToGrayscale, invertVideo, startFrame, endFrame, statusService);
 
             imwrite(outputFile.getAbsolutePath(), resultMat);
 
@@ -156,7 +159,7 @@ public class ZProjectOpenCV extends DynamicCommand {
      * @return The resulting processed image as a Mat object.
      * @throws Exception If the operation cannot be completed (e.g., invalid frame range, no frames processed).
      */
-    public static Mat applyVideoOperation(OperationMode mode, File inputFile, boolean convertToGrayscale, int startFrame, int endFrame, StatusService statusService) throws Exception {
+    public static Mat applyVideoOperation(OperationMode mode, File inputFile, boolean convertToGrayscale, boolean invertVideo, int startFrame, int endFrame, StatusService statusService) throws Exception {
         try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile)) {
 
             grabber.start();
@@ -205,6 +208,9 @@ public class ZProjectOpenCV extends DynamicCommand {
                     }
 
                     if (currentFrame == null || currentFrame.isNull()) continue;
+
+                    if (invertVideo)
+                        opencv_core.bitwise_not(currentFrame, currentFrame);
 
                     if (accumulator == null) {
                         accumulator = new Mat();

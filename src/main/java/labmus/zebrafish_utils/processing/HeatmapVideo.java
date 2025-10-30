@@ -2,6 +2,7 @@ package labmus.zebrafish_utils.processing;
 
 import ij.plugin.FolderOpener;
 import labmus.zebrafish_utils.ZFConfigs;
+import labmus.zebrafish_utils.tools.ZProjectOpenCV;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.OpenCVFrameConverter;
@@ -37,8 +38,9 @@ public class HeatmapVideo implements Command, Interactive {
 
     static {
         // this runs on a Menu click
-        // reduces loading time for FFmpegFrameGrabber
+        // reduces loading time for FFmpegFrameGrabber and for OpenCV
         Executors.newSingleThreadExecutor().submit(() -> ZFConfigs.ffmpeg);
+        Executors.newSingleThreadExecutor().submit(OpenCVFrameConverter.ToMat::new);
     }
 
     @Parameter(label = "Input Video", style = FileWidget.OPEN_STYLE, callback = "updateOutputName", persist = false, required = false)
@@ -79,16 +81,13 @@ public class HeatmapVideo implements Command, Interactive {
     }
 
     private void executeProcessing() {
-        File tempDir = new File(System.getProperty("java.io.tmpdir") + File.separator + System.currentTimeMillis());
-        if (!tempDir.mkdir()) {
-            uiService.showDialog("Could not create temporary directory for processing.",
-                    "Error", DialogPrompt.MessageType.ERROR_MESSAGE);
-            return;
-        }
-        tempDir.deleteOnExit();
+        File tempDir = createTempDir();
+        if (tempDir == null) return;
 
         log.info("Temp dir: " + tempDir.getAbsolutePath());
 
+        // this is better than just calling ZProjectOpenCV.applyVideoOperation() on every frame
+        // we are using the same accumulator, its less compute-intensive.
         try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile);
              Mat accumulator = new Mat()) {
 
@@ -156,6 +155,17 @@ public class HeatmapVideo implements Command, Interactive {
             log.error(e);
             uiService.showDialog("A fatal error occurred during processing: \n" + e.getMessage(), "Plugin Error", DialogPrompt.MessageType.ERROR_MESSAGE);
         }
+    }
+
+    private File createTempDir() {
+        File tempDir = new File(System.getProperty("java.io.tmpdir") + File.separator + System.currentTimeMillis());
+        if (!tempDir.mkdir()) {
+            uiService.showDialog("Could not create temporary directory for processing.",
+                    "Error", DialogPrompt.MessageType.ERROR_MESSAGE);
+            return null;
+        }
+        tempDir.deleteOnExit();
+        return tempDir;
     }
 
     private void createVideo(double fps, File tempDir, int totalFramesToProcess) throws IOException, InterruptedException {
