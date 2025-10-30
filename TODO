@@ -10,5 +10,6 @@
 -> Calculate Score Sectors
 -> Extract Tracking Data
 
+-> test Zproject OpenCV mak sure it still works
 
 -> move ZFConfigs.checkJavaCV(); to ZFHelperMethods

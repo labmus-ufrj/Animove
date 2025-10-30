@@ -1,6 +1,7 @@
 package labmus.zebrafish_utils.processing;
 
 import ij.IJ;
+import ij.ImagePlus;
 import ij.plugin.FolderOpener;
 import labmus.zebrafish_utils.ZFConfigs;
 import net.imagej.display.ImageDisplay;
@@ -112,7 +113,7 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
     }
 
     private void executeProcessing() {
-
+    // ver o que o zprojectCV faz
 
 
         File tempDir = new File(System.getProperty("java.io.tmpdir") + File.separator + System.currentTimeMillis());
