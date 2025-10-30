@@ -26,6 +26,12 @@ import static org.bytedeco.opencv.global.opencv_imgproc.cvtColor;
 @Plugin(type = Command.class, menuPath = ZFConfigs.imgCalcPath)
 public class ImageCalculator implements Command {
 
+    static {
+        // this runs on a Menu click
+        // reduces loading time for FFmpegFrameGrabber
+        Executors.newSingleThreadExecutor().submit(() -> ZFConfigs.ffmpeg);
+    }
+
     @Parameter
     private UIService uiService;
     @Parameter

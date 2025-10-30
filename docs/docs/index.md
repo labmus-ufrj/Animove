@@ -30,4 +30,4 @@ This software is provided under [GPLv3 license](https://www.gnu.org/licenses/gpl
 * This software is provided without a warranty.
 * The software author or license cannot be held liable for any damages inflicted by the software.
 
-(from [here](https://gist.github.com/kn9ts/cbe95340d29fc1aaeaa5dd5c059d2e60))
+([source](https://gist.github.com/kn9ts/cbe95340d29fc1aaeaa5dd5c059d2e60))

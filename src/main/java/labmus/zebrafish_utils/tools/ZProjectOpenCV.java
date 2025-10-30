@@ -21,6 +21,7 @@ import org.scijava.ui.UIService;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import static org.bytedeco.opencv.global.opencv_imgcodecs.imwrite;
@@ -35,6 +36,12 @@ import static org.bytedeco.opencv.global.opencv_imgproc.cvtColor;
  */
 @Plugin(type = Command.class, menuPath = ZFConfigs.avgPath)
 public class ZProjectOpenCV extends DynamicCommand {
+
+    static {
+        // this runs on a Menu click
+        // reduces loading time for FFmpegFrameGrabber
+        Executors.newSingleThreadExecutor().submit(() -> ZFConfigs.ffmpeg);
+    }
 
     public enum OperationMode {
         MIN("Darkest (Min)"),
@@ -88,10 +95,10 @@ public class ZProjectOpenCV extends DynamicCommand {
     @Parameter(label = "Convert to Grayscale", persist = false)
     private boolean convertToGrayscale = true;
 
-    @Parameter(label = "Initial Frame", min = "0", persist = false)
-    private int startFrame = 0;
+    @Parameter(label = "Initial Frame", min = "1", description = "inclusive", persist = false)
+    private int startFrame = 1;
 
-    @Parameter(label = "End Frame (0 = whole video)", min = "0", persist = false)
+    @Parameter(label = "End Frame (0 = whole video)", min = "0", description = "inclusive", persist = false)
     private int endFrame = 0;
 
     @Parameter(label = "Open processed image", persist = false)
@@ -110,8 +117,8 @@ public class ZProjectOpenCV extends DynamicCommand {
         }
         statusService.showStatus(0, 100, "Starting processing...");
 
-        try{
-            Mat resultMat = something(OperationMode.fromText(mode), inputFile, convertToGrayscale, startFrame, endFrame, statusService);
+        try {
+            Mat resultMat = something(OperationMode.fromText(mode), inputFile, convertToGrayscale, startFrame, endFrame, statusService, log);
 
             imwrite(outputFile.getAbsolutePath(), resultMat);
 
@@ -267,7 +274,7 @@ public class ZProjectOpenCV extends DynamicCommand {
      * resulting image to the output file.
      * Optionally converts the frames to grayscale, operates on a specific frame range,
      * and displays the result.
-     *
+     * <p>
      * YOU ABSOLUTELY NEED TO CALL .close() ON THE Mat WHEN YOU ARE DONE WITH IT!!!!
      *
      * @param mode               The operation mode to apply to the frames (MIN, MAX, AVG, SUM).
@@ -279,15 +286,16 @@ public class ZProjectOpenCV extends DynamicCommand {
      * @return The resulting processed image as a Mat object.
      * @throws Exception If the operation cannot be completed (e.g., invalid frame range, no frames processed).
      */
-    public static Mat something(OperationMode mode, File inputFile, boolean convertToGrayscale, int startFrame, int endFrame, StatusService statusService) throws Exception {
+    public static Mat something(OperationMode mode, File inputFile, boolean convertToGrayscale, int startFrame, int endFrame, StatusService statusService, LogService log) throws Exception {
         try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile)) {
 
             grabber.start();
 
             int totalFrames = grabber.getLengthInFrames() - 1; // frame numbers are 0-indexed
 
-            int actualStartFrame = Math.max(0, startFrame); // TODO: i think this sould be startFrame - 1
-            int actualEndFrame = (endFrame <= 0 || endFrame > totalFrames) ? totalFrames : endFrame;
+            int actualStartFrame = Math.max(0, startFrame - 1);
+            int actualEndFrame = (endFrame-1 <= 0 || endFrame-1 > totalFrames) ? totalFrames : endFrame-1;
+            log.info("[ "+actualStartFrame+" - "+actualEndFrame+" ]" );
             if (actualStartFrame >= actualEndFrame) {
                 throw new Exception("Initial frame must be before end frame.");
             }
@@ -305,8 +313,10 @@ public class ZProjectOpenCV extends DynamicCommand {
             Mat currentFrame;
             Mat accumulator = null;
             int framesProcessedCount = 0;
+            int frameType = convertToGrayscale ? opencv_core.CV_32FC1 : opencv_core.CV_32FC3; // using float for everyone is safer
 
             for (int i = actualStartFrame; i < actualEndFrame; i++) {
+//                log.info("zero indexed frame n: "+i + " - actual fn: "+(i+1));
                 jcvFrame = grabber.grabImage();
                 if (jcvFrame == null || jcvFrame.image == null) {
                     throw new Exception("Read terminated prematurely at frame " + i);
@@ -331,10 +341,10 @@ public class ZProjectOpenCV extends DynamicCommand {
                         accumulator = new Mat();
                         switch (mode) {
                             case AVG:
-                                currentFrame.convertTo(accumulator, convertToGrayscale ? opencv_core.CV_32FC1 : opencv_core.CV_32FC3);
+                                currentFrame.convertTo(accumulator, frameType);
                                 break;
                             case SUM:
-                                currentFrame.convertTo(accumulator, convertToGrayscale ? opencv_core.CV_32SC1 : opencv_core.CV_32SC3);
+                                currentFrame.convertTo(accumulator, frameType);
                                 break;
                             default: // Darkest and Brightest
                                 // using convertTo() instead of clone() fixes the 180° flipping issue
@@ -350,15 +360,10 @@ public class ZProjectOpenCV extends DynamicCommand {
                                 opencv_core.max(accumulator, currentFrame, accumulator);
                                 break;
                             case AVG:
-                                try (Mat tempFloatFrame = new Mat()) {
-                                    currentFrame.convertTo(tempFloatFrame, convertToGrayscale ? opencv_core.CV_64FC1 : opencv_core.CV_64FC3);
-                                    opencv_core.add(accumulator, tempFloatFrame, accumulator);
-                                }
-                                break;
                             case SUM:
-                                try (Mat tempIntFrame = new Mat()) {
-                                    currentFrame.convertTo(tempIntFrame, convertToGrayscale ? opencv_core.CV_32SC1 : opencv_core.CV_32SC3);
-                                    opencv_core.add(accumulator, tempIntFrame, accumulator);
+                                try (Mat tempFloatFrame = new Mat()) {
+                                    currentFrame.convertTo(tempFloatFrame, frameType);
+                                    opencv_core.add(accumulator, tempFloatFrame, accumulator);
                                 }
                                 break;
                         }
@@ -367,7 +372,7 @@ public class ZProjectOpenCV extends DynamicCommand {
                     currentFrame.close();
                     currentFrameColor.close();
                     framesProcessedCount++;
-                    if (statusService != null){
+                    if (statusService != null) {
                         statusService.showProgress(framesProcessedCount, framesToProcess);
                         statusService.showStatus(String.format("Processing frame %d/%d...", framesProcessedCount, framesToProcess));
                     }
@@ -382,7 +387,7 @@ public class ZProjectOpenCV extends DynamicCommand {
             if (mode == OperationMode.AVG) {
                 resultMat = new Mat();
                 double scale = 1.0 / framesProcessedCount;
-                accumulator.convertTo(resultMat, opencv_core.CV_8UC3, scale, 0);
+                accumulator.convertTo(resultMat, convertToGrayscale ? opencv_core.CV_8SC1 : opencv_core.CV_8SC3, scale, 0); // TODO: figure out how if avg sould be saved as 32/16/8 bits
             } else {
                 resultMat = accumulator;
             }
@@ -435,7 +440,7 @@ public class ZProjectOpenCV extends DynamicCommand {
         outputFile = testFile;
     }
 
-    public void initProc(){
+    public void initProc() {
         final MutableModuleItem<String> item =
                 getInfo().getMutableInput("mode", String.class);
         item.setChoices(Arrays.stream(OperationMode.values()).map(OperationMode::getText).collect(Collectors.toList()));

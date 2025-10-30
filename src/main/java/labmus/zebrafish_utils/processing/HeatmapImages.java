@@ -45,6 +45,12 @@ import static org.opencv.core.Core.NORM_MINMAX;
 @Plugin(type = Command.class, menuPath = ZFConfigs.heatmapImages)
 public class HeatmapImages extends DynamicCommand implements Interactive {
 
+    static {
+        // this runs on a Menu click
+        // reduces loading time for FFmpegFrameGrabber
+        Executors.newSingleThreadExecutor().submit(() -> ZFConfigs.ffmpeg);
+    }
+
     @Parameter(label = "Input Video", style = FileWidget.OPEN_STYLE, callback = "updateOutputName", persist = false, required = false)
     private File inputFile;
 

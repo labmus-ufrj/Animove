@@ -47,6 +47,12 @@ import static org.bytedeco.ffmpeg.global.avutil.*;
 @Plugin(type = Command.class, menuPath = ZFConfigs.ffmpegPath)
 public class FFmpegPlugin implements Command, Interactive {
 
+    static {
+        // this runs on a Menu click
+        // reduces loading time for FFmpegFrameGrabber
+        Executors.newSingleThreadExecutor().submit(() -> ZFConfigs.ffmpeg);
+    }
+
     @Parameter
     private LogService log;
     @Parameter
