@@ -12,6 +12,7 @@ The operations available mimic ImageJ's built-in **Image → Stacks → Z projec
 * Darkest (Min)
 * Brightest (Max)
 * Average
+    * Always saved as 32-bit
 * Sum
     * Always saved as 32-bit
 
@@ -20,6 +21,9 @@ If activated, will merge all image channels to a single one (usually this is the
 If not, the resulting image will have separate channels, which may or may not be interpreted as RGB by your software.
 
 The conversion is [handled by OpenCV](https://docs.opencv.org/4.12.0/de/d25/imgproc_color_conversions.html), using the proportions: 0.114 * B + 0.587 * G + 0.229 * R
+
+## Invert before operation
+Invert each frame before performing the operation.
 
 ## Initial Frame
 One-indexed frame number. Inclusive. Can be visualized as opening the video in ImageJ and looking at the slice number.

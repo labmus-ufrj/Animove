@@ -262,7 +262,7 @@ public class ZProjectOpenCV extends DynamicCommand {
             if (mode == OperationMode.AVG) {
                 resultMat = new Mat();
                 double scale = 1.0 / framesProcessedCount;
-                accumulator.convertTo(resultMat, convertToGrayscale ? opencv_core.CV_8SC1 : opencv_core.CV_8SC3, scale, 0); // TODO: figure out how if avg sould be saved as 32/16/8 bits
+                accumulator.convertTo(resultMat, convertToGrayscale ? opencv_core.CV_32SC1 : opencv_core.CV_32SC3, scale, 0);
             } else {
                 resultMat = accumulator;
             }

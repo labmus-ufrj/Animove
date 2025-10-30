@@ -12,7 +12,7 @@ Using Fiji as its backbone, it inherits its multi-platform capabilities. Bytedec
 
 This project was developed at the Laboratório de Diferenciação Muscular e Citoesqueleto (Instituto de ciências biomédicas, UFRJ).
 
-**Authors:** Murilo Nespolo Spineli, Paloma Vieira, Cláudia Mermelstein and Manoel Luis Costa.
+**Authors:** Murilo Nespolo Spineli, Paloma Vieira, Claudia Mermelstein and Manoel Luis Costa.
 
 ## License
 

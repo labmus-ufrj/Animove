@@ -10,7 +10,4 @@
 -> Calculate Score Sectors
 -> Extract Tracking Data
 
--> test Zproject OpenCV mak sure it still works
-    AVG seems broken
-
--> move ZFConfigs.checkJavaCV(); to ZFHelperMethods
+-> add frame interval to heatmap video

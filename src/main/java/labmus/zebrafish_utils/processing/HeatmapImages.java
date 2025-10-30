@@ -1,27 +1,16 @@
 package labmus.zebrafish_utils.processing;
 
 import ij.IJ;
-import ij.ImagePlus;
-import ij.plugin.FolderOpener;
 import labmus.zebrafish_utils.ZFConfigs;
 import labmus.zebrafish_utils.tools.ZProjectOpenCV;
-import net.imagej.Dataset;
-import net.imagej.display.ImageDisplay;
-import org.bytedeco.javacv.FFmpegFrameGrabber;
-import org.bytedeco.javacv.Frame;
-import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.opencv_core.Mat;
-import org.scijava.Context;
-import org.scijava.ItemVisibility;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
 import org.scijava.command.DynamicCommand;
 import org.scijava.command.Interactive;
-import org.scijava.convert.ConvertService;
 import org.scijava.display.DisplayService;
-import org.scijava.event.EventService;
 import org.scijava.log.LogService;
 import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
@@ -31,24 +20,14 @@ import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 import org.scijava.widget.FileWidget;
 
-import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.file.Files;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.Executors;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static org.bytedeco.opencv.global.opencv_imgcodecs.imwrite;
-import static org.bytedeco.opencv.global.opencv_imgproc.COLOR_BGR2GRAY;
-import static org.bytedeco.opencv.global.opencv_imgproc.cvtColor;
-import static org.opencv.core.Core.NORM_MINMAX;
 
+@SuppressWarnings({"FieldCanBeLocal"})
 @Plugin(type = Command.class, menuPath = ZFConfigs.heatmapImages)
 public class HeatmapImages extends DynamicCommand implements Interactive {
 
@@ -131,9 +110,9 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
     }
 
     private void executeProcessing() {
-        // ver o que o zprojectCV faz
 
         try {
+
             File tempDir = createTempDir();
             log.info("Temp dir: " + tempDir.getAbsolutePath());
 
@@ -157,6 +136,9 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
                 imwrite(file.getAbsolutePath(), mat);
 
                 // how will you apply LUT???
+
+                opencv_core.LUT();
+
 
                 if(openResultInstead){
                     file.deleteOnExit();
