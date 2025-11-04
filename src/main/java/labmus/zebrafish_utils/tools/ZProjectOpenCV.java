@@ -302,12 +302,12 @@ public class ZProjectOpenCV extends DynamicCommand {
 
         String parentDir = inputFile.getParent();
         String baseName = inputFile.getName().replaceFirst("[.][^.]+$", "");
-        File testFile = new File(parentDir, baseName + suffix + ".tiff");
+        File testFile = new File(parentDir, baseName + suffix + ".tif");
 
         int count = 2;
         while (testFile.exists()) {
             // naming the file with a sequential number to avoid overwriting
-            testFile = new File(parentDir, baseName + suffix + count + ".tiff");
+            testFile = new File(parentDir, baseName + suffix + count + ".tif");
             count++;
         }
         outputFile = testFile;

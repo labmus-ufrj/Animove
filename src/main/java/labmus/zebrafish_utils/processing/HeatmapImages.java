@@ -93,7 +93,7 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
 
     @Override
     public void run() {
-        IJ.run("Console", "");
+//        IJ.run("Console", "");
     }
 
     private void generate() {
@@ -131,7 +131,7 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
                 Mat mat = ZProjectOpenCV.applyVideoOperation(ZProjectOpenCV.OperationMode.SUM,
                         inputFile, convertToGrayscale, invertVideo,Integer.parseInt(a[0]), Integer.parseInt(a[1]), statusService);
 
-                File file = new File(tempDir.getAbsolutePath() + File.separator + interval + ".tiff");
+                File file = new File(tempDir.getAbsolutePath() + File.separator + interval + ".tif");
                 imwrite(file.getAbsolutePath(), mat);
 
 //               yes, there's a way to apply LUT using opencv_core.LUT();

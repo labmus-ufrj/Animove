@@ -43,3 +43,4 @@ markdown_extensions:
   - admonition # "note" or "warning" boxes
   - pymdownx.highlight # code syntax highlighting
   - pymdownx.superfences # code boxes
+  - attr_list
