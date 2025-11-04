@@ -14,6 +14,8 @@ import java.util.Arrays;
 import java.util.Hashtable;
 
 public abstract class ZFConfigs {
+    public static final String pluginName = "ZF Utils";
+
     public static final String ffmpeg = Loader.load(org.bytedeco.ffmpeg.ffmpeg.class);
 
     private static final String prePath = "ZF Utils>";

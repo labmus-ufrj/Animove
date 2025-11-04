@@ -4,7 +4,6 @@ import ij.IJ;
 import labmus.zebrafish_utils.ZFConfigs;
 import labmus.zebrafish_utils.tools.ZProjectOpenCV;
 import org.bytedeco.javacv.OpenCVFrameConverter;
-import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
@@ -24,6 +23,8 @@ import java.io.File;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.bytedeco.opencv.global.opencv_imgcodecs.imwrite;
 
@@ -71,7 +72,7 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
     @Parameter(label = "End")
     private boolean doEndInterval = true;
 
-    @Parameter(label = "Interval", initializer = "")
+    @Parameter(label = "Interval")
     private String endInterval = "30601-36000";
 
     @Parameter(label = "Custom")
@@ -83,8 +84,6 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
     @Parameter(label = "Process", callback = "generate")
     private Button btn1;
 
-    @Parameter
-    private DisplayService ds;
     @Parameter
     private UIService uiService;
     @Parameter
@@ -130,25 +129,37 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
                     throw new Exception("Invalid interval: " + interval);
                 }
                 Mat mat = ZProjectOpenCV.applyVideoOperation(ZProjectOpenCV.OperationMode.SUM,
-                        inputFile, convertToGrayscale, invertVideo,Integer.parseInt(a[0]), Integer.parseInt(a[1]), null);
+                        inputFile, convertToGrayscale, invertVideo,Integer.parseInt(a[0]), Integer.parseInt(a[1]), statusService);
 
                 File file = new File(tempDir.getAbsolutePath() + File.separator + interval + ".tiff");
                 imwrite(file.getAbsolutePath(), mat);
 
-                // how will you apply LUT???
+//               yes, there's a way to apply LUT using opencv_core.LUT();
+//               but there's no clear path to convert imageJ LUT's to a valid openCV LUT.
+//               maybe one day...
 
-                opencv_core.LUT();
-
-
-                if(openResultInstead){
+                if (lut.contains("Don't Change") && !openResultInstead){
+                    // I'm told moving files across drives (like C: and D:) might fail using the old java.io.File.
+                    // that's why I'm using java.nio here but nowhere else
+                    Files.move(file.toPath(), outputDir.toPath().resolve(file.getName()));
+                } else {
                     file.deleteOnExit();
                     IJ.open(file.getAbsolutePath());
-                    IJ.getImage().setTitle(interval);
-                } else {
-                    // I'm told moving files across drives (like C: and D:) might fail using the old File.
-                    // that's why I'm using nio here but nowhere else
-                    Files.move(file.toPath(), outputDir.toPath().resolve(file.getName()));
+                    IJ.getImage().setTitle(interval); // only needed if openResultInstead but costs nothing if ran rn
+                    if (!lut.contains("Don't Change")){
+                        IJ.run(IJ.getImage(), this.lut, "");
+                    }
+                    if (!openResultInstead) {
+                        // save image and close IJ window
+                        IJ.save(IJ.getImage(), outputDir.toPath().resolve(file.getName()).toString());
+                        IJ.getImage().close();
+                    }
                 }
+
+                if (!openResultInstead) {
+                    uiService.showDialog("Processing done", ZFConfigs.pluginName, DialogPrompt.MessageType.INFORMATION_MESSAGE);
+                }
+
                 mat.close();
 
             }
@@ -157,6 +168,7 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
             log.error(e);
             uiService.showDialog("A fatal error occurred during processing: \n" + e.getMessage(), "Plugin Error", DialogPrompt.MessageType.ERROR_MESSAGE);
         }
+
     }
 
     private File createTempDir() throws Exception {
@@ -179,6 +191,6 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
     public void initLUT() {
         final MutableModuleItem<String> item =
                 getInfo().getMutableInput("lut", String.class);
-        item.setChoices(Arrays.asList(IJ.getLuts()));
+        item.setChoices(Stream.concat(Stream.of("Don't Change"), Arrays.stream(IJ.getLuts())).collect(Collectors.toList()));
     }
 }

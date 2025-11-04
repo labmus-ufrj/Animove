@@ -167,14 +167,14 @@ public class ZProjectOpenCV extends DynamicCommand {
             int totalFrames = grabber.getLengthInFrames() - 1; // frame numbers are 0-indexed
 
             int actualStartFrame = Math.max(0, startFrame - 1);
-            int actualEndFrame = (endFrame-1 <= 0 || endFrame-1 > totalFrames) ? totalFrames : endFrame-1;
+            int actualEndFrame = (endFrame - 1 <= 0 || endFrame - 1 > totalFrames) ? totalFrames : endFrame - 1;
             if (actualStartFrame >= actualEndFrame) {
                 throw new Exception("Initial frame must be before end frame.");
             }
             int framesToProcess = actualEndFrame - actualStartFrame;
 
             if (statusService != null)
-                statusService.showStatus("Processing " + (framesToProcess) + " frames from " + inputFile.getName());
+                statusService.showStatus("Processing " + (framesToProcess) + " frames...");
 
             grabber.setFrameNumber(actualStartFrame);
 
@@ -216,8 +216,6 @@ public class ZProjectOpenCV extends DynamicCommand {
                         accumulator = new Mat();
                         switch (mode) {
                             case AVG:
-                                currentFrame.convertTo(accumulator, frameType);
-                                break;
                             case SUM:
                                 currentFrame.convertTo(accumulator, frameType);
                                 break;

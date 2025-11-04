@@ -42,6 +42,12 @@ import java.util.stream.Collectors;
 @Plugin(type = Command.class, menuPath = ZFConfigs.scorePath)
 public class ScoreAnalysis implements Command, Interactive, MouseListener, MouseMotionListener {
 
+    static {
+        // this runs on a Menu click
+        // reduces loading time for FFmpegFrameGrabber
+        Executors.newSingleThreadExecutor().submit(() -> ZFConfigs.ffmpeg);
+    }
+
     @Parameter(label = "XML File", style = FileWidget.OPEN_STYLE, persist = false, required = false)
     private File xmlFile;
 
@@ -115,11 +121,11 @@ public class ScoreAnalysis implements Command, Interactive, MouseListener, Mouse
             }
         }
 
-        rt.show("My Experiment Data");
+        rt.show("Scores from " + xmlFile.getName().split("\\.")[0]);
     }
 
     private List<ArrayList<Float>> iterateOverXML(boolean setMinMax) {
-        ArrayList<HashMap<Integer,Float>> trackScores = new ArrayList<>(); // the easy way not the right way
+        ArrayList<HashMap<Integer, Float>> trackScores = new ArrayList<>(); // the easy way not the right way
         try {
             if (!xmlFile.exists()) {
                 throw new Exception("Input file does not exist.");
@@ -151,7 +157,7 @@ public class ScoreAnalysis implements Command, Interactive, MouseListener, Mouse
 
             // Iterate over each <particle> element
             for (int i = 0; i < particleList.getLength(); i++) {
-                HashMap<Integer,Float> scores = new HashMap<>();
+                HashMap<Integer, Float> scores = new HashMap<>();
 //                ArrayList<Float> scores = new ArrayList<>();
                 Node particleNode = particleList.item(i);
 
@@ -206,19 +212,19 @@ public class ScoreAnalysis implements Command, Interactive, MouseListener, Mouse
 
     }
 
-    private List<ArrayList<Float>> fixMissingSpots(ArrayList<HashMap<Integer,Float>> trackScores) {
-        if (fixSpots){
+    private List<ArrayList<Float>> fixMissingSpots(ArrayList<HashMap<Integer, Float>> trackScores) {
+        if (fixSpots) {
             int biggestTime = trackScores.stream().mapToInt(hashmap ->
                     hashmap.keySet().stream().max(Comparator.naturalOrder()).get()).max().getAsInt(); // using this on a spotless track will crash it. dont do it ig
-            for (HashMap<Integer,Float> hashmap : trackScores) {
+            for (HashMap<Integer, Float> hashmap : trackScores) {
                 for (int i = 0; i <= biggestTime; i++) {
-                    if (!hashmap.containsKey(i) && hashmap.containsKey(i-1)) {
-                        hashmap.put(i, hashmap.get(i-1));
+                    if (!hashmap.containsKey(i) && hashmap.containsKey(i - 1)) {
+                        hashmap.put(i, hashmap.get(i - 1));
                     }
                 }
                 for (int i = biggestTime; i >= 0; i--) {
                     if (!hashmap.containsKey(i)) {
-                        hashmap.put(i, hashmap.get(i+1));
+                        hashmap.put(i, hashmap.get(i + 1));
                     }
                 }
             }
@@ -255,7 +261,7 @@ public class ScoreAnalysis implements Command, Interactive, MouseListener, Mouse
             ScheduledExecutorService scheduler =
                     Executors.newSingleThreadScheduledExecutor();
             scheduler.schedule(() -> {
-                if (videoFrame.getCanvas() != null){
+                if (videoFrame.getCanvas() != null) {
                     videoFrame.getCanvas().addMouseListener(this);
                     videoFrame.getCanvas().addMouseMotionListener(this);
                     drawOverlay();
@@ -299,7 +305,7 @@ public class ScoreAnalysis implements Command, Interactive, MouseListener, Mouse
         pb.redirectErrorStream(true);
 
         Process process = pb.start();
-        try(BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))){
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 log.info(line);

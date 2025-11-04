@@ -9,7 +9,10 @@ import jdk.nashorn.internal.scripts.JO;
 import labmus.zebrafish_utils.ZFConfigs;
 import net.imagej.updater.CommandLine;
 import org.scijava.command.Command;
+import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
+import org.scijava.ui.DialogPrompt;
+import org.scijava.ui.UIService;
 import org.scijava.util.AppUtils;
 
 import javax.swing.*;
@@ -19,24 +22,24 @@ import java.util.Hashtable;
 @Plugin(type = Command.class, menuPath = ZFConfigs.checkDepsPath)
 public class CheckDependencies implements Command {
 
+    @Parameter
+    private UIService uiService;
+
     private static final String minimalRequiredVersion = "1.5.10";
     private static final String components = "ffmpeg, opencv";
 
     @Override
     public void run() {
         if (checkJavaCV()) {
-            JOptionPane.showMessageDialog(
-                    null,
-                    "Dependencies installed successfully",
-                    "Success",
-                    JOptionPane.INFORMATION_MESSAGE
-            );
+            uiService.showDialog("Dependencies installed successfully",
+                    ZFConfigs.pluginName,
+                    DialogPrompt.MessageType.INFORMATION_MESSAGE);
         }
     }
 
     // adapted from https://github.com/anotherche/imagej-ffmpeg-video
     // great project, check it out
-    public static boolean checkJavaCV() {
+    private boolean checkJavaCV() {
 
         String javaCVInstallCommand = "Install JavaCV libraries";
         Hashtable table = Menus.getCommands();
@@ -61,11 +64,15 @@ public class CheckDependencies implements Command {
             table = Menus.getCommands();
             javaCVInstallClassName = (String) table.get(javaCVInstallCommand);
             if (javaCVInstallClassName == null) {
-                IJ.showMessage("JavaCV check",
-                        "Failed to install JavaCV Installer plugin.\nPlease install it manually\n from from JavaCVInstaller update site:\nhttps://sites.imagej.net/JavaCVInstaller.");
+                uiService.showDialog("Failed to install JavaCV Installer plugin.\nPlease install it manually\n from from JavaCVInstaller update site:\nhttps://sites.imagej.net/JavaCVInstaller.",
+                        ZFConfigs.pluginName,
+                        DialogPrompt.MessageType.ERROR_MESSAGE);
             }
 //            }
-            IJ.showMessage("ZF Utils", "Almost done. Restart ImageJ and re-run ZF-Utils > Check Dependencies.");
+
+            uiService.showDialog("Restart ImageJ and run Check Dependencies to continue dependencies installation.",
+                    ZFConfigs.pluginName,
+                    DialogPrompt.MessageType.INFORMATION_MESSAGE);
             return false;
         }
 
@@ -85,7 +92,9 @@ public class CheckDependencies implements Command {
         String launcherResult = Prefs.get("javacv.install_result_launcher", "");
         if (!(result.equalsIgnoreCase("success") && launcherResult.equalsIgnoreCase("success"))) {
             if (result.indexOf("restart") > -1 || launcherResult.indexOf("restart") > -1) {
-                IJ.showMessage("ZF Utils", "Restart ImageJ to continue dependencies installation.");
+                uiService.showDialog("Restart ImageJ and run Check Dependencies to continue dependencies installation.",
+                        ZFConfigs.pluginName,
+                        DialogPrompt.MessageType.INFORMATION_MESSAGE);
                 return false;
             } else {
                 IJ.log("JavaCV installation failed. Trying to use JavaCV as is...");
