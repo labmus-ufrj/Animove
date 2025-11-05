@@ -28,8 +28,9 @@ public class ImageCalculator implements Command {
 
     static {
         // this runs on a Menu click
-        // reduces loading time for FFmpegFrameGrabber
+        // reduces loading time for FFmpegFrameGrabber and for OpenCV
         Executors.newSingleThreadExecutor().submit(() -> ZFConfigs.ffmpeg);
+        Executors.newSingleThreadExecutor().submit(OpenCVFrameConverter.ToMat::new);
     }
 
     @Parameter
@@ -51,8 +52,8 @@ public class ImageCalculator implements Command {
     @Parameter(label = "Operation", choices = {"Add", "Subtract"}, persist = false)
     private String operation = "Add";
 
-    @Parameter(label = "Start Frame", min = "0", persist = false)
-    private int startFrame = 0;
+    @Parameter(label = "Start Frame", min = "1", persist = false)
+    private int startFrame = 1;
 
     @Parameter(label = "End Frame (0 for entire video)", min = "0", persist = false)
     private int endFrame = 0;
@@ -64,11 +65,12 @@ public class ImageCalculator implements Command {
             return;
         }
 
+        Executors.newSingleThreadExecutor().submit(this::executeProcessing);
+
+    }
+
+    private void executeProcessing() {
         statusService.showStatus("Starting video processing...");
-
-        // this needs to be done in another thread...
-//        Executors.newSingleThreadExecutor().submit(this::executeProcessing);
-
         try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(videoFile);
              OpenCVFrameConverter.ToMat converter = new OpenCVFrameConverter.ToMat()) {
 
@@ -76,13 +78,14 @@ public class ImageCalculator implements Command {
 
             int totalFrames = grabber.getLengthInFrames() - 1; // frame numbers are 0-indexed
 
-            int actualStartFrame = Math.max(0, startFrame);
-            int actualEndFrame = (endFrame <= 0 || endFrame > totalFrames) ? totalFrames : endFrame;
+            int actualStartFrame = Math.max(0, startFrame - 1);
+            int actualEndFrame = (endFrame - 1 <= 0 || endFrame - 1 > totalFrames) ? totalFrames : endFrame - 1;
             if (actualStartFrame >= actualEndFrame) {
                 throw new Exception("Initial frame must be before end frame.");
             }
             int framesToProcess = actualEndFrame - actualStartFrame;
-            statusService.showStatus("Processing " + framesToProcess + " frames from " + videoFile.getName());
+
+            statusService.showStatus("Processing " + (framesToProcess) + " frames...");
 
             grabber.setFrameNumber(actualStartFrame);
 
@@ -94,45 +97,44 @@ public class ImageCalculator implements Command {
             Mat grayImage = new Mat();
             cvtColor(image, grayImage, COLOR_BGR2GRAY);
 
-            try (FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile, grabber.getImageWidth(), grabber.getImageHeight(), grabber.getAudioChannels())) {
-                recorder.setFrameRate(grabber.getFrameRate());
-                recorder.setVideoCodec(grabber.getVideoCodec());
-                recorder.start();
+            SimpleRecorder simpleRecorder = new SimpleRecorder(outputFile, grabber);
+            simpleRecorder.start();
 
-                for (int i = 0; i < framesToProcess; i++) {
-                    Frame frame = grabber.grab();
-                    if (frame == null) {
-//                        break;
-                        log.info("you still gotta fix thisssss");
-                    }
-
-                    Mat matFrame = converter.convert(frame);
-                    Mat grayMatFrame = new Mat();
-                    cvtColor(matFrame, grayMatFrame, COLOR_BGR2GRAY);
-
-                    Mat resultFrame = new Mat();
-                    switch (operation) {
-                        case "Add":
-                            add(grayMatFrame, grayImage, resultFrame);
-                            break;
-                        case "Subtract":
-                            subtract(grayMatFrame, grayImage, resultFrame);
-                            break;
-                        default:
-                            break; // this is not happening lol
-                    }
-
-                    recorder.record(converter.convert(resultFrame));
-
-                    statusService.showProgress(i + 1, framesToProcess);
+            // it's better to declare these two here
+            // for secret and random memory things
+            Frame jcvFrame;
+            for (int i = actualStartFrame; i < actualEndFrame; i++) {
+                jcvFrame = grabber.grabImage();
+                if (jcvFrame == null || jcvFrame.image == null) {
+                    throw new Exception("Read terminated prematurely at frame " + i);
                 }
+
+                Mat matFrame = converter.convert(jcvFrame);
+                Mat grayMatFrame = new Mat();
+                cvtColor(matFrame, grayMatFrame, COLOR_BGR2GRAY);
+
+                Mat resultFrame = new Mat();
+                switch (operation) {
+                    case "Add":
+                        add(grayMatFrame, grayImage, resultFrame);
+                        break;
+                    case "Subtract":
+                        subtract(grayMatFrame, grayImage, resultFrame);
+                        break;
+                    default:
+                        break; // this is not happening lol
+                }
+
+                simpleRecorder.recordMat(resultFrame, converter);
+
+                statusService.showProgress(i + 1, framesToProcess);
             }
 
             uiService.showDialog("Video processing is complete!", "Success");
 
         } catch (Exception e) {
-            log.error("An error occurred during processing", e);
-            uiService.showDialog("An error occurred: " + e.getMessage(), "Processing Error", DialogPrompt.MessageType.ERROR_MESSAGE);
+            log.error(e);
+            uiService.showDialog("An error occurred: " + e.getMessage(), ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
         } finally {
             statusService.clearStatus();
         }

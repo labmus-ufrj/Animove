@@ -9,7 +9,18 @@
 -> Extract Frequency Data
 -> Calculate Score Sectors
 -> Extract Tracking Data
+-> Save current stack as video (avi or mp4. needs to be easy.)
+-> allow tools to work with tiff stacks?
 
--> add frame interval to heatmap video
+-> heatmap video save using FFmpegFrameRecorder - done, but now only 8bit works. might need to revert later - or save as tiff, makes more sense for pre-processing
+    - thats it. tiff for everything not done yet, as its lossless
+    - avi only where imageJ requires to open something, and dont have that much importance on the loss side of thing (tracking. thats it.)
 -> heatmaps need TREATMENT before sum or nothing will work!!
 -> provide more test samples, ready to be tested ones, to be linked in each tool/feature
+
+-> test image calculator
+    - images and videos might be in different resolutions, bit depths, channel count, etc. Fix it or warn users.
+    - add sum option?
+-> document image calculator
+
+-> implement simple recorder's quality setting? (and change AVI pixel format?)

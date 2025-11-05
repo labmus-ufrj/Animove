@@ -9,7 +9,6 @@ import org.scijava.app.StatusService;
 import org.scijava.command.Command;
 import org.scijava.command.DynamicCommand;
 import org.scijava.command.Interactive;
-import org.scijava.display.DisplayService;
 import org.scijava.log.LogService;
 import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
@@ -45,7 +44,7 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
     @Parameter(label = "Output Folder", style = FileWidget.DIRECTORY_STYLE, persist = false, required = false)
     private File outputDir;
 
-    @Parameter(label = "Grayscale", persist = false)
+    @Parameter(label = "Convert to Grayscale", persist = false)
     private boolean convertToGrayscale = true;
 
     @Parameter(label = "Invert before operation", persist = false)
@@ -128,8 +127,24 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
                 if (a.length != 2) {
                     throw new Exception("Invalid interval: " + interval);
                 }
+
+                // invert
+                // create avg
+
+                Mat avg = ZProjectOpenCV.applyVideoOperation(ZProjectOpenCV.OperationMode.AVG,
+                        inputFile, convertToGrayscale, invertVideo, Integer.parseInt(a[0]), Integer.parseInt(a[1]), statusService);
+
+                // subtract avg from inverted stack
+                // invert result
+                // somehow adjust brightness and contrast (we were prompting user to do so)
+                // Sum slices Z projection
+                // invert result
+                // convert to 16-bits (normalize dont forget)
+                // auto brightness adjust
+
+
                 Mat mat = ZProjectOpenCV.applyVideoOperation(ZProjectOpenCV.OperationMode.SUM,
-                        inputFile, convertToGrayscale, invertVideo,Integer.parseInt(a[0]), Integer.parseInt(a[1]), statusService);
+                        inputFile, convertToGrayscale, invertVideo, Integer.parseInt(a[0]), Integer.parseInt(a[1]), statusService);
 
                 File file = new File(tempDir.getAbsolutePath() + File.separator + interval + ".tif");
                 imwrite(file.getAbsolutePath(), mat);
@@ -138,7 +153,7 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
 //               but there's no clear path to convert imageJ LUT's to a valid openCV LUT.
 //               maybe one day...
 
-                if (lut.contains("Don't Change") && !openResultInstead){
+                if (lut.contains("Don't Change") && !openResultInstead) {
                     // I'm told moving files across drives (like C: and D:) might fail using the old java.io.File.
                     // that's why I'm using java.nio here but nowhere else
                     Files.move(file.toPath(), outputDir.toPath().resolve(file.getName()));
@@ -146,9 +161,10 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
                     file.deleteOnExit();
                     IJ.open(file.getAbsolutePath());
                     IJ.getImage().setTitle(interval); // only needed if openResultInstead but costs nothing if ran rn
-                    if (!lut.contains("Don't Change")){
+                    if (!lut.contains("Don't Change")) {
                         IJ.run(IJ.getImage(), this.lut, "");
                     }
+//                    IJ.getImage().duplicate().show();
                     if (!openResultInstead) {
                         // save image and close IJ window
                         IJ.save(IJ.getImage(), outputDir.toPath().resolve(file.getName()).toString());

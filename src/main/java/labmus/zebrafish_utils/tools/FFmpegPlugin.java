@@ -49,8 +49,9 @@ public class FFmpegPlugin implements Command, Interactive {
 
     static {
         // this runs on a Menu click
-        // reduces loading time for FFmpegFrameGrabber
+        // reduces loading time for FFmpegFrameGrabber and for OpenCV
         Executors.newSingleThreadExecutor().submit(() -> ZFConfigs.ffmpeg);
+        Executors.newSingleThreadExecutor().submit(OpenCVFrameConverter.ToMat::new);
     }
 
     @Parameter

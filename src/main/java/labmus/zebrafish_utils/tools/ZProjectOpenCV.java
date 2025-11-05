@@ -38,8 +38,9 @@ public class ZProjectOpenCV extends DynamicCommand {
 
     static {
         // this runs on a Menu click
-        // reduces loading time for FFmpegFrameGrabber
+        // reduces loading time for FFmpegFrameGrabber and for OpenCV
         Executors.newSingleThreadExecutor().submit(() -> ZFConfigs.ffmpeg);
+        Executors.newSingleThreadExecutor().submit(OpenCVFrameConverter.ToMat::new);
     }
 
     public enum OperationMode {
@@ -97,14 +98,14 @@ public class ZProjectOpenCV extends DynamicCommand {
     @Parameter(label = "Invert before operation", persist = false)
     private boolean invertVideo = true;
 
-    @Parameter(label = "Initial Frame", min = "1", description = "inclusive", persist = false)
-    private int startFrame = 1;
-
-    @Parameter(label = "End Frame (0 = whole video)", min = "0", description = "inclusive", persist = false)
-    private int endFrame = 0;
-
     @Parameter(label = "Open processed image", persist = false)
     private boolean openResult = true;
+
+    @Parameter(label = "Initial Frame", min = "1", persist = false)
+    private int startFrame = 1;
+
+    @Parameter(label = "End Frame (0 = whole video)", min = "0", persist = false)
+    private int endFrame = 0;
 
 
     /**
