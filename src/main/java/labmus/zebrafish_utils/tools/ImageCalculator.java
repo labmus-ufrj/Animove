@@ -1,8 +1,8 @@
 package labmus.zebrafish_utils.tools;
 
 import labmus.zebrafish_utils.ZFConfigs;
+import labmus.zebrafish_utils.utils.SimpleRecorder;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
-import org.bytedeco.javacv.FFmpegFrameRecorder;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.opencv.opencv_core.Mat;
@@ -74,12 +74,13 @@ public class ImageCalculator implements Command {
         try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(videoFile);
              OpenCVFrameConverter.ToMat converter = new OpenCVFrameConverter.ToMat()) {
 
+            int actualStartFrame = Math.max(0, startFrame - 1);
+            grabber.setFrameNumber(actualStartFrame);
+
             grabber.start();
 
             int totalFrames = grabber.getLengthInFrames() - 1; // frame numbers are 0-indexed
-
-            int actualStartFrame = Math.max(0, startFrame - 1);
-            int actualEndFrame = (endFrame - 1 <= 0 || endFrame - 1 > totalFrames) ? totalFrames : endFrame - 1;
+            int actualEndFrame = (endFrame <= 0 || endFrame > totalFrames) ? totalFrames : endFrame;
             if (actualStartFrame >= actualEndFrame) {
                 throw new Exception("Initial frame must be before end frame.");
             }
@@ -87,7 +88,6 @@ public class ImageCalculator implements Command {
 
             statusService.showStatus("Processing " + (framesToProcess) + " frames...");
 
-            grabber.setFrameNumber(actualStartFrame);
 
             Mat image = imread(imageFile.getAbsolutePath());
             if (image.empty()) {
@@ -129,6 +129,7 @@ public class ImageCalculator implements Command {
 
                 statusService.showProgress(i + 1, framesToProcess);
             }
+            simpleRecorder.close();
 
             uiService.showDialog("Video processing is complete!", "Success");
 

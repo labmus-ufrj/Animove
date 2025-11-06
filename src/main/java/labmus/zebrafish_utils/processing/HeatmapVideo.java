@@ -1,11 +1,8 @@
 package labmus.zebrafish_utils.processing;
 
-import ij.ImageJ;
-import io.scif.config.SCIFIOConfig;
 import io.scif.services.DatasetIOService;
 import labmus.zebrafish_utils.ZFConfigs;
-import labmus.zebrafish_utils.tools.SimpleRecorder;
-import net.imagej.Dataset;
+import labmus.zebrafish_utils.utils.SimpleRecorder;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.OpenCVFrameConverter;
@@ -28,7 +25,6 @@ import java.util.concurrent.Executors;
 
 import static org.bytedeco.opencv.global.opencv_imgproc.COLOR_BGR2GRAY;
 import static org.bytedeco.opencv.global.opencv_imgproc.cvtColor;
-import static org.opencv.core.Core.NORM_MINMAX;
 
 @Plugin(type = Command.class, menuPath = ZFConfigs.heatmapVideo)
 public class HeatmapVideo implements Command, Interactive {
@@ -46,14 +42,15 @@ public class HeatmapVideo implements Command, Interactive {
     @Parameter(label = "Output File", style = FileWidget.SAVE_STYLE, callback = "updateExtensionFile", persist = false, required = false)
     private File outputFile;
 
+    @Parameter(label = "Output Format", choices = {"TIFF", "MP4", "AVI"}, callback = "updateExtensionChoice")
+    String format = "TIFF";
+
     @Parameter(label = "Grayscale", persist = false)
     private boolean convertToGrayscale = true;
 
     @Parameter(label = "Don't save, open in ImageJ instead", persist = false)
     private boolean openResultInstead = false;
 
-    @Parameter(label = "Output Format", choices = {"TIFF", "MP4", "AVI"}, callback = "updateExtensionChoice")
-    String format = "TIFF";
 
     @Parameter(label = "Initial Frame", min = "1", persist = false)
     private int startFrame = 1;
@@ -72,8 +69,6 @@ public class HeatmapVideo implements Command, Interactive {
     private LogService log;
     @Parameter
     private DatasetIOService datasetIOService;
-    @Parameter
-    private ImageJ ij; // The ImageJ2 gateway
 
     @Override
     public void run() {
@@ -97,12 +92,13 @@ public class HeatmapVideo implements Command, Interactive {
              Mat accumulator = new Mat();
              OpenCVFrameConverter.ToMat cnv = new OpenCVFrameConverter.ToMat()) {
 
+            int actualStartFrame = Math.max(0, startFrame - 1);
+            grabber.setFrameNumber(actualStartFrame);
+
             grabber.start();
 
             int totalFrames = grabber.getLengthInFrames() - 1; // frame numbers are 0-indexed
-
-            int actualStartFrame = Math.max(0, startFrame - 1);
-            int actualEndFrame = (endFrame - 1 <= 0 || endFrame - 1 > totalFrames) ? totalFrames : endFrame - 1;
+            int actualEndFrame = (endFrame <= 0 || endFrame > totalFrames) ? totalFrames : endFrame;
             if (actualStartFrame >= actualEndFrame) {
                 throw new Exception("Initial frame must be before end frame.");
             }
@@ -110,9 +106,7 @@ public class HeatmapVideo implements Command, Interactive {
 
             statusService.showStatus("Processing " + (framesToProcess) + " frames...");
 
-            grabber.setFrameNumber(actualStartFrame);
-
-            File tempOutputFile = File.createTempFile(ZFConfigs.pluginName + "_", "."+this.format.toLowerCase());
+            File tempOutputFile = File.createTempFile(ZFConfigs.pluginName + "_", "." + this.format.toLowerCase());
             log.info("Temp file: " + tempOutputFile.getAbsolutePath());
             tempOutputFile.deleteOnExit();
 
@@ -121,6 +115,7 @@ public class HeatmapVideo implements Command, Interactive {
 
             Frame jcvFrame;
             for (int i = actualStartFrame; i < actualEndFrame; i++) {
+                log.info("zero indexed frame n: " + i + " - actual fn: " + (i + 1));
                 jcvFrame = grabber.grabImage();
                 if (jcvFrame == null || jcvFrame.image == null) {
                     throw new Exception("Read terminated prematurely at frame " + i);
@@ -146,20 +141,7 @@ public class HeatmapVideo implements Command, Interactive {
                 }
                 currentFrame.close();
 
-                try (Mat tempFrame = new Mat()) {
-                    // ffmpeg can't create videos from 32bit tiff images
-                    // converting them (normalizing, like imageJ does) fixes it
-                    opencv_core.normalize(
-                            accumulator,          // Source Mat
-                            tempFrame,          // Destination Mat
-                            0,               // Alpha: The minimum value of the target range
-                            65535,           // Beta: The maximum for 16-bit unsigned (2^16-1)
-                            NORM_MINMAX,     // Norm type: remains the same
-                            convertToGrayscale ? opencv_core.CV_16UC1 : opencv_core.CV_16UC3,
-                            null        // Mask: optional
-                    );
-                    simpleRecorder.recordMat(tempFrame, cnv);
-                }
+                simpleRecorder.recordMat(accumulator, cnv);
                 statusService.showProgress(i + 1, framesToProcess);
 
             }
@@ -167,14 +149,8 @@ public class HeatmapVideo implements Command, Interactive {
             simpleRecorder.close();
 
             if (openResultInstead) {
-//                simpleRecorder.openResultinIJ();
+                simpleRecorder.openResultinIJ(uiService, datasetIOService);
 
-                SCIFIOConfig config = new SCIFIOConfig();
-
-                Dataset dataset = datasetIOService.open(tempOutputFile.getAbsolutePath(), true);
-
-                // Show the image in the ImageJ2 UI
-                ij.ui().show(dataset);
             } else {
                 Files.copy(tempOutputFile.toPath(), outputFile.toPath());
                 uiService.showDialog("Heatmap video saved successfully!",
@@ -210,7 +186,7 @@ public class HeatmapVideo implements Command, Interactive {
         updateExtensionFile();
     }
 
-    public void updateExtensionChoice(){
+    public void updateExtensionChoice() {
         if (outputFile == null) {
             return;
         }
@@ -218,7 +194,7 @@ public class HeatmapVideo implements Command, Interactive {
         String newFileName = outputFile.getAbsolutePath();
         String[] a = outputFile.getName().split("\\.");
         String extension = a[a.length - 1];
-        newFileName = newFileName.replace("."+extension, "." + format.toLowerCase());
+        newFileName = newFileName.replace("." + extension, "." + format.toLowerCase());
         this.outputFile = new File(newFileName);
     }
 

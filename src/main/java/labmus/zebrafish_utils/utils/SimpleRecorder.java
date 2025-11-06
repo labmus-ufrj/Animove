@@ -1,13 +1,19 @@
-package labmus.zebrafish_utils.tools;
+package labmus.zebrafish_utils.utils;
 
-import ij.IJ;
-import ij.ImagePlus;
+import io.scif.config.SCIFIOConfig;
 import io.scif.media.imageioimpl.plugins.tiff.TIFFImageWriterSpi;
+import io.scif.services.DatasetIOService;
+import net.imagej.Dataset;
 import org.bytedeco.ffmpeg.global.avcodec;
 import org.bytedeco.ffmpeg.global.avutil;
-import org.bytedeco.javacv.*;
+import org.bytedeco.javacv.FFmpegFrameGrabber;
+import org.bytedeco.javacv.FFmpegFrameRecorder;
+import org.bytedeco.javacv.Java2DFrameConverter;
+import org.bytedeco.javacv.OpenCVFrameConverter;
+import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.bytedeco.opencv.opencv_core.Scalar;
+import org.scijava.ui.UIService;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
@@ -17,9 +23,10 @@ import javax.imageio.spi.IIORegistry;
 import javax.imageio.stream.ImageOutputStream;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 
 import static org.bytedeco.opencv.global.opencv_core.BORDER_CONSTANT;
-import static org.bytedeco.opencv.global.opencv_core.copyMakeBorder;
+import static org.opencv.core.Core.NORM_MINMAX;
 
 /**
  * SimpleRecorder is a utility class to handle video recording using FFmpegFrameRecorder.
@@ -34,10 +41,6 @@ public class SimpleRecorder implements AutoCloseable {
     public enum Format {
         MP4, AVI, TIFF;
     }
-
-//    public enum Quality {
-//        HIGH, LOSSLESS
-//    }
 
     private FFmpegFrameRecorder recorder;
 
@@ -110,7 +113,7 @@ public class SimpleRecorder implements AutoCloseable {
                 recorder.setImageWidth(this.proposedWidth);
                 recorder.setImageHeight(this.proposedHeight);
                 recorder.setPixelFormat(avutil.AV_PIX_FMT_YUVJ420P);
-                // you can use other formats like rgb or AV_PIX_FMT_GRAY16
+                // you can use other formats like rgb or AV_PIX_FMT_GRAY8
                 // but they may not be compatible with the codec, and will not be compatible with imageJ.
                 // if you are looking for a lossless alternative, use tiff.
                 setupFFmpegRecorder();
@@ -142,35 +145,68 @@ public class SimpleRecorder implements AutoCloseable {
         this.recorder.start();
     }
 
+
     public void recordMat(Mat frameMat) throws Exception {
         try (OpenCVFrameConverter.ToMat converter = new OpenCVFrameConverter.ToMat()) {
             recordMat(frameMat, converter);
         }
     }
 
+    /**
+     * If the output is set to MP4, a row or column will be added to make the number even. It's a codec requirement.
+     * If the output is set to AVI or MP4, frames will be normalized to 8bit. It's a codec limitation.
+     * If the output is set to TIFF, frames will be normalized to 16bit. 32bit stack is not viewable.
+     *
+     * @param frameMat     Mat to be recorded
+     * @param matConverter One per frame keeps it safe
+     * @throws Exception If anything goes wrong, read the message
+     */
     public void recordMat(Mat frameMat, OpenCVFrameConverter.ToMat matConverter) throws Exception {
+        Mat tempFrame;
+        if (frameMat.elemSize1() == 1) { // if it's already 8-bit
+            tempFrame = frameMat;
+        } else {
+            tempFrame = new Mat();
+            int pixFmt;
+            if (this.format == Format.TIFF) {
+                pixFmt = frameMat.channels() == 1 ? opencv_core.CV_16UC1 : opencv_core.CV_16UC3;
+            } else {
+                pixFmt = frameMat.channels() == 1 ? opencv_core.CV_8UC1 : opencv_core.CV_8UC3;
+            }
+            opencv_core.normalize(
+                    frameMat,
+                    tempFrame,
+                    0,
+                    Math.pow(2, this.format == Format.TIFF ? 16 : 8) - 1,
+                    NORM_MINMAX,
+                    pixFmt,
+                    null
+            );
+        }
+
         switch (this.format) {
             case AVI:
             case MP4:
                 if (this.refitNeeded) {
                     // add padding
-                    Mat frameToRecord = new Mat();
-                    copyMakeBorder(frameMat,
-                            frameToRecord,
-                            0,
-                            this.recorder.getImageHeight() - this.proposedHeight,
-                            0,
-                            this.recorder.getImageWidth() - this.proposedWidth,
-                            BORDER_CONSTANT,
-                            new Scalar(0, 0, 0, 0)); // black
-                    this.recorder.record(matConverter.convert(frameToRecord));
-                    frameToRecord.close();
+                    try (Mat frameToRecord = new Mat()) {
+                        opencv_core.copyMakeBorder(tempFrame,
+                                frameToRecord,
+                                0,
+                                this.recorder.getImageHeight() - this.proposedHeight,
+                                0,
+                                this.recorder.getImageWidth() - this.proposedWidth,
+                                BORDER_CONSTANT,
+                                new Scalar(0, 0, 0, 0)); // black
+                        this.recorder.record(matConverter.convert(frameToRecord));
+                    }
                 } else {
-                    this.recorder.record(matConverter.convert(frameMat));
+                    this.recorder.record(matConverter.convert(tempFrame));
                 }
+
                 break;
             case TIFF:
-                BufferedImage bi = biConverter.convert(matConverter.convert(frameMat));
+                BufferedImage bi = biConverter.convert(matConverter.convert(tempFrame));
                 if (bi != null) {
                     writer.writeToSequence(new IIOImage(bi, null, null), this.params);
                 } else {
@@ -180,20 +216,15 @@ public class SimpleRecorder implements AutoCloseable {
             default:
         }
 
+        tempFrame.close();
     }
 
-    public ImagePlus openResultinIJ(){
-
-        switch (this.format) {
-            case AVI:
-                ImagePlus imagePlus = new ImagePlus(outputFile.getAbsolutePath());
-                imagePlus.show();
-                return imagePlus;
-            case TIFF:
-                return IJ.openVirtual(outputFile.getAbsolutePath());
-            default:
-        }
-        return null;
+    public Dataset openResultinIJ(UIService uiService, DatasetIOService datasetIOService) throws IOException {
+        SCIFIOConfig config = new SCIFIOConfig();
+        config.enableBufferedReading(true); // this is the virtual stack setting
+        Dataset dataset = datasetIOService.open(outputFile.getAbsolutePath(), config);
+        uiService.show(dataset);
+        return dataset; // could be a ImagePlus just to ImageDisplay.wrap(dataset)
     }
 
     @Override

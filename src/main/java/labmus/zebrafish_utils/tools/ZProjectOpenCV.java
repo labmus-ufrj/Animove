@@ -163,22 +163,21 @@ public class ZProjectOpenCV extends DynamicCommand {
     public static Mat applyVideoOperation(OperationMode mode, File inputFile, boolean convertToGrayscale, boolean invertVideo, int startFrame, int endFrame, StatusService statusService) throws Exception {
         try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile)) {
 
+            int actualStartFrame = Math.max(0, startFrame - 1);
+            grabber.setFrameNumber(actualStartFrame);
+
             grabber.start();
 
             int totalFrames = grabber.getLengthInFrames() - 1; // frame numbers are 0-indexed
-
-            int actualStartFrame = Math.max(0, startFrame - 1);
-            int actualEndFrame = (endFrame - 1 <= 0 || endFrame - 1 > totalFrames) ? totalFrames : endFrame - 1;
+            int actualEndFrame = (endFrame <= 0 || endFrame > totalFrames) ? totalFrames : endFrame;
             if (actualStartFrame >= actualEndFrame) {
                 throw new Exception("Initial frame must be before end frame.");
             }
             int framesToProcess = actualEndFrame - actualStartFrame;
 
-            if (statusService != null)
+            if (statusService != null) {
                 statusService.showStatus("Processing " + (framesToProcess) + " frames...");
-
-            grabber.setFrameNumber(actualStartFrame);
-
+            }
 
             // it's better to declare these two here
             // for secret and random memory things
@@ -189,7 +188,6 @@ public class ZProjectOpenCV extends DynamicCommand {
             int frameType = convertToGrayscale ? opencv_core.CV_32FC1 : opencv_core.CV_32FC3; // using float for everyone is safer
 
             for (int i = actualStartFrame; i < actualEndFrame; i++) {
-//                log.info("zero indexed frame n: "+i + " - actual fn: "+(i+1));
                 jcvFrame = grabber.grabImage();
                 if (jcvFrame == null || jcvFrame.image == null) {
                     throw new Exception("Read terminated prematurely at frame " + i);

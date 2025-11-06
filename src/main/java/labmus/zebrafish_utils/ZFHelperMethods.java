@@ -6,7 +6,7 @@ import ij.ImageStack;
 import ij.process.ImageProcessor;
 import ij.process.ImageStatistics;
 import ij.process.StackStatistics;
-import labmus.zebrafish_utils.tools.SimpleRecorder;
+import labmus.zebrafish_utils.utils.SimpleRecorder;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.Java2DFrameConverter;
@@ -20,8 +20,6 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.ui.UIService;
 
-import javax.imageio.ImageIO;
-import javax.imageio.stream.ImageOutputStream;
 import java.io.File;
 import java.util.concurrent.Executors;
 import java.util.stream.IntStream;
@@ -78,21 +76,19 @@ public class ZFHelperMethods implements Command {
 
         try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile)) {
 
+            int actualStartFrame = Math.max(0, startFrame - 1);
+            grabber.setFrameNumber(actualStartFrame);
+
             grabber.start();
 
             int totalFrames = grabber.getLengthInFrames() - 1; // frame numbers are 0-indexed
-
-            int actualStartFrame = Math.max(0, startFrame - 1);
-            int actualEndFrame = (endFrame - 1 <= 0 || endFrame - 1 > totalFrames) ? totalFrames : endFrame - 1;
+            int actualEndFrame = (endFrame <= 0 || endFrame > totalFrames) ? totalFrames : endFrame;
             if (actualStartFrame >= actualEndFrame) {
                 throw new Exception("Initial frame must be before end frame.");
             }
             int framesToProcess = actualEndFrame - actualStartFrame;
 
-            if (statusService != null)
-                statusService.showStatus("Processing " + (framesToProcess) + " frames...");
-
-            grabber.setFrameNumber(actualStartFrame);
+            statusService.showStatus("Processing " + (framesToProcess) + " frames...");
 
             SimpleRecorder simpleRecorder = new SimpleRecorder(outputFile, grabber);
             simpleRecorder.start();
