@@ -1,9 +1,11 @@
 package labmus.zebrafish_utils.processing;
 
-import ij.IJ;
-import ij.ImagePlus;
+import ij.ImageJ;
+import io.scif.config.SCIFIOConfig;
+import io.scif.services.DatasetIOService;
 import labmus.zebrafish_utils.ZFConfigs;
 import labmus.zebrafish_utils.tools.SimpleRecorder;
+import net.imagej.Dataset;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.OpenCVFrameConverter;
@@ -20,15 +22,9 @@ import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 import org.scijava.widget.FileWidget;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.file.Files;
-import java.util.ArrayList;
 import java.util.concurrent.Executors;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static org.bytedeco.opencv.global.opencv_imgproc.COLOR_BGR2GRAY;
 import static org.bytedeco.opencv.global.opencv_imgproc.cvtColor;
@@ -47,7 +43,7 @@ public class HeatmapVideo implements Command, Interactive {
     @Parameter(label = "Input Video", style = FileWidget.OPEN_STYLE, callback = "updateOutputName", persist = false, required = false)
     private File inputFile;
 
-    @Parameter(label = "Output File", style = FileWidget.SAVE_STYLE, persist = false, required = false)
+    @Parameter(label = "Output File", style = FileWidget.SAVE_STYLE, callback = "updateExtensionFile", persist = false, required = false)
     private File outputFile;
 
     @Parameter(label = "Grayscale", persist = false)
@@ -55,6 +51,9 @@ public class HeatmapVideo implements Command, Interactive {
 
     @Parameter(label = "Don't save, open in ImageJ instead", persist = false)
     private boolean openResultInstead = false;
+
+    @Parameter(label = "Output Format", choices = {"TIFF", "MP4", "AVI"}, callback = "updateExtensionChoice")
+    String format = "TIFF";
 
     @Parameter(label = "Initial Frame", min = "1", persist = false)
     private int startFrame = 1;
@@ -71,6 +70,10 @@ public class HeatmapVideo implements Command, Interactive {
     private StatusService statusService;
     @Parameter
     private LogService log;
+    @Parameter
+    private DatasetIOService datasetIOService;
+    @Parameter
+    private ImageJ ij; // The ImageJ2 gateway
 
     @Override
     public void run() {
@@ -109,7 +112,7 @@ public class HeatmapVideo implements Command, Interactive {
 
             grabber.setFrameNumber(actualStartFrame);
 
-            File tempOutputFile = File.createTempFile(ZFConfigs.pluginName + "_", ".avi");
+            File tempOutputFile = File.createTempFile(ZFConfigs.pluginName + "_", "."+this.format.toLowerCase());
             log.info("Temp file: " + tempOutputFile.getAbsolutePath());
             tempOutputFile.deleteOnExit();
 
@@ -164,7 +167,14 @@ public class HeatmapVideo implements Command, Interactive {
             simpleRecorder.close();
 
             if (openResultInstead) {
-                new ImagePlus(tempOutputFile.getAbsolutePath()).show();
+//                simpleRecorder.openResultinIJ();
+
+                SCIFIOConfig config = new SCIFIOConfig();
+
+                Dataset dataset = datasetIOService.open(tempOutputFile.getAbsolutePath(), true);
+
+                // Show the image in the ImageJ2 UI
+                ij.ui().show(dataset);
             } else {
                 Files.copy(tempOutputFile.toPath(), outputFile.toPath());
                 uiService.showDialog("Heatmap video saved successfully!",
@@ -174,19 +184,8 @@ public class HeatmapVideo implements Command, Interactive {
 
         } catch (Exception e) {
             log.error(e);
-            uiService.showDialog("A fatal error occurred during processing: \n" + e.getMessage(), "Plugin Error", DialogPrompt.MessageType.ERROR_MESSAGE);
+            uiService.showDialog("A fatal error occurred during processing: \n" + e.getMessage(), ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
         }
-    }
-
-    private File createTempDir() {
-        File tempDir = new File(System.getProperty("java.io.tmpdir") + File.separator + System.currentTimeMillis());
-        if (!tempDir.mkdir()) {
-            uiService.showDialog("Could not create temporary directory for processing.",
-                    "Error", DialogPrompt.MessageType.ERROR_MESSAGE);
-            return null;
-        }
-        tempDir.deleteOnExit();
-        return tempDir;
     }
 
     /**
@@ -199,14 +198,42 @@ public class HeatmapVideo implements Command, Interactive {
         }
         String parentDir = inputFile.getParent();
         String baseName = inputFile.getName().replaceFirst("[.][^.]+$", "");
-        File testFile = new File(parentDir, baseName + "_heatmap" + ".avi");
+        File testFile = new File(parentDir, baseName + "_heatmap" + ".tiff");
 
         int count = 2;
         while (testFile.exists()) {
             // naming the file with a sequential number to avoid overwriting
-            testFile = new File(parentDir, baseName + "_processed_" + count + ".avi");
+            testFile = new File(parentDir, baseName + "_processed_" + count + ".tiff");
             count++;
         }
         outputFile = testFile;
+        updateExtensionFile();
+    }
+
+    public void updateExtensionChoice(){
+        if (outputFile == null) {
+            return;
+        }
+
+        String newFileName = outputFile.getAbsolutePath();
+        String[] a = outputFile.getName().split("\\.");
+        String extension = a[a.length - 1];
+        newFileName = newFileName.replace("."+extension, "." + format.toLowerCase());
+        this.outputFile = new File(newFileName);
+    }
+
+    public void updateExtensionFile() {
+        if (outputFile == null) {
+            return;
+        }
+        String[] a = outputFile.getName().split("\\.");
+        String extension = a[a.length - 1];
+        if (extension.equalsIgnoreCase("tiff") || extension.equalsIgnoreCase("tif")) {
+            format = "TIFF";
+        } else if (extension.equalsIgnoreCase("mp4")) {
+            format = "MP4";
+        } else if (extension.equalsIgnoreCase("avi")) {
+            format = "AVI";
+        }
     }
 }

@@ -1,5 +1,7 @@
 package labmus.zebrafish_utils.tools;
 
+import ij.IJ;
+import ij.ImagePlus;
 import io.scif.media.imageioimpl.plugins.tiff.TIFFImageWriterSpi;
 import org.bytedeco.ffmpeg.global.avcodec;
 import org.bytedeco.ffmpeg.global.avutil;
@@ -85,6 +87,7 @@ public class SimpleRecorder implements AutoCloseable {
 
         switch (this.format) {
             case MP4:
+                this.recorder = new FFmpegFrameRecorder(outputFile, 0, 0, 0);
                 // mp4 only supports even numbers as resolution. to avoid cropping out a row of pixels, we will be adding one.
                 // mp4 should only be used to create exports, not during processing steps.
                 // chroma subsampling and this row can mess with everything
@@ -100,6 +103,7 @@ public class SimpleRecorder implements AutoCloseable {
                 setupFFmpegRecorder();
                 break;
             case AVI:
+                this.recorder = new FFmpegFrameRecorder(outputFile, 0, 0, 0);
                 recorder.setFormat("avi");
                 recorder.setVideoCodec(avcodec.AV_CODEC_ID_MJPEG);
                 recorder.setVideoQuality(2); // visually lossless (2-31) this is the q or qscale:v parameter
@@ -130,7 +134,6 @@ public class SimpleRecorder implements AutoCloseable {
     }
 
     private void setupFFmpegRecorder() throws FFmpegFrameRecorder.Exception {
-        this.recorder = new FFmpegFrameRecorder(outputFile, 0, 0, 0);
         recorder.setFrameRate(this.frameRate);
         recorder.setAudioCodec(avcodec.AV_CODEC_ID_NONE);
         recorder.setSampleRate(0);
@@ -179,6 +182,20 @@ public class SimpleRecorder implements AutoCloseable {
 
     }
 
+    public ImagePlus openResultinIJ(){
+
+        switch (this.format) {
+            case AVI:
+                ImagePlus imagePlus = new ImagePlus(outputFile.getAbsolutePath());
+                imagePlus.show();
+                return imagePlus;
+            case TIFF:
+                return IJ.openVirtual(outputFile.getAbsolutePath());
+            default:
+        }
+        return null;
+    }
+
     @Override
     public void close() throws Exception {
         switch (this.format) {
@@ -190,6 +207,7 @@ public class SimpleRecorder implements AutoCloseable {
             case TIFF:
                 this.ios.flush();
                 this.writer.endWriteSequence();
+                this.writer.dispose();
                 this.ios.close();
                 this.biConverter.close();
                 break;
