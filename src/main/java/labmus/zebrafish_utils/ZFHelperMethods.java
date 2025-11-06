@@ -7,12 +7,12 @@ import ij.process.ImageProcessor;
 import ij.process.ImageStatistics;
 import ij.process.StackStatistics;
 import labmus.zebrafish_utils.tools.SimpleRecorder;
-import org.bytedeco.ffmpeg.global.avcodec;
-import org.bytedeco.ffmpeg.global.avutil;
-import org.bytedeco.javacv.*;
+import org.bytedeco.javacv.FFmpegFrameGrabber;
+import org.bytedeco.javacv.Frame;
+import org.bytedeco.javacv.Java2DFrameConverter;
+import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.opencv_core.Mat;
-import org.bytedeco.opencv.opencv_core.Scalar;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
 import org.scijava.log.LogService;
@@ -20,12 +20,12 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.ui.UIService;
 
+import javax.imageio.ImageIO;
+import javax.imageio.stream.ImageOutputStream;
 import java.io.File;
 import java.util.concurrent.Executors;
 import java.util.stream.IntStream;
 
-import static org.bytedeco.opencv.global.opencv_core.BORDER_CONSTANT;
-import static org.bytedeco.opencv.global.opencv_core.copyMakeBorder;
 import static org.bytedeco.opencv.global.opencv_imgproc.COLOR_BGR2GRAY;
 import static org.bytedeco.opencv.global.opencv_imgproc.cvtColor;
 
@@ -57,7 +57,7 @@ public class ZFHelperMethods implements Command {
     private File inputFile = new File("C:\\Users\\Murilo\\Desktop\\completacomprimida.mp4");
 
     @Parameter(label = "Output Video", style = "save", persist = false)
-    private File outputFile = new File("C:\\Users\\Murilo\\Desktop\\aaa.mp4");
+    private File outputFile = new File("C:\\Users\\Murilo\\Desktop\\aaa.tif");
 
     @Parameter(label = "Initial Frame", min = "1", description = "inclusive", persist = false)
     private int startFrame = 1;
@@ -69,13 +69,15 @@ public class ZFHelperMethods implements Command {
     public void run() {
         IJ.run("Console");
 //        autoAdjustBrightnessStack(imagePlus, true, log);
-        FFmpegLogCallback.set();
+//        FFmpegLogCallback.set();
         test();
     }
 
     private void test() {
         boolean convertToGrayscale = true;
+
         try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile)) {
+
             grabber.start();
 
             int totalFrames = grabber.getLengthInFrames() - 1; // frame numbers are 0-indexed
@@ -102,38 +104,36 @@ public class ZFHelperMethods implements Command {
             int framesProcessedCount = 0;
             int frameType = convertToGrayscale ? opencv_core.CV_32FC1 : opencv_core.CV_32FC3; // using float for everyone is safer
 
-            for (int i = actualStartFrame; i < actualEndFrame; i++) {
-//                log.info("zero indexed frame n: "+i + " - actual fn: "+(i+1));
-                jcvFrame = grabber.grabImage();
-                if (jcvFrame == null || jcvFrame.image == null) {
-                    throw new Exception("Read terminated prematurely at frame " + i);
-                }
-
-                // No one knows why, and it took a few days to figure out why, but
-                // you NEED a new converter every frame here. Dw about it, it doesn't leak.
-                try (OpenCVFrameConverter.ToMat cnv = new OpenCVFrameConverter.ToMat()) {
-                    Mat currentFrameColor = cnv.convert(jcvFrame);
-
-                    // check if we should be converting to grayscale
-                    if (convertToGrayscale && currentFrameColor.channels() > 1) {
-                        currentFrame = new Mat();
-                        cvtColor(currentFrameColor, currentFrame, COLOR_BGR2GRAY);
-                    } else {
-                        currentFrame = currentFrameColor;
+            try (Java2DFrameConverter biConverter = new Java2DFrameConverter()) {
+                for (int i = actualStartFrame; i < actualEndFrame; i++) {
+                    jcvFrame = grabber.grabImage();
+                    if (jcvFrame == null || jcvFrame.image == null) {
+                        throw new Exception("Read terminated prematurely at frame " + i);
                     }
 
-                    if (currentFrame == null || currentFrame.isNull()) continue;
+                    // No one knows why, and it took a few days to figure out why, but
+                    // you NEED a new converter every frame here. Dw about it, it doesn't leak.
+                    try (OpenCVFrameConverter.ToMat matConverter = new OpenCVFrameConverter.ToMat()) {
+                        Mat currentFrameColor = matConverter.convert(jcvFrame);
 
-                    simpleRecorder.recordMat(currentFrame, cnv);
+                        // check if we should be converting to grayscale
+                        if (convertToGrayscale && currentFrameColor.channels() > 1) {
+                            currentFrame = new Mat();
+                            cvtColor(currentFrameColor, currentFrame, COLOR_BGR2GRAY);
+                        } else {
+                            currentFrame = currentFrameColor;
+                        }
 
-                    currentFrame.close();
-                    currentFrameColor.close();
-                    framesProcessedCount++;
-                    if (statusService != null) {
+                        simpleRecorder.recordMat(currentFrame, matConverter);
+
+                        currentFrame.close();
+                        currentFrameColor.close();
+                        framesProcessedCount++;
                         statusService.showProgress(framesProcessedCount, framesToProcess);
                         statusService.showStatus(String.format("Processing frame %d/%d...", framesProcessedCount, framesToProcess));
                     }
                 }
+
             }
             simpleRecorder.close();
         } catch (Exception e) {
