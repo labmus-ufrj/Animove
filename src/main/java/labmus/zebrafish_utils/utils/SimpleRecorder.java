@@ -26,7 +26,6 @@ import java.io.File;
 import java.io.IOException;
 
 import static org.bytedeco.opencv.global.opencv_core.BORDER_CONSTANT;
-import static org.opencv.core.Core.NORM_MINMAX;
 
 /**
  * SimpleRecorder is a utility class to handle video recording using FFmpegFrameRecorder.
@@ -178,7 +177,7 @@ public class SimpleRecorder implements AutoCloseable {
                     tempFrame,
                     0,
                     Math.pow(2, this.format == Format.TIFF ? 16 : 8) - 1,
-                    NORM_MINMAX,
+                    opencv_core.NORM_MINMAX,
                     pixFmt,
                     null
             );
@@ -219,6 +218,13 @@ public class SimpleRecorder implements AutoCloseable {
         tempFrame.close();
     }
 
+    /**
+     * Can open AVI and TIFF as virtual stacks
+     * @param uiService
+     * @param datasetIOService
+     * @return
+     * @throws IOException
+     */
     public Dataset openResultinIJ(UIService uiService, DatasetIOService datasetIOService) throws IOException {
         SCIFIOConfig config = new SCIFIOConfig();
         config.enableBufferedReading(true); // this is the virtual stack setting

@@ -2,8 +2,10 @@ package labmus.zebrafish_utils.processing;
 
 import ij.IJ;
 import labmus.zebrafish_utils.ZFConfigs;
+import labmus.zebrafish_utils.tools.ImageCalculator;
 import labmus.zebrafish_utils.tools.ZProjectOpenCV;
 import org.bytedeco.javacv.OpenCVFrameConverter;
+import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
@@ -43,9 +45,6 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
 
     @Parameter(label = "Output Folder", style = FileWidget.DIRECTORY_STYLE, persist = false, required = false)
     private File outputDir;
-
-    @Parameter(label = "Convert to Grayscale", persist = false)
-    private boolean convertToGrayscale = true;
 
     @Parameter(label = "Invert before operation", persist = false)
     private boolean invertVideo = true;
@@ -128,23 +127,65 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
                     throw new Exception("Invalid interval: " + interval);
                 }
 
+                int startFrame = Integer.parseInt(a[0]);
+                int endFrame = Integer.parseInt(a[1]);
+
                 // invert
+                // ?? needs to be done inside the functions
+
                 // create avg
+//                boolean invertBehaviour = invertVideo;
+                boolean invertBehaviour = true;
 
                 Mat avg = ZProjectOpenCV.applyVideoOperation(ZProjectOpenCV.OperationMode.AVG,
-                        inputFile, convertToGrayscale, invertVideo, Integer.parseInt(a[0]), Integer.parseInt(a[1]), statusService);
+                        inputFile, true, invertBehaviour, startFrame, endFrame, statusService);
+
+                Mat avg8bit = new Mat();
+                opencv_core.normalize(
+                        avg,
+                        avg8bit,
+                        0,
+                        Math.pow(2, 8) - 1,
+                        opencv_core.NORM_MINMAX,
+                        opencv_core.CV_8UC1,
+                        null
+                );
 
                 // subtract avg from inverted stack
+                File tempOutputFile = File.createTempFile(ZFConfigs.pluginName + "_", ".avi"); // todo: change to tiff? let user decide?
+                log.info("Temp file: " + tempOutputFile.getAbsolutePath());
+                tempOutputFile.deleteOnExit();
+                ImageCalculator.calculateVideoOperation(ImageCalculator.OperationMode.SUBTRACT,
+                        inputFile, avg8bit, tempOutputFile, startFrame, endFrame, null);
+
                 // invert result
+
                 // somehow adjust brightness and contrast (we were prompting user to do so)
+                // it's a math thing i gess
+
                 // Sum slices Z projection
+                Mat sum = ZProjectOpenCV.applyVideoOperation(ZProjectOpenCV.OperationMode.SUM,
+                        tempOutputFile, true, invertBehaviour, startFrame, endFrame, statusService);
+
                 // invert result
+
+                Mat mat = new Mat();
                 // convert to 16-bits (normalize dont forget)
+                opencv_core.normalize(
+                        sum,
+                        mat,
+                        0,
+                        Math.pow(2, 16) - 1,
+                        opencv_core.NORM_MINMAX,
+                        opencv_core.CV_16UC1,
+                        null
+                );
+
                 // auto brightness adjust
 
 
-                Mat mat = ZProjectOpenCV.applyVideoOperation(ZProjectOpenCV.OperationMode.SUM,
-                        inputFile, convertToGrayscale, invertVideo, Integer.parseInt(a[0]), Integer.parseInt(a[1]), statusService);
+//                Mat mat = ZProjectOpenCV.applyVideoOperation(ZProjectOpenCV.OperationMode.SUM,
+//                        inputFile, convertToGrayscale, invertVideo, startFrame, endFrame, statusService);
 
                 File file = new File(tempDir.getAbsolutePath() + File.separator + interval + ".tif");
                 imwrite(file.getAbsolutePath(), mat);

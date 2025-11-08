@@ -42,7 +42,7 @@ public class HeatmapVideo implements Command, Interactive {
     @Parameter(label = "Output File", style = FileWidget.SAVE_STYLE, callback = "updateExtensionFile", persist = false, required = false)
     private File outputFile;
 
-    @Parameter(label = "Output Format", choices = {"TIFF", "MP4", "AVI"}, callback = "updateExtensionChoice")
+    @Parameter(label = "Output Format", choices = {"AVI", "TIFF", "MP4"}, callback = "updateExtensionChoice", persist = false)
     String format = "TIFF";
 
     @Parameter(label = "Grayscale", persist = false)
@@ -174,12 +174,12 @@ public class HeatmapVideo implements Command, Interactive {
         }
         String parentDir = inputFile.getParent();
         String baseName = inputFile.getName().replaceFirst("[.][^.]+$", "");
-        File testFile = new File(parentDir, baseName + "_heatmap" + ".tiff");
+        File testFile = new File(parentDir, baseName + "_heatmap" + "." + format.toLowerCase());
 
         int count = 2;
         while (testFile.exists()) {
             // naming the file with a sequential number to avoid overwriting
-            testFile = new File(parentDir, baseName + "_processed_" + count + ".tiff");
+            testFile = new File(parentDir, baseName + "_processed_" + count + "." + format.toLowerCase());
             count++;
         }
         outputFile = testFile;

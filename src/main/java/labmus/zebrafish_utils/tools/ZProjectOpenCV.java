@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 import static org.bytedeco.opencv.global.opencv_imgcodecs.imwrite;
 import static org.bytedeco.opencv.global.opencv_imgproc.COLOR_BGR2GRAY;
 import static org.bytedeco.opencv.global.opencv_imgproc.cvtColor;
+import static org.opencv.core.Core.NORM_MINMAX;
 
 /**
  * This plugin implements a video-to-image processing pipeline as a SciJava Command.
@@ -122,19 +123,16 @@ public class ZProjectOpenCV extends DynamicCommand {
 
         try {
             Mat resultMat = applyVideoOperation(OperationMode.fromText(mode), inputFile, convertToGrayscale, invertVideo, startFrame, endFrame, statusService);
-
             imwrite(outputFile.getAbsolutePath(), resultMat);
+            resultMat.close();
 
             if (openResult) {
                 uiService.show(new ImagePlus(outputFile.getAbsolutePath()));
+            } else {
+                uiService.showDialog("Image saved as " + outputFile.getAbsolutePath(),
+                        "Processing Done", DialogPrompt.MessageType.INFORMATION_MESSAGE);
             }
 
-            resultMat.close();
-
-            log.info("Processing done.");
-            uiService.showDialog("Image saved as " + outputFile.getAbsolutePath(),
-                    "Processing Done", DialogPrompt.MessageType.INFORMATION_MESSAGE);
-            statusService.clearStatus();
 
         } catch (Exception e) {
             log.error(e);
@@ -257,9 +255,19 @@ public class ZProjectOpenCV extends DynamicCommand {
 
             Mat resultMat;
             if (mode == OperationMode.AVG) {
-                resultMat = new Mat();
+                Mat tempMat = new Mat();
                 double scale = 1.0 / framesProcessedCount;
-                accumulator.convertTo(resultMat, convertToGrayscale ? opencv_core.CV_32SC1 : opencv_core.CV_32SC3, scale, 0);
+                accumulator.convertTo(tempMat, frameType, scale, 0); // scale to create avg
+                resultMat = new Mat();
+                opencv_core.normalize( // normalize to 16 bit
+                        tempMat,
+                        resultMat,
+                        0,
+                        Math.pow(2, 16) - 1,
+                        NORM_MINMAX,
+                        tempMat.channels() == 1 ? opencv_core.CV_16UC1 : opencv_core.CV_16UC3,
+                        null
+                );
             } else {
                 resultMat = accumulator;
             }
@@ -316,6 +324,5 @@ public class ZProjectOpenCV extends DynamicCommand {
         final MutableModuleItem<String> item =
                 getInfo().getMutableInput("mode", String.class);
         item.setChoices(Arrays.stream(OperationMode.values()).map(OperationMode::getText).collect(Collectors.toList()));
-//        this.mode = OperationMode.MIN.getText();
     }
 }
