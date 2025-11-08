@@ -1,9 +1,11 @@
 package labmus.zebrafish_utils.processing;
 
 import ij.IJ;
+import ij.ImagePlus;
 import labmus.zebrafish_utils.ZFConfigs;
 import labmus.zebrafish_utils.tools.ImageCalculator;
 import labmus.zebrafish_utils.tools.ZProjectOpenCV;
+import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.opencv_core.Mat;
@@ -140,23 +142,21 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
                 Mat avg = ZProjectOpenCV.applyVideoOperation(ZProjectOpenCV.OperationMode.AVG,
                         inputFile, true, invertBehaviour, startFrame, endFrame, statusService);
 
-                Mat avg8bit = new Mat();
-                opencv_core.normalize(
-                        avg,
-                        avg8bit,
-                        0,
-                        Math.pow(2, 8) - 1,
-                        opencv_core.NORM_MINMAX,
-                        opencv_core.CV_8UC1,
-                        null
-                );
+                Java2DFrameConverter biConverter = new Java2DFrameConverter();
+                OpenCVFrameConverter.ToMat converter = new OpenCVFrameConverter.ToMat();
+
+                uiService.show(new ImagePlus("avg", biConverter.convert(converter.convert(avg))));
+
+                if (1 == 1) {
+                    return;
+                }
 
                 // subtract avg from inverted stack
                 File tempOutputFile = File.createTempFile(ZFConfigs.pluginName + "_", ".avi"); // todo: change to tiff? let user decide?
                 log.info("Temp file: " + tempOutputFile.getAbsolutePath());
                 tempOutputFile.deleteOnExit();
                 ImageCalculator.calculateVideoOperation(ImageCalculator.OperationMode.SUBTRACT,
-                        inputFile, avg8bit, tempOutputFile, startFrame, endFrame, null);
+                        inputFile, avg, tempOutputFile, startFrame, endFrame, null);
 
                 // invert result
 

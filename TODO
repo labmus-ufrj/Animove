@@ -9,16 +9,14 @@
 -> Extract Frequency Data
 -> Calculate Score Sectors
 -> Extract Tracking Data
--> allow tools to work with tiff stacks?
 
 -> Save current stack as video (avi or mp4. needs to be easy.)
 -> test if saving video from opened stack is feasible (too slow?), or what needs to be done in this matter
-    -> maybe I auto adjust the brightness somehow
+    -> maybe I auto adjust the brightness somehow -> convertTo() alfa and beta...
 
 -> heatmaps need TREATMENT before sum or nothing will work!!
 -> provide more test samples, ready to be tested ones, to be linked in each tool/feature
 
 -> test image calculator
-    - images and videos might be in different resolutions, bit depths, channel count, etc. Fix it or warn users.
-    - add sum option?
+    - images and videos might be in different resolutions, bit depths, channel count, etc. Fix it or warn users. -> lets document that.
 -> document image calculator
