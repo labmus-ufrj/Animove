@@ -2,9 +2,11 @@ package labmus.zebrafish_utils.processing;
 
 import ij.IJ;
 import ij.ImagePlus;
+import io.scif.config.SCIFIOConfig;
 import labmus.zebrafish_utils.ZFConfigs;
 import labmus.zebrafish_utils.tools.ImageCalculator;
 import labmus.zebrafish_utils.tools.ZProjectOpenCV;
+import net.imagej.Dataset;
 import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.opencv.global.opencv_core;
@@ -26,6 +28,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.concurrent.Executors;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -137,40 +140,40 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
 
                 // create avg
 //                boolean invertBehaviour = invertVideo;
-                boolean invertBehaviour = true;
+                boolean invertBehaviour = false;
 
                 Mat avg = ZProjectOpenCV.applyVideoOperation(ZProjectOpenCV.OperationMode.AVG,
-                        inputFile, true, invertBehaviour, startFrame, endFrame, statusService);
-
-                Java2DFrameConverter biConverter = new Java2DFrameConverter();
-                OpenCVFrameConverter.ToMat converter = new OpenCVFrameConverter.ToMat();
-
-                uiService.show(new ImagePlus("avg", biConverter.convert(converter.convert(avg))));
-
-                if (1 == 1) {
-                    return;
-                }
+                        inputFile, true, !invertBehaviour ? ZProjectOpenCV.InvertFunction : Function.identity(), startFrame, endFrame, statusService);
 
                 // subtract avg from inverted stack
                 File tempOutputFile = File.createTempFile(ZFConfigs.pluginName + "_", ".avi"); // todo: change to tiff? let user decide?
                 log.info("Temp file: " + tempOutputFile.getAbsolutePath());
                 tempOutputFile.deleteOnExit();
-                ImageCalculator.calculateVideoOperation(ImageCalculator.OperationMode.SUBTRACT,
+                ImageCalculator.calculateVideoOperation(ImageCalculator.OperationMode.ADD,
                         inputFile, avg, tempOutputFile, startFrame, endFrame, null);
 
-                // invert result
+                // invert result (adding does just that)
 
                 // somehow adjust brightness and contrast (we were prompting user to do so)
+
+
                 // it's a math thing i gess
 
                 // Sum slices Z projection
                 Mat sum = ZProjectOpenCV.applyVideoOperation(ZProjectOpenCV.OperationMode.SUM,
-                        tempOutputFile, true, invertBehaviour, startFrame, endFrame, statusService);
+                        tempOutputFile, true,
+                        (frame) -> {
+                            frame.convertTo(frame, -1, 1, 30); // todo: maybe either calculate beta automatically or let the user choose...
+                            if (!invertBehaviour) {
+                                frame = ZProjectOpenCV.InvertFunction.apply(frame);
+                            }
+                            return frame;
+                        }, startFrame, endFrame, statusService);
 
-                // invert result
+                // invert result (invertFunction does just that)
 
                 Mat mat = new Mat();
-                // convert to 16-bits (normalize dont forget)
+                // convert to 16-bits
                 opencv_core.normalize(
                         sum,
                         mat,
@@ -181,7 +184,20 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
                         null
                 );
 
+                if (1 == 1) {
+                    Java2DFrameConverter biConverter = new Java2DFrameConverter();
+                    OpenCVFrameConverter.ToMat converter = new OpenCVFrameConverter.ToMat();
+                    uiService.show(new ImagePlus("sum", biConverter.convert(converter.convert(mat))));
+                    return;
+                }
+
                 // auto brightness adjust
+//                    -> get mask mat from user ROI
+//                    -> minMaxLoc to figure out minMax
+//                    -> either normalize or adjust alfa beta to auto adjust
+                // OR
+//                    -> open the image in fiji and run ZFHelperMethods.autoAdjustBrightnessStack(imp, true)
+
 
 
 //                Mat mat = ZProjectOpenCV.applyVideoOperation(ZProjectOpenCV.OperationMode.SUM,

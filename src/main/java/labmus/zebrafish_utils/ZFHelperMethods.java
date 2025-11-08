@@ -68,76 +68,9 @@ public class ZFHelperMethods implements Command {
         IJ.run("Console");
 //        autoAdjustBrightnessStack(imagePlus, true, log);
 //        FFmpegLogCallback.set();
-        test();
     }
 
-    private void test() {
-        boolean convertToGrayscale = true;
-
-        try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile)) {
-
-            int actualStartFrame = Math.max(0, startFrame - 1);
-            grabber.setFrameNumber(actualStartFrame);
-
-            grabber.start();
-
-            int totalFrames = grabber.getLengthInFrames() - 1; // frame numbers are 0-indexed
-            int actualEndFrame = (endFrame <= 0 || endFrame > totalFrames) ? totalFrames : endFrame;
-            if (actualStartFrame >= actualEndFrame) {
-                throw new Exception("Initial frame must be before end frame.");
-            }
-            int framesToProcess = actualEndFrame - actualStartFrame;
-
-            statusService.showStatus("Processing " + (framesToProcess) + " frames...");
-
-            SimpleRecorder simpleRecorder = new SimpleRecorder(outputFile, grabber);
-            simpleRecorder.start();
-
-            // it's better to declare these two here
-            // for secret and random memory things
-            Frame jcvFrame;
-            Mat currentFrame;
-            int framesProcessedCount = 0;
-            int frameType = convertToGrayscale ? opencv_core.CV_32FC1 : opencv_core.CV_32FC3; // using float for everyone is safer
-
-            try (Java2DFrameConverter biConverter = new Java2DFrameConverter()) {
-                for (int i = actualStartFrame; i < actualEndFrame; i++) {
-                    jcvFrame = grabber.grabImage();
-                    if (jcvFrame == null || jcvFrame.image == null) {
-                        throw new Exception("Read terminated prematurely at frame " + i);
-                    }
-
-                    // No one knows why, and it took a few days to figure out why, but
-                    // you NEED a new converter every frame here. Dw about it, it doesn't leak.
-                    try (OpenCVFrameConverter.ToMat matConverter = new OpenCVFrameConverter.ToMat()) {
-                        Mat currentFrameColor = matConverter.convert(jcvFrame);
-
-                        // check if we should be converting to grayscale
-                        if (convertToGrayscale && currentFrameColor.channels() > 1) {
-                            currentFrame = new Mat();
-                            cvtColor(currentFrameColor, currentFrame, COLOR_BGR2GRAY);
-                        } else {
-                            currentFrame = currentFrameColor;
-                        }
-
-                        simpleRecorder.recordMat(currentFrame, matConverter);
-
-                        currentFrame.close();
-                        currentFrameColor.close();
-                        framesProcessedCount++;
-                        statusService.showProgress(framesProcessedCount, framesToProcess);
-                        statusService.showStatus(String.format("Processing frame %d/%d...", framesProcessedCount, framesToProcess));
-                    }
-                }
-
-            }
-            simpleRecorder.close();
-        } catch (Exception e) {
-            log.error(e);
-        }
-    }
-
-    public static void autoAdjustBrightnessStack(ImagePlus imp, boolean useROI, LogService log) {
+    public static void autoAdjustBrightnessStack(ImagePlus imp, boolean useROI) {
         if (!useROI) {
             IJ.run(imp, "Select None", "");
         }

@@ -20,6 +20,7 @@ import org.scijava.ui.UIService;
 import java.io.File;
 import java.util.Arrays;
 import java.util.concurrent.Executors;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.bytedeco.opencv.global.opencv_imgcodecs.imwrite;
@@ -122,7 +123,13 @@ public class ZProjectOpenCV extends DynamicCommand {
         statusService.showStatus(0, 100, "Starting processing...");
 
         try {
-            Mat resultMat = applyVideoOperation(OperationMode.fromText(mode), inputFile, convertToGrayscale, invertVideo, startFrame, endFrame, statusService);
+            Mat resultMat = applyVideoOperation(OperationMode.fromText(mode), inputFile, convertToGrayscale,
+                    (frame) -> {
+                if (invertVideo) {
+                    opencv_core.bitwise_not(frame, frame);
+                }
+                return frame;
+                    }, startFrame, endFrame, statusService);
             imwrite(outputFile.getAbsolutePath(), resultMat);
             resultMat.close();
 
@@ -158,7 +165,7 @@ public class ZProjectOpenCV extends DynamicCommand {
      * @return The resulting processed image as a Mat object.
      * @throws Exception If the operation cannot be completed (e.g., invalid frame range, no frames processed).
      */
-    public static Mat applyVideoOperation(OperationMode mode, File inputFile, boolean convertToGrayscale, boolean invertVideo, int startFrame, int endFrame, StatusService statusService) throws Exception {
+    public static Mat applyVideoOperation(OperationMode mode, File inputFile, boolean convertToGrayscale, Function<Mat, Mat> matTransformer, int startFrame, int endFrame, StatusService statusService) throws Exception {
         try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile)) {
 
             int actualStartFrame = Math.max(0, startFrame - 1);
@@ -206,8 +213,7 @@ public class ZProjectOpenCV extends DynamicCommand {
 
                     if (currentFrame == null || currentFrame.isNull()) continue;
 
-                    if (invertVideo)
-                        opencv_core.bitwise_not(currentFrame, currentFrame);
+                    currentFrame = matTransformer.apply(currentFrame);
 
                     if (accumulator == null) {
                         accumulator = new Mat();
@@ -326,4 +332,9 @@ public class ZProjectOpenCV extends DynamicCommand {
                 getInfo().getMutableInput("mode", String.class);
         item.setChoices(Arrays.stream(OperationMode.values()).map(OperationMode::getText).collect(Collectors.toList()));
     }
+
+    public static final Function<Mat, Mat> InvertFunction = (mat) -> {
+        opencv_core.bitwise_not(mat, mat);
+        return mat;
+    };
 }

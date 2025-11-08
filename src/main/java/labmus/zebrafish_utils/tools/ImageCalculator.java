@@ -1,6 +1,5 @@
 package labmus.zebrafish_utils.tools;
 
-import ij.IJ;
 import labmus.zebrafish_utils.ZFConfigs;
 import labmus.zebrafish_utils.utils.SimpleRecorder;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
