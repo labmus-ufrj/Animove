@@ -2,11 +2,9 @@ package labmus.zebrafish_utils.processing;
 
 import ij.IJ;
 import ij.ImagePlus;
-import io.scif.config.SCIFIOConfig;
 import labmus.zebrafish_utils.ZFConfigs;
 import labmus.zebrafish_utils.tools.ImageCalculator;
 import labmus.zebrafish_utils.tools.ZProjectOpenCV;
-import net.imagej.Dataset;
 import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.opencv.global.opencv_core;
@@ -35,7 +33,7 @@ import java.util.stream.Stream;
 import static org.bytedeco.opencv.global.opencv_imgcodecs.imwrite;
 
 @SuppressWarnings({"FieldCanBeLocal"})
-@Plugin(type = Command.class, menuPath = ZFConfigs.heatmapImages)
+@Plugin(type = Command.class, menuPath = ZFConfigs.heatmapImagesPath)
 public class HeatmapImages extends DynamicCommand implements Interactive {
 
     static {

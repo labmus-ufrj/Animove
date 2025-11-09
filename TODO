@@ -20,3 +20,6 @@
 -> test image calculator
     - images and videos might be in different resolutions, bit depths, channel count, etc. Fix it or warn users. -> lets document that.
 -> document image calculator
+
+-> FrameGrabber has some trouble finding total number of frames on large files. off-by-one error. avi and mp4 affected.
+    -> up to 10 frames everything is working... something is happening

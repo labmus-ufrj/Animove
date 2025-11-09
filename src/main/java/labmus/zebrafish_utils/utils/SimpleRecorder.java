@@ -1,15 +1,16 @@
 package labmus.zebrafish_utils.utils;
 
 import io.scif.config.SCIFIOConfig;
+import io.scif.img.ImageRegion;
+import io.scif.img.Range;
 import io.scif.media.imageioimpl.plugins.tiff.TIFFImageWriterSpi;
 import io.scif.services.DatasetIOService;
 import net.imagej.Dataset;
+import net.imagej.axis.Axes;
+import net.imagej.axis.AxisType;
 import org.bytedeco.ffmpeg.global.avcodec;
 import org.bytedeco.ffmpeg.global.avutil;
-import org.bytedeco.javacv.FFmpegFrameGrabber;
-import org.bytedeco.javacv.FFmpegFrameRecorder;
-import org.bytedeco.javacv.Java2DFrameConverter;
-import org.bytedeco.javacv.OpenCVFrameConverter;
+import org.bytedeco.javacv.*;
 import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.bytedeco.opencv.opencv_core.Scalar;
@@ -24,6 +25,8 @@ import javax.imageio.stream.ImageOutputStream;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.bytedeco.opencv.global.opencv_core.BORDER_CONSTANT;
 
@@ -56,9 +59,10 @@ public class SimpleRecorder implements AutoCloseable {
 
     private Format format;
 
-    // only if its mp4 AND has odd resolution
+    // only if its mp4 AND has an odd resolution
     private boolean refitNeeded;
 
+    private boolean isClosed = false;
 
     public SimpleRecorder(File outputFile, int imageWidth, int imageHeight, double frameRate) {
         this.outputFile = outputFile;
@@ -225,16 +229,29 @@ public class SimpleRecorder implements AutoCloseable {
      * @return
      * @throws IOException
      */
-    public Dataset openResultinIJ(UIService uiService, DatasetIOService datasetIOService) throws IOException {
+    public void openResultinIJ(UIService uiService, DatasetIOService datasetIOService) throws Exception {
+        this.close();
+        if (this.format == Format.MP4) {
+            return;
+        }
         SCIFIOConfig config = new SCIFIOConfig();
         config.enableBufferedReading(true); // this is the virtual stack setting
+
+        // avi will have 3 channels (YUV) due to pixel format. all with the same data. only need to open one.
+        Map<AxisType, Range> regionMap = new HashMap<>();
+        regionMap.put(Axes.CHANNEL,new Range(0L));
+        config.imgOpenerSetRegion(new ImageRegion(regionMap));
+
         Dataset dataset = datasetIOService.open(outputFile.getAbsolutePath(), config);
         uiService.show(dataset);
-        return dataset; // could be a ImagePlus just to ImageDisplay.wrap(dataset)
+//        return dataset; // could be an ImagePlus just to ImageDisplay.wrap(dataset)
     }
 
     @Override
     public void close() throws Exception {
+        if (this.isClosed) {
+            return;
+        }
         switch (this.format) {
             case MP4:
             case AVI:
@@ -250,5 +267,6 @@ public class SimpleRecorder implements AutoCloseable {
                 break;
             default:
         }
+        this.isClosed = true;
     }
 }

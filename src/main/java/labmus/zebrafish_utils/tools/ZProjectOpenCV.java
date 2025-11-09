@@ -1,5 +1,6 @@
 package labmus.zebrafish_utils.tools;
 
+import ij.IJ;
 import ij.ImagePlus;
 import labmus.zebrafish_utils.ZFConfigs;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
@@ -117,7 +118,7 @@ public class ZProjectOpenCV extends DynamicCommand {
     public void run() {
 
         if (inputFile == null || !inputFile.exists()) {
-            uiService.showDialog("Select a valid video file.", "Input Error");
+            uiService.showDialog("Select a valid video file.", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
             return;
         }
         statusService.showStatus(0, 100, "Starting processing...");
@@ -143,7 +144,7 @@ public class ZProjectOpenCV extends DynamicCommand {
 
         } catch (Exception e) {
             log.error(e);
-            uiService.showDialog("A fatal error occurred during processing: \n" + e.getMessage(), "Plugin Error", DialogPrompt.MessageType.ERROR_MESSAGE);
+            uiService.showDialog("A fatal error occurred during processing: \n" + e.getMessage(), ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
         }
     }
 
@@ -248,6 +249,7 @@ public class ZProjectOpenCV extends DynamicCommand {
                     currentFrame.close();
                     currentFrameColor.close();
                     framesProcessedCount++;
+//                    IJ.log("framesProcessedCount: "+framesProcessedCount);
                     if (statusService != null) {
                         statusService.showProgress(framesProcessedCount, framesToProcess);
                         statusService.showStatus(String.format("Processing frame %d/%d...", framesProcessedCount, framesToProcess));

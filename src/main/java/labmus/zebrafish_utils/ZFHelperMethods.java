@@ -6,13 +6,6 @@ import ij.ImageStack;
 import ij.process.ImageProcessor;
 import ij.process.ImageStatistics;
 import ij.process.StackStatistics;
-import labmus.zebrafish_utils.utils.SimpleRecorder;
-import org.bytedeco.javacv.FFmpegFrameGrabber;
-import org.bytedeco.javacv.Frame;
-import org.bytedeco.javacv.Java2DFrameConverter;
-import org.bytedeco.javacv.OpenCVFrameConverter;
-import org.bytedeco.opencv.global.opencv_core;
-import org.bytedeco.opencv.opencv_core.Mat;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
 import org.scijava.log.LogService;
@@ -23,9 +16,6 @@ import org.scijava.ui.UIService;
 import java.io.File;
 import java.util.concurrent.Executors;
 import java.util.stream.IntStream;
-
-import static org.bytedeco.opencv.global.opencv_imgproc.COLOR_BGR2GRAY;
-import static org.bytedeco.opencv.global.opencv_imgproc.cvtColor;
 
 /**
  * Not for use during prod, this class has useful code snippets used

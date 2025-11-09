@@ -1,17 +1,6 @@
 package labmus.zebrafish_utils;
 
-import ij.IJ;
-import ij.Macro;
-import ij.Menus;
-import ij.Prefs;
-import ij.plugin.frame.Recorder;
-import net.imagej.updater.CommandLine;
 import org.bytedeco.javacpp.Loader;
-import org.scijava.util.AppUtils;
-
-import javax.swing.*;
-import java.util.Arrays;
-import java.util.Hashtable;
 
 public abstract class ZFConfigs {
     public static final String pluginName = "ZF Utils";
@@ -30,9 +19,10 @@ public abstract class ZFConfigs {
     public static final String checkDepsPath = toolsPath + "Check Dependencies";
     public static final String helperPath = toolsPath + "Helper";
     public static final String saveStackPath = toolsPath + "Save Stack as video";
+    public static final String performanceTest = toolsPath + "Performance Test";
 
-    public static final String heatmapImages = processingPath + "Generate Heatmap Images";
-    public static final String heatmapVideo = processingPath + "Generate Heatmap Video";
+    public static final String heatmapImagesPath = processingPath + "Generate Heatmap Images";
+    public static final String heatmapVideoPath = processingPath + "Generate Heatmap Video";
 
     private static final String embryosPath = analysisPath + "Embryos Analysis>";
     public static final String roisPath = embryosPath + "Create ROIs";

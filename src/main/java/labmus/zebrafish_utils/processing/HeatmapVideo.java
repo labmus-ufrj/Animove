@@ -26,7 +26,7 @@ import java.util.concurrent.Executors;
 import static org.bytedeco.opencv.global.opencv_imgproc.COLOR_BGR2GRAY;
 import static org.bytedeco.opencv.global.opencv_imgproc.cvtColor;
 
-@Plugin(type = Command.class, menuPath = ZFConfigs.heatmapVideo)
+@Plugin(type = Command.class, menuPath = ZFConfigs.heatmapVideoPath)
 public class HeatmapVideo implements Command, Interactive {
 
     static {
