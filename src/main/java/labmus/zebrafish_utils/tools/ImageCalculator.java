@@ -99,13 +99,10 @@ public class ImageCalculator extends DynamicCommand {
 
     @Override
     public void run() {
-
         if (!ensureFilesAreSelected()) {
             return;
         }
-
         Executors.newSingleThreadExecutor().submit(this::executeProcessing);
-
     }
 
     private void executeProcessing() {
@@ -141,23 +138,27 @@ public class ImageCalculator extends DynamicCommand {
             grabber.start();
 
             int totalFrames = grabber.getLengthInFrames() - 1; // frame numbers are 0-indexed
-            int actualEndFrame = (endFrame <= 0 || endFrame > totalFrames) ? totalFrames : endFrame;
+            final boolean wholeVideo = (endFrame <= 0);
+            int actualEndFrame = (wholeVideo || endFrame > totalFrames) ? totalFrames : endFrame;
             if (actualStartFrame >= actualEndFrame) {
                 throw new Exception("Initial frame must be before end frame.");
             }
             int framesToProcess = actualEndFrame - actualStartFrame;
 
             if (statusService != null) {
-                statusService.showStatus("Processing " + (framesToProcess) + " frames...");
+                statusService.showStatus("Processing frames...");
             }
 
             SimpleRecorder simpleRecorder = new SimpleRecorder(outputFile, grabber);
             simpleRecorder.start();
 
             Frame jcvFrame;
-            for (int i = actualStartFrame; i < actualEndFrame; i++) {
+            for (int i = actualStartFrame; i < actualEndFrame || wholeVideo; i++) {
                 jcvFrame = grabber.grabImage();
                 if (jcvFrame == null || jcvFrame.image == null) {
+                    if (wholeVideo){
+                        break;
+                    }
                     throw new Exception("Read terminated prematurely at frame " + i);
                 }
 
@@ -181,7 +182,6 @@ public class ImageCalculator extends DynamicCommand {
 
                 if (statusService != null) {
                     statusService.showProgress(i + 1, framesToProcess);
-                    statusService.showStatus(String.format("Processing frame %d/%d...", i + 1, framesToProcess));
                 }
             }
 

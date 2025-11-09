@@ -42,9 +42,11 @@ public class SimpleRecorder implements AutoCloseable {
 
     public enum Format {
         MP4, AVI, TIFF;
+
     }
 
     private FFmpegFrameRecorder recorder;
+    private final SCIFIOConfig config;
 
     private ImageOutputStream ios;
     private ImageWriter writer;
@@ -69,6 +71,7 @@ public class SimpleRecorder implements AutoCloseable {
         this.proposedWidth = imageWidth;
         this.proposedHeight = imageHeight;
         this.frameRate = frameRate;
+        this.config = setupConfig();
     }
 
     public SimpleRecorder(File outputFile, FFmpegFrameGrabber grabber) {
@@ -148,6 +151,16 @@ public class SimpleRecorder implements AutoCloseable {
         this.recorder.start();
     }
 
+    private SCIFIOConfig setupConfig() {
+        SCIFIOConfig config = new SCIFIOConfig();
+        config.enableBufferedReading(true); // this is the virtual stack setting
+
+        // avi will have 3 channels (YUV) due to pixel format. all with the same data. only need to open one.
+        Map<AxisType, Range> regionMap = new HashMap<>();
+        regionMap.put(Axes.CHANNEL,new Range(0L));
+        config.imgOpenerSetRegion(new ImageRegion(regionMap));
+        return config;
+    }
 
     public void recordMat(Mat frameMat) throws Exception {
         try (OpenCVFrameConverter.ToMat converter = new OpenCVFrameConverter.ToMat()) {
@@ -224,25 +237,16 @@ public class SimpleRecorder implements AutoCloseable {
 
     /**
      * Can open AVI and TIFF as virtual stacks
-     * @param uiService
-     * @param datasetIOService
-     * @return
-     * @throws IOException
+     * @param uiService get it from @Parameter
+     * @param datasetIOService get it from @Parameter
+     * @throws Exception mainly IOException
      */
     public void openResultinIJ(UIService uiService, DatasetIOService datasetIOService) throws Exception {
         this.close();
         if (this.format == Format.MP4) {
             return;
         }
-        SCIFIOConfig config = new SCIFIOConfig();
-        config.enableBufferedReading(true); // this is the virtual stack setting
-
-        // avi will have 3 channels (YUV) due to pixel format. all with the same data. only need to open one.
-        Map<AxisType, Range> regionMap = new HashMap<>();
-        regionMap.put(Axes.CHANNEL,new Range(0L));
-        config.imgOpenerSetRegion(new ImageRegion(regionMap));
-
-        Dataset dataset = datasetIOService.open(outputFile.getAbsolutePath(), config);
+        Dataset dataset = datasetIOService.open(outputFile.getAbsolutePath(), this.config);
         uiService.show(dataset);
 //        return dataset; // could be an ImagePlus just to ImageDisplay.wrap(dataset)
     }

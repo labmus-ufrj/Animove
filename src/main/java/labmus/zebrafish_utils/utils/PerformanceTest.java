@@ -3,6 +3,7 @@ package labmus.zebrafish_utils.utils;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.plugin.ZProjector;
+import ij.plugin.Zoom;
 import io.scif.services.DatasetIOService;
 import labmus.zebrafish_utils.ZFConfigs;
 import labmus.zebrafish_utils.tools.ZProjectOpenCV;
@@ -34,7 +35,7 @@ public class PerformanceTest implements Command {
         Executors.newSingleThreadExecutor().submit(OpenCVFrameConverter.ToMat::new);
     }
 
-// mjpeg codec gets unhappy with lower resolutions
+    // mjpeg codec gets unhappy with lower resolutions
     @Parameter(label = "Width", persist = false, min = "100")
     private int width = 100;
 
@@ -56,7 +57,7 @@ public class PerformanceTest implements Command {
     @Override
     public void run() {
         try {
-            File tempOutputFile = File.createTempFile(ZFConfigs.pluginName + "_", ".mp4");
+            File tempOutputFile = File.createTempFile(ZFConfigs.pluginName + "_", ".avi");
             log.info("Temp file: " + tempOutputFile.getAbsolutePath());
             tempOutputFile.deleteOnExit();
 
@@ -76,20 +77,24 @@ public class PerformanceTest implements Command {
             Not the case for OpenCV.
              */
 
-            long pluginStartTime = System.currentTimeMillis();
+            uiService.showDialog("Test file created. Click OK to start the benchmark", ZFConfigs.pluginName, DialogPrompt.MessageType.INFORMATION_MESSAGE);
+
+            long pluginStartTime = System.currentTimeMillis(); // creating the converters is an overhead. preventable, that is, but still is.
             try (Java2DFrameConverter biConverter = new Java2DFrameConverter();
                  OpenCVFrameConverter.ToMat converter = new OpenCVFrameConverter.ToMat()) {
-                uiService.showDialog("Test file created. Click OK to start the benchmark", ZFConfigs.pluginName, DialogPrompt.MessageType.INFORMATION_MESSAGE);
                 try (Mat maxFrame = ZProjectOpenCV.applyVideoOperation(ZProjectOpenCV.OperationMode.MAX, tempOutputFile, false, Function.identity(), 1, 0, statusService)) {
-                    uiService.show(new ImagePlus(ZFConfigs.pluginName, biConverter.convert(converter.convert(maxFrame))));
+                    ImagePlus pluginImp = new ImagePlus(ZFConfigs.pluginName, biConverter.convert(converter.convert(maxFrame)));
+                    uiService.show(pluginImp);
                     long pluginEndTime = System.currentTimeMillis();
 
                     long ijStartTime = System.currentTimeMillis();
                     ImagePlus imagePlus = IJ.openImage(tempOutputFile.getAbsolutePath());
-                    ImagePlus max = ZProjector.run(imagePlus, "max");
-                    uiService.show("ImageJ", max);
+                    ImagePlus ijImp = ZProjector.run(imagePlus, "max");
+                    uiService.show("ImageJ", ijImp);
                     long ijEndTime = System.currentTimeMillis();
 
+                    Zoom.maximize(pluginImp);
+                    Zoom.maximize(ijImp);
                     uiService.showDialog("Plugin: " + (pluginEndTime - pluginStartTime) + "ms\n" +
                             "ImageJ: " + (ijEndTime - ijStartTime) + "ms", ZFConfigs.pluginName, DialogPrompt.MessageType.INFORMATION_MESSAGE);
                 }

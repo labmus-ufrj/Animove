@@ -174,15 +174,21 @@ public class ZProjectOpenCV extends DynamicCommand {
 
             grabber.start();
 
-            int totalFrames = grabber.getLengthInFrames() - 1; // frame numbers are 0-indexed
-            int actualEndFrame = (endFrame <= 0 || endFrame > totalFrames) ? totalFrames : endFrame;
+            int totalFrames = grabber.getLengthInFrames() - 1; // frame numbers are 0-indexed.
+            /*
+             this is NOT precise
+             see https://javadoc.io/static/org.bytedeco/javacv/1.4.4/org/bytedeco/javacv/FFmpegFrameGrabber.html#getLengthInVideoFrames--
+             that's why we are increasing the precision when its set for the entire video.
+             */
+            final boolean wholeVideo = (endFrame <= 0);
+            int actualEndFrame = (wholeVideo || endFrame > totalFrames) ? totalFrames : endFrame;
             if (actualStartFrame >= actualEndFrame) {
                 throw new Exception("Initial frame must be before end frame.");
             }
             int framesToProcess = actualEndFrame - actualStartFrame;
 
             if (statusService != null) {
-                statusService.showStatus("Processing " + (framesToProcess) + " frames...");
+                statusService.showStatus("Processing frames... ");
             }
 
             // it's better to declare these two here
@@ -193,10 +199,13 @@ public class ZProjectOpenCV extends DynamicCommand {
             int framesProcessedCount = 0;
             int frameType = convertToGrayscale ? opencv_core.CV_32FC1 : opencv_core.CV_32FC3; // using float for everyone is safer
 
-            for (int i = actualStartFrame; i < actualEndFrame; i++) {
+            for (int i = actualStartFrame; i < actualEndFrame || wholeVideo; i++) {
                 jcvFrame = grabber.grabImage();
                 if (jcvFrame == null || jcvFrame.image == null) {
-                    throw new Exception("Read terminated prematurely at frame " + i);
+                    if (wholeVideo){
+                        break; // we are done!!
+                    }
+                    throw new Exception("Read terminated prematurely at frame " + i); // we were NOT done!!
                 }
 
                 // No one knows why, and it took a few days to figure out why, but
@@ -249,10 +258,8 @@ public class ZProjectOpenCV extends DynamicCommand {
                     currentFrame.close();
                     currentFrameColor.close();
                     framesProcessedCount++;
-//                    IJ.log("framesProcessedCount: "+framesProcessedCount);
                     if (statusService != null) {
                         statusService.showProgress(framesProcessedCount, framesToProcess);
-                        statusService.showStatus(String.format("Processing frame %d/%d...", framesProcessedCount, framesToProcess));
                     }
                 }
             }

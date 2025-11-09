@@ -98,13 +98,14 @@ public class HeatmapVideo implements Command, Interactive {
             grabber.start();
 
             int totalFrames = grabber.getLengthInFrames() - 1; // frame numbers are 0-indexed
-            int actualEndFrame = (endFrame <= 0 || endFrame > totalFrames) ? totalFrames : endFrame;
+            final boolean wholeVideo = (endFrame <= 0);
+            int actualEndFrame = (wholeVideo || endFrame > totalFrames) ? totalFrames : endFrame;
             if (actualStartFrame >= actualEndFrame) {
                 throw new Exception("Initial frame must be before end frame.");
             }
             int framesToProcess = actualEndFrame - actualStartFrame;
 
-            statusService.showStatus("Processing " + (framesToProcess) + " frames...");
+            statusService.showStatus("Processing frames...");
 
             File tempOutputFile = File.createTempFile(ZFConfigs.pluginName + "_", "." + this.format.toLowerCase());
             log.info("Temp file: " + tempOutputFile.getAbsolutePath());
@@ -114,10 +115,13 @@ public class HeatmapVideo implements Command, Interactive {
             simpleRecorder.start();
 
             Frame jcvFrame;
-            for (int i = actualStartFrame; i < actualEndFrame; i++) {
+            for (int i = actualStartFrame; i < actualEndFrame || wholeVideo; i++) {
                 log.info("zero indexed frame n: " + i + " - actual fn: " + (i + 1));
                 jcvFrame = grabber.grabImage();
                 if (jcvFrame == null || jcvFrame.image == null) {
+                    if (wholeVideo){
+                        break; // we are done!!
+                    }
                     throw new Exception("Read terminated prematurely at frame " + i);
                 }
                 Mat currentFrameColor = cnv.convert(jcvFrame);
