@@ -85,8 +85,6 @@ public class FFmpegPlugin implements Command, Interactive {
     private boolean verticalFlip = false;
     @Parameter(label = "Rotation", choices = {"0°", "90°", "180°", "270°", "-90°", "-180°", "-270°"}, persist = false)
     private String rotation = "0°";
-    @Parameter(label = "Remove Audio", persist = false)
-    private boolean removeAudio = true;
     @Parameter(label = "Crop using active ROI", persist = false)
     private boolean useRoiCrop = false;
     @Parameter(label = "Multi-Crop (one video per ROI)", persist = false)
@@ -166,9 +164,9 @@ public class FFmpegPlugin implements Command, Interactive {
                 if (inputFps > 0) {
                     this.outputFps = inputFps;
                 }
-                if (endFrame < 1) {
-                    endFrame = grabber.getLengthInFrames();
-                }
+//                if (endFrame < 1) {
+//                    endFrame = grabber.getLengthInFrames();
+//                }
             }
 
         } catch (Exception e) {
@@ -337,11 +335,11 @@ public class FFmpegPlugin implements Command, Interactive {
         // Get video properties from input file
         double fps;
         int totalFramesToProcess;
-        double exifRotation;
+//        double exifRotation;
         try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile)) {
             grabber.start();
             fps = grabber.getFrameRate();
-            exifRotation = grabber.getDisplayRotation();
+//            exifRotation = grabber.getDisplayRotation();
             int finalFrame = (endFrame <= 0 || endFrame > grabber.getLengthInFrames()) ? grabber.getLengthInFrames() : endFrame;
             totalFramesToProcess = Math.max(0, finalFrame - startFrame);
         }
@@ -350,6 +348,7 @@ public class FFmpegPlugin implements Command, Interactive {
         if (isPosview || isPreview) {
             totalFramesToProcess = 1;
             currentOutputFile = new File(System.getProperty("java.io.tmpdir") + File.separator + System.currentTimeMillis() + ".png");
+            // todo: replace with File.createTempFile(ZFConfigs.pluginName + "_", ".png");
             currentOutputFile.deleteOnExit();
         }
 
@@ -362,9 +361,7 @@ public class FFmpegPlugin implements Command, Interactive {
         // Add input file and start time
         commandList.add("-ss");
         commandList.add(convertFrameToTimestamp((float) fps, startFrame));
-        if (removeAudio) {
-            commandList.add("-an");
-        }
+        commandList.add("-an");
         commandList.add("-i");
         commandList.add("\"" + inputFile.getAbsolutePath() + "\"");
 
@@ -388,7 +385,8 @@ public class FFmpegPlugin implements Command, Interactive {
         // Add filters if not preview mode
         if (!isPreview) {
             commandList.add("-vf");
-            commandList.add("\"" + buildVideoFilter(cropRoi, -1, exifRotation) + "\"");
+//            commandList.add("\"" + buildVideoFilter(cropRoi, -1, exifRotation) + "\"");
+            commandList.add("\"" + buildVideoFilter(cropRoi, -1) + "\"");
         }
 
         // Add output file
@@ -510,7 +508,8 @@ public class FFmpegPlugin implements Command, Interactive {
             grabber.setFrameNumber(startFrame);
             grabber.start();
 
-            String videoFilter = buildVideoFilter(cropRoi, AV_PIX_FMT_ABGR, grabber.getDisplayRotation());
+//            String videoFilter = buildVideoFilter(cropRoi, AV_PIX_FMT_ABGR, grabber.getDisplayRotation());
+            String videoFilter = buildVideoFilter(cropRoi, AV_PIX_FMT_ABGR);
 
             try (FFmpegFrameFilter filter = new FFmpegFrameFilter(videoFilter, grabber.getImageWidth(), grabber.getImageHeight())) {
                 filter.start();
@@ -542,10 +541,11 @@ public class FFmpegPlugin implements Command, Interactive {
      *
      * @param roi          Region of interest to crop the video (can be null for no cropping)
      * @param pixelFormat  The pixel format to use (e.g. AV_PIX_FMT_BGR24)
-     * @param exifRotation EXIF rotation value from the input video
+//     * @param exifRotation EXIF rotation value from the input video
      * @return A string containing the FFmpeg video filter chain
      */
-    private String buildVideoFilter(Roi roi, int pixelFormat, double exifRotation) {
+//    private String buildVideoFilter(Roi roi, int pixelFormat, double exifRotation) {
+    private String buildVideoFilter(Roi roi, int pixelFormat) {
         StringJoiner filterChain = new StringJoiner(",");
         filterChain.add("setpts=N/(" + outputFps + "*TB)");
         if (horizontalFlip) filterChain.add("hflip");

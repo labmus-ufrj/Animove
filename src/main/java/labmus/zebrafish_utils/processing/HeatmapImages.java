@@ -2,10 +2,12 @@ package labmus.zebrafish_utils.processing;
 
 import ij.IJ;
 import ij.ImagePlus;
+import ij.gui.Roi;
+import ij.plugin.frame.RoiManager;
 import labmus.zebrafish_utils.ZFConfigs;
+import labmus.zebrafish_utils.ZFHelperMethods;
 import labmus.zebrafish_utils.tools.ImageCalculator;
 import labmus.zebrafish_utils.tools.ZProjectOpenCV;
-import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.opencv_core.Mat;
@@ -22,8 +24,11 @@ import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 import org.scijava.widget.FileWidget;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
@@ -46,11 +51,15 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
     @Parameter(label = "Input Video", style = FileWidget.OPEN_STYLE, callback = "updateOutputFolder", persist = false, required = false)
     private File inputFile;
 
+    @Parameter(label = "Open Frame", callback = "previewFrame")
+    private Button btn1;
+
     @Parameter(label = "Output Folder", style = FileWidget.DIRECTORY_STYLE, persist = false, required = false)
     private File outputDir;
 
-    @Parameter(label = "Invert before operation", persist = false)
-    private boolean invertVideo = true;
+//    @Parameter(label = "Invert before operation", persist = false)
+    // todo: docs. plugin expects dark subjects on light background. add this to ffmpeg or something...
+//    private boolean invertVideo = false;
 
     @Parameter(label = "Lookup Table", persist = false, initializer = "initLUT")
     private String lut = "";
@@ -83,7 +92,7 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
     private String customInterval = "5401-6400";
 
     @Parameter(label = "Process", callback = "generate")
-    private Button btn1;
+    private Button btn2;
 
     @Parameter
     private UIService uiService;
@@ -91,6 +100,8 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
     private StatusService statusService;
     @Parameter
     private LogService log;
+
+    private ImagePlus previewImagePlus = null;
 
     @Override
     public void run() {
@@ -105,17 +116,30 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
             return;
         }
 
-        Executors.newSingleThreadExecutor().submit(this::executeProcessing);
+        Roi singleRoi;
+        if (previewImagePlus != null) {
+            singleRoi = previewImagePlus.getRoi();
+        } else {
+            RoiManager rm = RoiManager.getInstance();
+            singleRoi = (rm != null && rm.getSelectedIndex() != -1) ? rm.getRoi(rm.getSelectedIndex()) : null;
+        }
+
+        // Validate ROI exists
+        if (singleRoi == null) {
+            uiService.showDialog("Create a ROI enclosing your target area",
+                    ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
+            return;
+        }
+
+        previewImagePlus.close();
+
+        Roi finalSingleRoi = singleRoi;
+        Executors.newSingleThreadExecutor().submit(() -> this.executeProcessing(finalSingleRoi));
 
     }
 
-    private void executeProcessing() {
-
+    private void executeProcessing(Roi roi) {
         try {
-
-            File tempDir = createTempDir();
-            log.info("Temp dir: " + tempDir.getAbsolutePath());
-
             // this just allows to re-use the same code for all intervals.
             // looks messy, ik
             for (String interval : Arrays.asList(doStartInterval ? startInterval : "",
@@ -133,122 +157,137 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
                 int startFrame = Integer.parseInt(a[0]);
                 int endFrame = Integer.parseInt(a[1]);
 
-                // invert
-                // ?? needs to be done inside the functions
-
-                // create avg
-//                boolean invertBehaviour = invertVideo;
-                boolean invertBehaviour = false;
-
                 Mat avg = ZProjectOpenCV.applyVideoOperation(ZProjectOpenCV.OperationMode.AVG,
-                        inputFile, true, !invertBehaviour ? ZProjectOpenCV.InvertFunction : Function.identity(), startFrame, endFrame, statusService);
+                        inputFile, true, ZProjectOpenCV.InvertFunction, startFrame, endFrame, statusService);
 
                 // subtract avg from inverted stack
-                File tempOutputFile = File.createTempFile(ZFConfigs.pluginName + "_", ".avi"); // todo: change to tiff? let user decide?
-                log.info("Temp file: " + tempOutputFile.getAbsolutePath());
-                tempOutputFile.deleteOnExit();
+                File tempVideo = File.createTempFile(ZFConfigs.pluginName + "_", ".avi");
+                log.info("Temp file: " + tempVideo.getAbsolutePath());
+                tempVideo.deleteOnExit();
                 ImageCalculator.calculateVideoOperation(ImageCalculator.OperationMode.ADD,
-                        inputFile, avg, tempOutputFile, startFrame, endFrame, null);
+                        inputFile, avg, tempVideo, startFrame, endFrame, statusService);
 
-                // invert result (adding does just that)
-
-                // somehow adjust brightness and contrast (we were prompting user to do so)
-
-
-                // it's a math thing i gess
-
-                // Sum slices Z projection
                 Mat sum = ZProjectOpenCV.applyVideoOperation(ZProjectOpenCV.OperationMode.SUM,
-                        tempOutputFile, true,
+                        tempVideo, true,
                         (frame) -> {
                             frame.convertTo(frame, -1, 1, 30); // todo: maybe either calculate beta automatically or let the user choose...
-                            if (!invertBehaviour) {
-                                frame = ZProjectOpenCV.InvertFunction.apply(frame);
-                            }
+                            frame = ZProjectOpenCV.InvertFunction.apply(frame);
                             return frame;
                         }, startFrame, endFrame, statusService);
+                
+                Files.deleteIfExists(tempVideo.toPath());
 
-                // invert result (invertFunction does just that)
+                try (Mat mat = new Mat()) {
+                    // convert to 16-bits
+                    opencv_core.normalize(
+                            sum,
+                            mat,
+                            0,
+                            Math.pow(2, 16) - 1,
+                            opencv_core.NORM_MINMAX,
+                            opencv_core.CV_16UC1,
+                            null
+                    );
 
-                Mat mat = new Mat();
-                // convert to 16-bits
-                opencv_core.normalize(
-                        sum,
-                        mat,
-                        0,
-                        Math.pow(2, 16) - 1,
-                        opencv_core.NORM_MINMAX,
-                        opencv_core.CV_16UC1,
-                        null
-                );
-
-                if (1 == 1) {
-                    Java2DFrameConverter biConverter = new Java2DFrameConverter();
-                    OpenCVFrameConverter.ToMat converter = new OpenCVFrameConverter.ToMat();
-                    uiService.show(new ImagePlus("sum", biConverter.convert(converter.convert(mat))));
-                    return;
-                }
-
-                // auto brightness adjust
+                    // auto brightness adjust
 //                    -> get mask mat from user ROI
 //                    -> minMaxLoc to figure out minMax
 //                    -> either normalize or adjust alfa beta to auto adjust
-                // OR
+                    // OR
 //                    -> open the image in fiji and run ZFHelperMethods.autoAdjustBrightnessStack(imp, true)
 
+                    File tempImage = File.createTempFile(ZFConfigs.pluginName + "_", ".tif");
+                    tempImage.deleteOnExit();
+                    imwrite(tempImage.getAbsolutePath(), mat);
 
+                    ImagePlus imp = IJ.openImage(tempImage.getAbsolutePath());
+                    imp.setRoi(roi);
+                    ZFHelperMethods.autoAdjustBrightnessStack(imp, true);
+                    imp.deleteRoi();
 
-//                Mat mat = ZProjectOpenCV.applyVideoOperation(ZProjectOpenCV.OperationMode.SUM,
-//                        inputFile, convertToGrayscale, invertVideo, startFrame, endFrame, statusService);
-
-                File file = new File(tempDir.getAbsolutePath() + File.separator + interval + ".tif");
-                imwrite(file.getAbsolutePath(), mat);
-
-//               yes, there's a way to apply LUT using opencv_core.LUT();
-//               but there's no clear path to convert imageJ LUT's to a valid openCV LUT.
-//               maybe one day...
-
-                if (lut.contains("Don't Change") && !openResultInstead) {
-                    // I'm told moving files across drives (like C: and D:) might fail using the old java.io.File.
-                    // that's why I'm using java.nio here but nowhere else
-                    Files.move(file.toPath(), outputDir.toPath().resolve(file.getName()));
-                } else {
-                    file.deleteOnExit();
-                    IJ.open(file.getAbsolutePath());
-                    IJ.getImage().setTitle(interval); // only needed if openResultInstead but costs nothing if ran rn
+//                yes, there's a way to apply LUT using opencv_core.LUT();
+//                but there's no clear path to convert imageJ LUT's to a valid openCV LUT.
                     if (!lut.contains("Don't Change")) {
-                        IJ.run(IJ.getImage(), this.lut, "");
+                        IJ.run(imp, this.lut, "");
                     }
-//                    IJ.getImage().duplicate().show();
-                    if (!openResultInstead) {
-                        // save image and close IJ window
-                        IJ.save(IJ.getImage(), outputDir.toPath().resolve(file.getName()).toString());
-                        IJ.getImage().close();
+
+                    if (openResultInstead) {
+                        imp.setTitle(interval);
+                        imp.show();
+                    } else {
+                        IJ.save(imp, outputDir.toPath().resolve(interval + ".tif").toString());
+                        imp.close();
+                        uiService.showDialog("Processing done", ZFConfigs.pluginName, DialogPrompt.MessageType.INFORMATION_MESSAGE);
                     }
                 }
-
-                if (!openResultInstead) {
-                    uiService.showDialog("Processing done", ZFConfigs.pluginName, DialogPrompt.MessageType.INFORMATION_MESSAGE);
-                }
-
-                mat.close();
-
             }
-
         } catch (Exception e) {
             log.error(e);
-            uiService.showDialog("A fatal error occurred during processing: \n" + e.getMessage(), "Plugin Error", DialogPrompt.MessageType.ERROR_MESSAGE);
+            uiService.showDialog("A fatal error occurred during processing: \n" + e.getMessage(), ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
         }
 
     }
 
-    private File createTempDir() throws Exception {
-        File tempDir = new File(System.getProperty("java.io.tmpdir") + File.separator + System.currentTimeMillis());
-        if (!tempDir.mkdir()) {
-            throw new Exception("Could not create temporary directory for processing.");
+    private void openFirstFrame() throws Exception {
+
+        File tempFile = File.createTempFile(ZFConfigs.pluginName + "_", ".png");
+        tempFile.deleteOnExit();
+
+        // Build FFmpeg command
+        ArrayList<String> commandList = new ArrayList<>();
+        commandList.add(ZFConfigs.ffmpeg);
+
+        commandList.add("-y"); // todo: get this to ffmpeg?
+        commandList.add("-an");
+        commandList.add("-i");
+        commandList.add("\"" + inputFile.getAbsolutePath() + "\"");
+
+        commandList.add("-vframes");
+        commandList.add("1");
+
+        commandList.add("\"" + tempFile.getAbsolutePath() + "\"");
+
+        log.info(commandList.toString());
+
+        // Execute FFmpeg command
+        ProcessBuilder pb = new ProcessBuilder(commandList);
+        pb.redirectErrorStream(true);
+        Process process = pb.start();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            // Monitor progress
+            String line;
+            while ((line = reader.readLine()) != null) {
+//                log.info(line);
+            }
         }
-        tempDir.deleteOnExit();
-        return tempDir;
+        process.waitFor();
+
+        if (previewImagePlus != null && previewImagePlus.getWindow() != null) {
+            previewImagePlus.close();
+        }
+        previewImagePlus = new ImagePlus(tempFile.getAbsolutePath());
+        previewImagePlus.setTitle("First frame");
+        uiService.show(previewImagePlus);
+    }
+
+    private void previewFrame() {
+        if (inputFile == null || !inputFile.exists() || !inputFile.isFile()) {
+            uiService.showDialog("Could not open video: \n Invalid file", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
+            return;
+        }
+        String extension = inputFile.getName().substring(inputFile.getName().lastIndexOf(".") + 1).toLowerCase();
+        if (!extension.contentEquals("avi") && !extension.contentEquals("mp4")) {
+            uiService.showDialog("Could not open video: \n Invalid extension ." + extension, ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
+            return;
+        }
+        Executors.newSingleThreadExecutor().submit(() -> {
+            try {
+                openFirstFrame();
+            } catch (Exception e) {
+                log.error(e);
+                uiService.showDialog("Could not open video: \n" + e.getMessage(), ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
+            }
+        });
     }
 
     private void updateOutputFolder() {

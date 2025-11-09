@@ -162,23 +162,23 @@ public class ImageCalculator extends DynamicCommand {
                     throw new Exception("Read terminated prematurely at frame " + i);
                 }
 
-                Mat matFrame = converter.convert(jcvFrame);
                 Mat grayMatFrame = new Mat();
-                cvtColor(matFrame, grayMatFrame, COLOR_BGR2GRAY);
+                cvtColor(converter.convert(jcvFrame), grayMatFrame, COLOR_BGR2GRAY);
 
-                Mat resultFrame = new Mat();
-                switch (mode) {
-                    case ADD:
-                        add(grayMatFrame, inputImage, resultFrame, null, opencv_core.CV_8UC1);
-                        break;
-                    case SUBTRACT:
-                        subtract(grayMatFrame, inputImage, resultFrame, null, opencv_core.CV_8UC1);
-                        break;
-                    default:
-                        break; // this is not happening lol
+                try (Mat resultFrame = new Mat()) {
+                    switch (mode) {
+                        case ADD:
+                            add(grayMatFrame, inputImage, resultFrame, null, opencv_core.CV_8UC1);
+                            break;
+                        case SUBTRACT:
+                            subtract(grayMatFrame, inputImage, resultFrame, null, opencv_core.CV_8UC1);
+                            break;
+                        default:
+                            break; // this is not happening lol
+                    }
+                    simpleRecorder.recordMat(resultFrame, converter);
                 }
-
-                simpleRecorder.recordMat(resultFrame, converter);
+                grayMatFrame.close();
 
                 if (statusService != null) {
                     statusService.showProgress(i + 1, framesToProcess);

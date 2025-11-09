@@ -1,11 +1,19 @@
 package labmus.zebrafish_utils;
 
+import com.sun.istack.internal.Nullable;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.process.ImageProcessor;
 import ij.process.ImageStatistics;
 import ij.process.StackStatistics;
+import labmus.zebrafish_utils.utils.ImageProjectFunction;
+import labmus.zebrafish_utils.utils.SimpleRecorderConsumer;
+import labmus.zebrafish_utils.utils.ZprojectConsumer;
+import org.bytedeco.javacv.FFmpegFrameGrabber;
+import org.bytedeco.javacv.Frame;
+import org.bytedeco.javacv.OpenCVFrameConverter;
+import org.bytedeco.opencv.opencv_core.Mat;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
 import org.scijava.log.LogService;
@@ -15,7 +23,11 @@ import org.scijava.ui.UIService;
 
 import java.io.File;
 import java.util.concurrent.Executors;
+import java.util.function.Function;
 import java.util.stream.IntStream;
+
+import static org.bytedeco.opencv.global.opencv_imgproc.COLOR_BGR2GRAY;
+import static org.bytedeco.opencv.global.opencv_imgproc.cvtColor;
 
 /**
  * Not for use during prod, this class has useful code snippets used
@@ -35,30 +47,89 @@ public class ZFHelperMethods implements Command {
 //    @Parameter
 //    private ImagePlus imagePlus;
 
-
     @Parameter
     private UIService uiService;
     @Parameter
     private StatusService statusService;
-
-    @Parameter(label = "Input Video", style = "file", persist = false)
-    private File inputFile = new File("C:\\Users\\Murilo\\Desktop\\completacomprimida.mp4");
-
-    @Parameter(label = "Output Video", style = "save", persist = false)
-    private File outputFile = new File("C:\\Users\\Murilo\\Desktop\\aaa.tif");
-
-    @Parameter(label = "Initial Frame", min = "1", description = "inclusive", persist = false)
-    private int startFrame = 1;
-
-    @Parameter(label = "End Frame (0 = whole video)", min = "0", description = "inclusive", persist = false)
-    private int endFrame = 1000;
 
     @Override
     public void run() {
         IJ.run("Console");
 //        autoAdjustBrightnessStack(imagePlus, true, log);
 //        FFmpegLogCallback.set();
+
+        // todo: investigate if this solves the heatmap video problem
     }
+
+    public void iterateOverFrames(Function<Mat, Mat> matFunction,
+                        File inputFile, int startFrame, int endFrame, @Nullable StatusService statusService) throws Exception {
+        try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile)) {
+
+            int actualStartFrame = Math.max(0, startFrame - 1);
+            grabber.setFrameNumber(actualStartFrame);
+
+            grabber.start();
+
+            int totalFrames = grabber.getLengthInFrames() - 1; // frame numbers are 0-indexed.
+            /*
+             this is NOT precise
+             see https://javadoc.io/static/org.bytedeco/javacv/1.4.4/org/bytedeco/javacv/FFmpegFrameGrabber.html#getLengthInVideoFrames--
+             that's why we are increasing the precision when its set for the entire video.
+             */
+            final boolean wholeVideo = (endFrame <= 0);
+            int actualEndFrame = (wholeVideo || endFrame > totalFrames) ? totalFrames : endFrame;
+            if (actualStartFrame >= actualEndFrame) {
+                throw new Exception("Initial frame must be before end frame.");
+            }
+            int framesToProcess = actualEndFrame - actualStartFrame;
+
+            if (statusService != null) {
+                statusService.showStatus("Processing frames... ");
+            }
+
+            // it's better to declare these two here
+            // for secret and random memory things
+            Frame jcvFrame;
+            Mat currentFrame;
+            for (int i = actualStartFrame; i < actualEndFrame || wholeVideo; i++) {
+                jcvFrame = grabber.grabImage();
+                if (jcvFrame == null || jcvFrame.image == null) {
+                    if (wholeVideo) {
+                        break; // we are done!!
+                    }
+                    throw new Exception("Read terminated prematurely at frame " + i); // we were NOT done!!
+                }
+
+                // No one knows why, and it took a few days to figure out why, but
+                // you NEED a new converter every frame here. Dw about it, it doesn't leak.
+                try (OpenCVFrameConverter.ToMat cnv = new OpenCVFrameConverter.ToMat()) {
+                    Mat currentFrameColor = cnv.convert(jcvFrame);
+
+                    // check if we should be converting to grayscale
+                    if (currentFrameColor.channels() > 1) {
+                        currentFrame = new Mat();
+                        cvtColor(currentFrameColor, currentFrame, COLOR_BGR2GRAY);
+                    } else {
+                        currentFrame = currentFrameColor;
+                    }
+
+                    if (currentFrame.isNull()) continue;
+
+//                    currentFrame = matTransformer.apply(currentFrame);
+
+                    matFunction.apply(currentFrame);
+
+                    currentFrame.close();
+                    currentFrameColor.close();
+                    if (statusService != null) {
+                        statusService.showProgress(i + 1, framesToProcess);
+                    }
+                }
+            }
+
+        }
+    }
+
 
     public static void autoAdjustBrightnessStack(ImagePlus imp, boolean useROI) {
         if (!useROI) {
@@ -96,7 +167,8 @@ public class ZFHelperMethods implements Command {
             else
                 table[i] = (int) (((double) (i - min) / (max - min)) * range);
         }
-        ImageProcessor mask = imp.getMask();
+//        ImageProcessor mask = imp.getMask();
+        ImageProcessor mask = imp.createRoiMask(); // same resolution as image
         applyOtherStack(imp, mask, table);
         if (depth == 16) {
             imp.setDisplayRange(0, range - 1);

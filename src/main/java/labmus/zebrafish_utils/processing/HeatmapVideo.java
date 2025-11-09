@@ -183,7 +183,7 @@ public class HeatmapVideo implements Command, Interactive {
         int count = 2;
         while (testFile.exists()) {
             // naming the file with a sequential number to avoid overwriting
-            testFile = new File(parentDir, baseName + "_processed_" + count + "." + format.toLowerCase());
+            testFile = new File(parentDir, baseName + "_heatmap_" + count + "." + format.toLowerCase());
             count++;
         }
         outputFile = testFile;
@@ -197,7 +197,7 @@ public class HeatmapVideo implements Command, Interactive {
 
         String newFileName = outputFile.getAbsolutePath();
         String[] a = outputFile.getName().split("\\.");
-        String extension = a[a.length - 1];
+        String extension = a[a.length - 1]; // todo: replace with outputFile.getName().substring(outputFile.getName().lastIndexOf(".") + 1);
         newFileName = newFileName.replace("." + extension, "." + format.toLowerCase());
         this.outputFile = new File(newFileName);
     }
@@ -207,7 +207,7 @@ public class HeatmapVideo implements Command, Interactive {
             return;
         }
         String[] a = outputFile.getName().split("\\.");
-        String extension = a[a.length - 1];
+        String extension = a[a.length - 1]; // todo: replace with outputFile.getName().substring(outputFile.getName().lastIndexOf(".") + 1);
         if (extension.equalsIgnoreCase("tiff") || extension.equalsIgnoreCase("tif")) {
             format = "TIFF";
         } else if (extension.equalsIgnoreCase("mp4")) {

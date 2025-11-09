@@ -10,7 +10,10 @@ import net.imagej.axis.Axes;
 import net.imagej.axis.AxisType;
 import org.bytedeco.ffmpeg.global.avcodec;
 import org.bytedeco.ffmpeg.global.avutil;
-import org.bytedeco.javacv.*;
+import org.bytedeco.javacv.FFmpegFrameGrabber;
+import org.bytedeco.javacv.FFmpegFrameRecorder;
+import org.bytedeco.javacv.Java2DFrameConverter;
+import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.bytedeco.opencv.opencv_core.Scalar;
@@ -24,7 +27,6 @@ import javax.imageio.spi.IIORegistry;
 import javax.imageio.stream.ImageOutputStream;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -80,7 +82,7 @@ public class SimpleRecorder implements AutoCloseable {
 
     public void start() throws Exception {
         String[] a = outputFile.getName().split("\\.");
-        String extension = a[a.length - 1];
+        String extension = a[a.length - 1]; // todo: replace with outputFile.getName().substring(outputFile.getName().lastIndexOf(".") + 1);
         if (!extension.equalsIgnoreCase("mp4") && !extension.equalsIgnoreCase("avi")
                 && !extension.equalsIgnoreCase("tif") && !extension.equalsIgnoreCase("tiff")) {
             throw new Exception("Invalid file extension. Expected .mp4, .avi, .tif or .tiff");
