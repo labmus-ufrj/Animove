@@ -10,10 +10,7 @@ import net.imagej.axis.Axes;
 import net.imagej.axis.AxisType;
 import org.bytedeco.ffmpeg.global.avcodec;
 import org.bytedeco.ffmpeg.global.avutil;
-import org.bytedeco.javacv.FFmpegFrameGrabber;
-import org.bytedeco.javacv.FFmpegFrameRecorder;
-import org.bytedeco.javacv.Java2DFrameConverter;
-import org.bytedeco.javacv.OpenCVFrameConverter;
+import org.bytedeco.javacv.*;
 import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.bytedeco.opencv.opencv_core.Scalar;
@@ -67,6 +64,8 @@ public class SimpleRecorder implements AutoCloseable {
 
     private boolean isClosed = false;
 
+    private final Scalar blackScalar = new Scalar(0, 0, 0, 0);
+
     public SimpleRecorder(File outputFile, Mat mat, double frameRate) {
         this.outputFile = outputFile;
         this.proposedWidth = mat.arrayWidth();
@@ -88,8 +87,7 @@ public class SimpleRecorder implements AutoCloseable {
     }
 
     public void start() throws Exception {
-        String[] a = outputFile.getName().split("\\.");
-        String extension = a[a.length - 1]; // todo: replace with outputFile.getName().substring(outputFile.getName().lastIndexOf(".") + 1);
+        String extension = outputFile.getName().substring(outputFile.getName().lastIndexOf(".") + 1);
         if (!extension.equalsIgnoreCase("mp4") && !extension.equalsIgnoreCase("avi")
                 && !extension.equalsIgnoreCase("tif") && !extension.equalsIgnoreCase("tiff")) {
             throw new Exception("Invalid file extension. Expected .mp4, .avi, .tif or .tiff");
@@ -166,7 +164,7 @@ public class SimpleRecorder implements AutoCloseable {
 
         // avi will have 3 channels (YUV) due to pixel format. all with the same data. only need to open one.
         Map<AxisType, Range> regionMap = new HashMap<>();
-        regionMap.put(Axes.CHANNEL,new Range(0L));
+        regionMap.put(Axes.CHANNEL, new Range(0L));
         config.imgOpenerSetRegion(new ImageRegion(regionMap));
         return config;
     }
@@ -222,31 +220,39 @@ public class SimpleRecorder implements AutoCloseable {
                                 0,
                                 this.recorder.getImageWidth() - this.proposedWidth,
                                 BORDER_CONSTANT,
-                                new Scalar(0, 0, 0, 0)); // black
-                        this.recorder.record(matConverter.convert(frameToRecord));
+                                blackScalar); // black
+                        try (Frame frame = matConverter.convert(frameToRecord)) {
+                            this.recorder.record(frame);
+                        }
                     }
                 } else {
-                    this.recorder.record(matConverter.convert(tempFrame));
+                    try (Frame frame = matConverter.convert(tempFrame)) {
+                        this.recorder.record(frame);
+                    }
                 }
 
                 break;
             case TIFF:
-                BufferedImage bi = biConverter.convert(matConverter.convert(tempFrame));
-                if (bi != null) {
-                    writer.writeToSequence(new IIOImage(bi, null, null), this.params);
-                } else {
-                    throw new Exception("Error writing frame");
+                try (Frame frame = matConverter.convert(tempFrame)) {
+                    BufferedImage bi = biConverter.convert(frame);
+                    if (bi != null) {
+                        writer.writeToSequence(new IIOImage(bi, null, null), this.params);
+                    } else {
+                        throw new Exception("Error writing frame");
+                    }
                 }
                 break;
             default:
         }
-
-        tempFrame.close();
+        if (tempFrame != frameMat) {
+            tempFrame.close();
+        }
     }
 
     /**
      * Can open AVI and TIFF as virtual stacks
-     * @param uiService get it from @Parameter
+     *
+     * @param uiService        get it from @Parameter
      * @param datasetIOService get it from @Parameter
      * @throws Exception mainly IOException
      */
@@ -265,6 +271,7 @@ public class SimpleRecorder implements AutoCloseable {
         if (this.isClosed) {
             return;
         }
+        blackScalar.close();
         switch (this.format) {
             case MP4:
             case AVI:
@@ -281,9 +288,5 @@ public class SimpleRecorder implements AutoCloseable {
             default:
         }
         this.isClosed = true;
-    }
-
-    public void flush() throws Exception {
-        this.recorder.flush();
     }
 }

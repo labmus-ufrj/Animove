@@ -127,7 +127,11 @@ public class ZFHelperMethods implements Command {
                         statusService.showProgress(i + 1, framesToProcess);
                     }
                 }
+                if (i % 100 == 0) {
+                    System.gc();
+                }
             }
+            System.gc();
 
         }
         if (statusService != null) {

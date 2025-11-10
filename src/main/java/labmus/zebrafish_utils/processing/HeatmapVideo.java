@@ -8,6 +8,7 @@ import labmus.zebrafish_utils.utils.SimpleRecorder;
 import labmus.zebrafish_utils.utils.functions.ImageCalculatorFunction;
 import labmus.zebrafish_utils.utils.functions.SimpleRecorderFunction;
 import labmus.zebrafish_utils.utils.functions.ZprojectFunction;
+import org.bytedeco.ffmpeg.global.avutil;
 import org.bytedeco.javacv.*;
 import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.opencv_core.Mat;
@@ -73,7 +74,8 @@ public class HeatmapVideo implements Command, Interactive {
     @Override
     public void run() {
         IJ.run("Console");
-        FFmpegLogCallback.set();
+//        FFmpegLogCallback.setLevel(avutil.AV_LOG_ERROR);
+//        log.info(FFmpegLogCallback.getLevel());
     }
 
     private void generate() {
@@ -112,10 +114,11 @@ public class HeatmapVideo implements Command, Interactive {
             }
             SimpleRecorderFunction simpleRecorderFunction = new SimpleRecorderFunction(new SimpleRecorder(tempOutputFile, avgMat, fps), uiService);
 
-            ZFHelperMethods.iterateOverFrames(subtractFunction.andThen(bcFunction).andThen(zprojectFunctionSum).andThen(Function.identity()), inputFile, this.startFrame, this.endFrame, this.statusService);
+            ZFHelperMethods.iterateOverFrames(subtractFunction.andThen(bcFunction).andThen(zprojectFunctionSum).andThen(simpleRecorderFunction), inputFile, this.startFrame, this.endFrame, this.statusService);
             simpleRecorderFunction.close();
 
             if (openResultInstead) {
+                statusService.showStatus("Opening result in ImageJ...");
                 simpleRecorderFunction.getRecorder().openResultinIJ(uiService, datasetIOService);
 
             } else {
@@ -129,85 +132,6 @@ public class HeatmapVideo implements Command, Interactive {
             uiService.showDialog("A fatal error occurred during processing: \n" + e.getMessage(), ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
         }
 
-
-//        try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile);
-//             Mat accumulator = new Mat();
-//             OpenCVFrameConverter.ToMat cnv = new OpenCVFrameConverter.ToMat()) {
-//
-//            int actualStartFrame = Math.max(0, startFrame - 1);
-//            grabber.setFrameNumber(actualStartFrame);
-//
-//            grabber.start();
-//
-//            int totalFrames = grabber.getLengthInFrames() - 1; // frame numbers are 0-indexed
-//            final boolean wholeVideo = (endFrame <= 0);
-//            int actualEndFrame = (wholeVideo || endFrame > totalFrames) ? totalFrames : endFrame;
-//            if (actualStartFrame >= actualEndFrame) {
-//                throw new Exception("Initial frame must be before end frame.");
-//            }
-//            int framesToProcess = actualEndFrame - actualStartFrame;
-//
-//            statusService.showStatus("Processing frames...");
-//
-//            File tempOutputFile = File.createTempFile(ZFConfigs.pluginName + "_", "." + this.format.toLowerCase());
-//            log.info("Temp file: " + tempOutputFile.getAbsolutePath());
-//            tempOutputFile.deleteOnExit();
-//
-//            SimpleRecorder simpleRecorder = new SimpleRecorder(tempOutputFile, grabber);
-//            simpleRecorder.start();
-//
-//            Frame jcvFrame;
-//            for (int i = actualStartFrame; i < actualEndFrame || wholeVideo; i++) {
-//                log.info("zero indexed frame n: " + i + " - actual fn: " + (i + 1));
-//                jcvFrame = grabber.grabImage();
-//                if (jcvFrame == null || jcvFrame.image == null) {
-//                    if (wholeVideo){
-//                        break; // we are done!!
-//                    }
-//                    throw new Exception("Read terminated prematurely at frame " + i);
-//                }
-//                Mat currentFrameColor = cnv.convert(jcvFrame);
-//                Mat currentFrame;
-//
-//                // check if we should be converting to grayscale
-//                if (convertToGrayscale && currentFrameColor.channels() > 1) {
-//                    currentFrame = new Mat();
-//                    cvtColor(currentFrameColor, currentFrame, COLOR_BGR2GRAY);
-//                } else {
-//                    currentFrame = currentFrameColor;
-//                }
-//
-//                if (i == actualStartFrame) {
-//                    currentFrame.convertTo(accumulator, convertToGrayscale ? opencv_core.CV_32SC1 : opencv_core.CV_32SC3);
-//                } else {
-//                    try (Mat tempIntFrame = new Mat()) {
-//                        currentFrame.convertTo(tempIntFrame, convertToGrayscale ? opencv_core.CV_32SC1 : opencv_core.CV_32SC3);
-//                        opencv_core.add(accumulator, tempIntFrame, accumulator);
-//                    }
-//                }
-//                currentFrame.close();
-//
-//                simpleRecorder.recordMat(accumulator, cnv);
-//                statusService.showProgress(i + 1, framesToProcess);
-//
-//            }
-//
-//            simpleRecorder.close();
-//
-//            if (openResultInstead) {
-//                simpleRecorder.openResultinIJ(uiService, datasetIOService);
-//
-//            } else {
-//                Files.copy(tempOutputFile.toPath(), outputFile.toPath());
-//                uiService.showDialog("Heatmap video saved successfully!",
-//                        ZFConfigs.pluginName, DialogPrompt.MessageType.INFORMATION_MESSAGE);
-//            }
-//
-//
-//        } catch (Exception e) {
-//            log.error(e);
-//            uiService.showDialog("A fatal error occurred during processing: \n" + e.getMessage(), ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
-//        }
     }
 
     /**
@@ -236,11 +160,9 @@ public class HeatmapVideo implements Command, Interactive {
         if (outputFile == null) {
             return;
         }
-
-        String newFileName = outputFile.getAbsolutePath();
-        String[] a = outputFile.getName().split("\\.");
-        String extension = a[a.length - 1]; // todo: replace with outputFile.getName().substring(outputFile.getName().lastIndexOf(".") + 1);
-        newFileName = newFileName.replace("." + extension, "." + format.toLowerCase());
+        String newFileName = outputFile.getAbsolutePath()
+                .substring(0, outputFile.getAbsolutePath().lastIndexOf(".") + 1)
+                .concat(this.format.toLowerCase());
         this.outputFile = new File(newFileName);
     }
 
@@ -248,8 +170,7 @@ public class HeatmapVideo implements Command, Interactive {
         if (outputFile == null) {
             return;
         }
-        String[] a = outputFile.getName().split("\\.");
-        String extension = a[a.length - 1]; // todo: replace with outputFile.getName().substring(outputFile.getName().lastIndexOf(".") + 1);
+        String extension = outputFile.getName().substring(outputFile.getName().lastIndexOf(".") + 1);
         if (extension.equalsIgnoreCase("tiff") || extension.equalsIgnoreCase("tif")) {
             format = "TIFF";
         } else if (extension.equalsIgnoreCase("mp4")) {

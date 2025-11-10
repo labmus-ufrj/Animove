@@ -19,13 +19,12 @@ public class SimpleRecorderFunction implements Function<Mat, Mat>, AutoCloseable
     public SimpleRecorderFunction(SimpleRecorder recorder, UIService uiService) throws Exception {
         this.recorder = recorder;
         this.uiService = uiService;
-        recorder.start();
+        this.recorder.start();
     }
 
     @Override
     public Mat apply(Mat mat) {
         try {
-//            this.recorder.flush();
             this.recorder.recordMat(mat);
         } catch (Exception e) {
             IJ.log(e.getMessage());

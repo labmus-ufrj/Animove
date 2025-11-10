@@ -348,7 +348,7 @@ public class FFmpegPlugin implements Command, Interactive {
         if (isPosview || isPreview) {
             totalFramesToProcess = 1;
             currentOutputFile = new File(System.getProperty("java.io.tmpdir") + File.separator + System.currentTimeMillis() + ".png");
-            // todo: replace with File.createTempFile(ZFConfigs.pluginName + "_", ".png");
+            // todo: replace with File.createTempFile(ZFConfigs.pluginName + "_", ".png"); will need a -y option on ffmpeg
             currentOutputFile.deleteOnExit();
         }
 
