@@ -6,10 +6,8 @@ import ij.gui.Roi;
 import ij.plugin.frame.RoiManager;
 import labmus.zebrafish_utils.ZFConfigs;
 import labmus.zebrafish_utils.ZFHelperMethods;
-import labmus.zebrafish_utils.tools.ImageCalculator;
-import labmus.zebrafish_utils.tools.ZProjectOpenCV;
-import labmus.zebrafish_utils.utils.ImageCalculatorFunction;
-import labmus.zebrafish_utils.utils.ZprojectConsumer;
+import labmus.zebrafish_utils.utils.functions.ImageCalculatorFunction;
+import labmus.zebrafish_utils.utils.functions.ZprojectFunction;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.opencv_core.Mat;
@@ -159,9 +157,9 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
                 int startFrame = Integer.parseInt(a[0]);
                 int endFrame = Integer.parseInt(a[1]);
 
-                ZprojectConsumer zprojectConsumerAvg = new ZprojectConsumer(ZprojectConsumer.OperationMode.AVG);
-                ZFHelperMethods.iterateOverFrames(ZFHelperMethods.InvertFunction.andThen(zprojectConsumerAvg), inputFile, startFrame, endFrame, statusService);
-                Mat avg = zprojectConsumerAvg.getResultMat();
+                ZprojectFunction zprojectFunctionAvg = new ZprojectFunction(ZprojectFunction.OperationMode.AVG);
+                ZFHelperMethods.iterateOverFrames(ZFHelperMethods.InvertFunction.andThen(zprojectFunctionAvg), inputFile, startFrame, endFrame, statusService);
+                Mat avg = zprojectFunctionAvg.getResultMat();
 
 
                 // subtract avg from inverted stack
@@ -171,14 +169,14 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
 //                ImageCalculator.calculateVideoOperation(ImageCalculator.OperationMode.ADD,
 //                        inputFile, avg, tempVideo, startFrame, endFrame, statusService);
 
-                Function<Mat, Mat> subtractFunction = new ImageCalculatorFunction(ImageCalculator.OperationMode.ADD, avg);
+                Function<Mat, Mat> subtractFunction = new ImageCalculatorFunction(ImageCalculatorFunction.OperationMode.ADD, avg);
                 Function<Mat, Mat> bcFunction = (mat) -> {
                     mat.convertTo(mat, -1, 1, 30); // todo: maybe either calculate beta automatically or let the user choose...
                     return mat;
                 };
-                ZprojectConsumer zprojectConsumerSum = new ZprojectConsumer(ZprojectConsumer.OperationMode.SUM);
-                ZFHelperMethods.iterateOverFrames(subtractFunction.andThen(bcFunction).andThen(ZFHelperMethods.InvertFunction).andThen(zprojectConsumerSum), inputFile, startFrame, endFrame, statusService);
-                Mat sum = zprojectConsumerSum.getResultMat();
+                ZprojectFunction zprojectFunctionSum = new ZprojectFunction(ZprojectFunction.OperationMode.SUM);
+                ZFHelperMethods.iterateOverFrames(subtractFunction.andThen(bcFunction).andThen(ZFHelperMethods.InvertFunction).andThen(zprojectFunctionSum), inputFile, startFrame, endFrame, statusService);
+                Mat sum = zprojectFunctionSum.getResultMat();
 
 //                Files.deleteIfExists(tempVideo.toPath());
 

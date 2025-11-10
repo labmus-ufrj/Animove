@@ -1,6 +1,5 @@
-package labmus.zebrafish_utils.utils;
+package labmus.zebrafish_utils.utils.functions;
 
-import labmus.zebrafish_utils.tools.ZProjectOpenCV;
 import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.opencv_core.Mat;
 
@@ -14,7 +13,7 @@ import java.util.function.Function;
  * <p>
  * this is actually a consumer. the function just passes the input mat ahead.
  */
-public class ZprojectConsumer implements Function<Mat, Mat> {
+public class ZprojectFunction implements Function<Mat, Mat> {
 
     public enum OperationMode {
         MIN("Darkest (Min)"),
@@ -53,7 +52,7 @@ public class ZprojectConsumer implements Function<Mat, Mat> {
     private final OperationMode mode;
     private int framesProcessedCount = 0;
 
-    public ZprojectConsumer(OperationMode mode) {
+    public ZprojectFunction(OperationMode mode) {
         this.mode = mode;
     }
 

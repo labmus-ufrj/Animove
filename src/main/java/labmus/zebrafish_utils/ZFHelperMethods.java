@@ -46,8 +46,6 @@ public class ZFHelperMethods implements Command {
 
     @Parameter
     private LogService log;
-//    @Parameter
-//    private ImagePlus imagePlus;
 
     @Parameter
     private UIService uiService;
@@ -59,8 +57,6 @@ public class ZFHelperMethods implements Command {
         IJ.run("Console");
 //        autoAdjustBrightnessStack(imagePlus, true, log);
 //        FFmpegLogCallback.set();
-
-        // todo: investigate if this solves the heatmap video problem
     }
 
     public static void iterateOverFrames(Function<Mat, Mat> matFunction,
@@ -133,6 +129,9 @@ public class ZFHelperMethods implements Command {
                 }
             }
 
+        }
+        if (statusService != null) {
+            statusService.showStatus("Done!");
         }
     }
 

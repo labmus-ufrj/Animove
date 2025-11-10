@@ -3,9 +3,8 @@ package labmus.zebrafish_utils.tools;
 import ij.ImagePlus;
 import labmus.zebrafish_utils.ZFConfigs;
 import labmus.zebrafish_utils.ZFHelperMethods;
-import labmus.zebrafish_utils.utils.ZprojectConsumer;
+import labmus.zebrafish_utils.utils.functions.ZprojectFunction;
 import org.bytedeco.javacv.OpenCVFrameConverter;
-import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
@@ -24,7 +23,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.bytedeco.opencv.global.opencv_imgcodecs.imwrite;
-import static org.bytedeco.opencv.global.opencv_imgproc.cvtColor;
 
 /**
  * This plugin implements a video-to-image processing pipeline as a SciJava Command.
@@ -59,11 +57,8 @@ public class ZProjectOpenCV extends DynamicCommand {
     @Parameter(label = "Processing Mode", callback = "updateOutputName", initializer = "initProc", persist = false)
     private String mode = "";
 
-    @Parameter(label = "Convert to Grayscale", persist = false)
-    private boolean convertToGrayscale = true;
-
     @Parameter(label = "Invert before operation", persist = false)
-    private boolean invertVideo = true;
+    private boolean invertVideo = false;
 
     @Parameter(label = "Open processed image", persist = false)
     private boolean openResult = true;
@@ -89,9 +84,9 @@ public class ZProjectOpenCV extends DynamicCommand {
 
         try {
             Function<Mat, Mat> inverter = invertVideo ? ZFHelperMethods.InvertFunction : Function.identity();
-            ZprojectConsumer zprojectConsumer = new ZprojectConsumer(ZprojectConsumer.OperationMode.fromText(mode));
-            ZFHelperMethods.iterateOverFrames(inverter.andThen(zprojectConsumer), inputFile, startFrame, endFrame, statusService);
-            Mat resultMat = zprojectConsumer.getResultMat();
+            ZprojectFunction zprojectFunction = new ZprojectFunction(ZprojectFunction.OperationMode.fromText(mode));
+            ZFHelperMethods.iterateOverFrames(inverter.andThen(zprojectFunction), inputFile, startFrame, endFrame, statusService);
+            Mat resultMat = zprojectFunction.getResultMat();
 
             imwrite(outputFile.getAbsolutePath(), resultMat);
             resultMat.close();
@@ -153,7 +148,7 @@ public class ZProjectOpenCV extends DynamicCommand {
     public void initProc() {
         final MutableModuleItem<String> item =
                 getInfo().getMutableInput("mode", String.class);
-        item.setChoices(Arrays.stream(ZprojectConsumer.OperationMode.values()).map(ZprojectConsumer.OperationMode::getText).collect(Collectors.toList()));
+        item.setChoices(Arrays.stream(ZprojectFunction.OperationMode.values()).map(ZprojectFunction.OperationMode::getText).collect(Collectors.toList()));
     }
 
 }

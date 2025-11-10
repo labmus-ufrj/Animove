@@ -1,4 +1,4 @@
-package labmus.zebrafish_utils.utils;
+package labmus.zebrafish_utils.tools;
 
 import ij.IJ;
 import ij.ImagePlus;
@@ -7,7 +7,8 @@ import ij.plugin.Zoom;
 import io.scif.services.DatasetIOService;
 import labmus.zebrafish_utils.ZFConfigs;
 import labmus.zebrafish_utils.ZFHelperMethods;
-import labmus.zebrafish_utils.tools.ZProjectOpenCV;
+import labmus.zebrafish_utils.utils.SimpleRecorder;
+import labmus.zebrafish_utils.utils.functions.ZprojectFunction;
 import org.bytedeco.javacpp.indexer.UByteIndexer;
 import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter;
@@ -24,7 +25,6 @@ import org.scijava.ui.UIService;
 
 import java.io.File;
 import java.util.concurrent.Executors;
-import java.util.function.Function;
 
 @Plugin(type = Command.class, menuPath = ZFConfigs.performanceTest)
 public class PerformanceTest implements Command {
@@ -84,10 +84,10 @@ public class PerformanceTest implements Command {
             try (Java2DFrameConverter biConverter = new Java2DFrameConverter();
                  OpenCVFrameConverter.ToMat converter = new OpenCVFrameConverter.ToMat()) {
 
-                ZprojectConsumer zprojectConsumer = new ZprojectConsumer(ZprojectConsumer.OperationMode.MAX);
-                ZFHelperMethods.iterateOverFrames(zprojectConsumer, tempOutputFile, 1, 0, statusService);
-                
-                try (Mat maxFrame = zprojectConsumer.getResultMat()) {
+                ZprojectFunction zprojectFunction = new ZprojectFunction(ZprojectFunction.OperationMode.MAX);
+                ZFHelperMethods.iterateOverFrames(zprojectFunction, tempOutputFile, 1, 0, statusService);
+
+                try (Mat maxFrame = zprojectFunction.getResultMat()) {
                     ImagePlus pluginImp = new ImagePlus(ZFConfigs.pluginName, biConverter.convert(converter.convert(maxFrame)));
                     uiService.show(pluginImp);
                     long pluginEndTime = System.currentTimeMillis();
@@ -95,7 +95,8 @@ public class PerformanceTest implements Command {
                     long ijStartTime = System.currentTimeMillis();
                     ImagePlus imagePlus = IJ.openImage(tempOutputFile.getAbsolutePath());
                     ImagePlus ijImp = ZProjector.run(imagePlus, "max");
-                    uiService.show("ImageJ", ijImp);
+                    ijImp.setTitle("ImageJ");
+                    uiService.show(ijImp);
                     long ijEndTime = System.currentTimeMillis();
 
                     Zoom.maximize(pluginImp);

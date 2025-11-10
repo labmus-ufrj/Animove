@@ -67,7 +67,6 @@ public class SimpleRecorder implements AutoCloseable {
 
     private boolean isClosed = false;
 
-    /*
     public SimpleRecorder(File outputFile, Mat mat, double frameRate) {
         this.outputFile = outputFile;
         this.proposedWidth = mat.arrayWidth();
@@ -75,7 +74,6 @@ public class SimpleRecorder implements AutoCloseable {
         this.frameRate = frameRate;
         this.config = setupConfig();
     }
-     */
 
     public SimpleRecorder(File outputFile, int imageWidth, int imageHeight, double frameRate) {
         this.outputFile = outputFile;

@@ -1,11 +1,12 @@
 package labmus.zebrafish_utils.tools;
 
 import labmus.zebrafish_utils.ZFConfigs;
+import labmus.zebrafish_utils.ZFHelperMethods;
+import labmus.zebrafish_utils.utils.functions.ImageCalculatorFunction;
 import labmus.zebrafish_utils.utils.SimpleRecorder;
+import labmus.zebrafish_utils.utils.functions.SimpleRecorderFunction;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
-import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.OpenCVFrameConverter;
-import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
@@ -36,37 +37,6 @@ public class ImageCalculator extends DynamicCommand {
         // reduces loading time for FFmpegFrameGrabber and for OpenCV
         Executors.newSingleThreadExecutor().submit(() -> ZFConfigs.ffmpeg);
         Executors.newSingleThreadExecutor().submit(OpenCVFrameConverter.ToMat::new);
-    }
-
-    public enum OperationMode {
-        ADD("Add"),
-        SUBTRACT("Subtract");
-
-        private final String text;
-
-        OperationMode(String text) {
-            this.text = text;
-        }
-
-        public String getText() {
-            return this.text;
-        }
-
-        /**
-         * Finds an OperationMode by its user-facing text.
-         * This method is case-insensitive.
-         *
-         * @param text The text to search for (e.g., "Average")
-         * @return The matching OperationMode (null if nothing is found)
-         */
-        public static OperationMode fromText(String text) {
-            for (OperationMode mode : OperationMode.values()) {
-                if (mode.getText().equalsIgnoreCase(text)) {
-                    return mode;
-                }
-            }
-            return null;
-        }
     }
 
     @Parameter
@@ -121,71 +91,20 @@ public class ImageCalculator extends DynamicCommand {
                 throw new Exception("Failed to load the selected image.");
             }
 
-            ImageCalculator.calculateVideoOperation(OperationMode.fromText(this.operation), this.videoFile, grayImage, this.outputFile, this.startFrame, this.endFrame, this.statusService);
+            double fps;
+            try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(videoFile)) {
+                grabber.start();
+                fps = grabber.getFrameRate();
+            }
+            SimpleRecorderFunction simpleRecorderFunction = new SimpleRecorderFunction(new SimpleRecorder(this.outputFile, image, fps), uiService);
+            ImageCalculatorFunction imageCalculatorFunction = new ImageCalculatorFunction(ImageCalculatorFunction.OperationMode.fromText(this.operation), grayImage);
+
+            ZFHelperMethods.iterateOverFrames(imageCalculatorFunction.andThen(simpleRecorderFunction),videoFile,this.startFrame, this.endFrame, this.statusService);
+            simpleRecorderFunction.close();
+
         } catch (Exception e) {
             log.error(e);
             uiService.showDialog("An error occurred: " + e.getMessage(), ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
-        }
-    }
-
-    public static void calculateVideoOperation(OperationMode mode, File inputVideo, Mat inputImage, File outputFile, int startFrame, int endFrame, StatusService statusService) throws Exception {
-        try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputVideo);
-             OpenCVFrameConverter.ToMat converter = new OpenCVFrameConverter.ToMat()) {
-
-            int actualStartFrame = Math.max(0, startFrame - 1);
-            grabber.setFrameNumber(actualStartFrame);
-
-            grabber.start();
-
-            int totalFrames = grabber.getLengthInFrames() - 1; // frame numbers are 0-indexed
-            final boolean wholeVideo = (endFrame <= 0);
-            int actualEndFrame = (wholeVideo || endFrame > totalFrames) ? totalFrames : endFrame;
-            if (actualStartFrame >= actualEndFrame) {
-                throw new Exception("Initial frame must be before end frame.");
-            }
-            int framesToProcess = actualEndFrame - actualStartFrame;
-
-            if (statusService != null) {
-                statusService.showStatus("Processing frames...");
-            }
-
-            SimpleRecorder simpleRecorder = new SimpleRecorder(outputFile, grabber);
-            simpleRecorder.start();
-
-            Frame jcvFrame;
-            for (int i = actualStartFrame; i < actualEndFrame || wholeVideo; i++) {
-                jcvFrame = grabber.grabImage();
-                if (jcvFrame == null || jcvFrame.image == null) {
-                    if (wholeVideo){
-                        break;
-                    }
-                    throw new Exception("Read terminated prematurely at frame " + i);
-                }
-
-                Mat grayMatFrame = new Mat();
-                cvtColor(converter.convert(jcvFrame), grayMatFrame, COLOR_BGR2GRAY);
-
-                try (Mat resultFrame = new Mat()) {
-                    switch (mode) {
-                        case ADD:
-                            add(grayMatFrame, inputImage, resultFrame, null, opencv_core.CV_8UC1);
-                            break;
-                        case SUBTRACT:
-                            subtract(grayMatFrame, inputImage, resultFrame, null, opencv_core.CV_8UC1);
-                            break;
-                        default:
-                            break; // this is not happening lol
-                    }
-                    simpleRecorder.recordMat(resultFrame, converter);
-                }
-                grayMatFrame.close();
-
-                if (statusService != null) {
-                    statusService.showProgress(i + 1, framesToProcess);
-                }
-            }
-
-            simpleRecorder.close();
         }
     }
 
@@ -225,7 +144,7 @@ public class ImageCalculator extends DynamicCommand {
     public void initOperation() {
         final MutableModuleItem<String> item =
                 getInfo().getMutableInput("operation", String.class);
-        item.setChoices(Arrays.stream(OperationMode.values()).map(OperationMode::getText).collect(Collectors.toList()));
+        item.setChoices(Arrays.stream(ImageCalculatorFunction.OperationMode.values()).map(ImageCalculatorFunction.OperationMode::getText).collect(Collectors.toList()));
     }
 
     public void updateExtensionChoice() {
