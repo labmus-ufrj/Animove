@@ -159,8 +159,8 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
                 int startFrame = Integer.parseInt(a[0]);
                 int endFrame = Integer.parseInt(a[1]);
 
-                ZprojectConsumer zprojectConsumerAvg = new ZprojectConsumer(ZProjectOpenCV.OperationMode.AVG);
-                ZFHelperMethods.iterateOverFrames(ZProjectOpenCV.InvertFunction.andThen(zprojectConsumerAvg), inputFile, startFrame, endFrame, statusService);
+                ZprojectConsumer zprojectConsumerAvg = new ZprojectConsumer(ZprojectConsumer.OperationMode.AVG);
+                ZFHelperMethods.iterateOverFrames(ZFHelperMethods.InvertFunction.andThen(zprojectConsumerAvg), inputFile, startFrame, endFrame, statusService);
                 Mat avg = zprojectConsumerAvg.getResultMat();
 
 
@@ -176,8 +176,8 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
                     mat.convertTo(mat, -1, 1, 30); // todo: maybe either calculate beta automatically or let the user choose...
                     return mat;
                 };
-                ZprojectConsumer zprojectConsumerSum = new ZprojectConsumer(ZProjectOpenCV.OperationMode.SUM);
-                ZFHelperMethods.iterateOverFrames(subtractFunction.andThen(bcFunction).andThen(ZProjectOpenCV.InvertFunction).andThen(zprojectConsumerSum), inputFile, startFrame, endFrame, statusService);
+                ZprojectConsumer zprojectConsumerSum = new ZprojectConsumer(ZprojectConsumer.OperationMode.SUM);
+                ZFHelperMethods.iterateOverFrames(subtractFunction.andThen(bcFunction).andThen(ZFHelperMethods.InvertFunction).andThen(zprojectConsumerSum), inputFile, startFrame, endFrame, statusService);
                 Mat sum = zprojectConsumerSum.getResultMat();
 
 //                Files.deleteIfExists(tempVideo.toPath());

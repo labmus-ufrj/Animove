@@ -6,6 +6,7 @@ import ij.plugin.ZProjector;
 import ij.plugin.Zoom;
 import io.scif.services.DatasetIOService;
 import labmus.zebrafish_utils.ZFConfigs;
+import labmus.zebrafish_utils.ZFHelperMethods;
 import labmus.zebrafish_utils.tools.ZProjectOpenCV;
 import org.bytedeco.javacpp.indexer.UByteIndexer;
 import org.bytedeco.javacv.Java2DFrameConverter;
@@ -82,7 +83,11 @@ public class PerformanceTest implements Command {
             long pluginStartTime = System.currentTimeMillis(); // creating the converters is an overhead. preventable, that is, but still is.
             try (Java2DFrameConverter biConverter = new Java2DFrameConverter();
                  OpenCVFrameConverter.ToMat converter = new OpenCVFrameConverter.ToMat()) {
-                try (Mat maxFrame = ZProjectOpenCV.applyVideoOperation(ZProjectOpenCV.OperationMode.MAX, tempOutputFile, 1, 0, statusService)) {
+
+                ZprojectConsumer zprojectConsumer = new ZprojectConsumer(ZprojectConsumer.OperationMode.MAX);
+                ZFHelperMethods.iterateOverFrames(zprojectConsumer, tempOutputFile, 1, 0, statusService);
+                
+                try (Mat maxFrame = zprojectConsumer.getResultMat()) {
                     ImagePlus pluginImp = new ImagePlus(ZFConfigs.pluginName, biConverter.convert(converter.convert(maxFrame)));
                     uiService.show(pluginImp);
                     long pluginEndTime = System.currentTimeMillis();

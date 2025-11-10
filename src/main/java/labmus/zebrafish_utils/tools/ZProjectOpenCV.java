@@ -43,39 +43,6 @@ public class ZProjectOpenCV extends DynamicCommand {
         Executors.newSingleThreadExecutor().submit(OpenCVFrameConverter.ToMat::new);
     }
 
-    public enum OperationMode {
-        MIN("Darkest (Min)"),
-        MAX("Brightest (Max)"),
-        AVG("Average"),
-        SUM("Sum");
-
-        private final String text;
-
-        OperationMode(String text) {
-            this.text = text;
-        }
-
-        public String getText() {
-            return this.text;
-        }
-
-        /**
-         * Finds an OperationMode by its user-facing text.
-         * This method is case-insensitive.
-         *
-         * @param text The text to search for (e.g., "Average")
-         * @return The matching OperationMode (null if nothing is found)
-         */
-        public static OperationMode fromText(String text) {
-            for (OperationMode mode : OperationMode.values()) {
-                if (mode.getText().equalsIgnoreCase(text)) {
-                    return mode;
-                }
-            }
-            return null;
-        }
-    }
-
     @Parameter
     private UIService uiService;
     @Parameter
@@ -121,18 +88,10 @@ public class ZProjectOpenCV extends DynamicCommand {
         statusService.showStatus(0, 100, "Starting processing...");
 
         try {
-            /*
-            Mat resultMat = applyVideoOperation(OperationMode.fromText(mode), inputFile, convertToGrayscale,
-                    (frame) -> {
-                if (invertVideo) {
-                    opencv_core.bitwise_not(frame, frame);
-                }
-                return frame;
-                    }, startFrame, endFrame, statusService);
-             */
-
-            Mat resultMat = applyVideoOperation
-                    (OperationMode.fromText(mode), inputFile, startFrame, endFrame, statusService);
+            Function<Mat, Mat> inverter = invertVideo ? ZFHelperMethods.InvertFunction : Function.identity();
+            ZprojectConsumer zprojectConsumer = new ZprojectConsumer(ZprojectConsumer.OperationMode.fromText(mode));
+            ZFHelperMethods.iterateOverFrames(inverter.andThen(zprojectConsumer), inputFile, startFrame, endFrame, statusService);
+            Mat resultMat = zprojectConsumer.getResultMat();
 
             imwrite(outputFile.getAbsolutePath(), resultMat);
             resultMat.close();
@@ -151,158 +110,6 @@ public class ZProjectOpenCV extends DynamicCommand {
         }
     }
 
-    /**
-     * Processes video frames from an input file according to the specified operation mode
-     * (e.g., finding the darkest, brightest, average, or summing frames) and writes the
-     * resulting image to the output file.
-     * Optionally converts the frames to grayscale, operates on a specific frame range,
-     * and displays the result.
-     * <p>
-     * YOU ABSOLUTELY NEED TO CALL .close() ON THE Mat WHEN YOU ARE DONE WITH IT!!!!
-     *
-     * @param mode               The operation mode to apply to the frames (MIN, MAX, AVG, SUM).
-     * @param inputFile          The input video file.
-     * @param startFrame         The starting frame of the range to process (one-indexed, inclusive).
-     * @param endFrame           The ending frame of the range to process (one-indexed, inclusive).
-     * @param statusService      Service for displaying status and progress updates. (nullable)
-     * @return The resulting processed image as a Mat object.
-     * @throws Exception If the operation cannot be completed (e.g., invalid frame range, no frames processed).
-     */
-    public static Mat applyVideoOperation(OperationMode mode, File inputFile, int startFrame, int endFrame, StatusService statusService) throws Exception {
-        ZprojectConsumer zprojectConsumer = new ZprojectConsumer(mode);
-        ZFHelperMethods.iterateOverFrames(zprojectConsumer, inputFile, startFrame, endFrame, statusService);
-        return zprojectConsumer.getResultMat();
-
-//        try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile)) {
-//
-//            int actualStartFrame = Math.max(0, startFrame - 1);
-//            grabber.setFrameNumber(actualStartFrame);
-//
-//            grabber.start();
-//
-//            int totalFrames = grabber.getLengthInFrames() - 1; // frame numbers are 0-indexed.
-//            /*
-//             this is NOT precise
-//             see https://javadoc.io/static/org.bytedeco/javacv/1.4.4/org/bytedeco/javacv/FFmpegFrameGrabber.html#getLengthInVideoFrames--
-//             that's why we are increasing the precision when its set for the entire video.
-//             */
-//            final boolean wholeVideo = (endFrame <= 0);
-//            int actualEndFrame = (wholeVideo || endFrame > totalFrames) ? totalFrames : endFrame;
-//            if (actualStartFrame >= actualEndFrame) {
-//                throw new Exception("Initial frame must be before end frame.");
-//            }
-//            int framesToProcess = actualEndFrame - actualStartFrame;
-//
-//            if (statusService != null) {
-//                statusService.showStatus("Processing frames... ");
-//            }
-//
-//            // it's better to declare these two here
-//            // for secret and random memory things
-//            Frame jcvFrame;
-//            Mat currentFrame;
-//            Mat accumulator = null;
-//            int framesProcessedCount = 0;
-//            int frameType = convertToGrayscale ? opencv_core.CV_32FC1 : opencv_core.CV_32FC3; // using float for everyone is safer
-//
-//            for (int i = actualStartFrame; i < actualEndFrame || wholeVideo; i++) {
-//                jcvFrame = grabber.grabImage();
-//                if (jcvFrame == null || jcvFrame.image == null) {
-//                    if (wholeVideo) {
-//                        break; // we are done!!
-//                    }
-//                    throw new Exception("Read terminated prematurely at frame " + i); // we were NOT done!!
-//                }
-//
-//                // No one knows why, and it took a few days to figure out why, but
-//                // you NEED a new converter every frame here. Dw about it, it doesn't leak.
-//                try (OpenCVFrameConverter.ToMat cnv = new OpenCVFrameConverter.ToMat()) {
-//                    Mat currentFrameColor = cnv.convert(jcvFrame);
-//
-//                    // check if we should be converting to grayscale
-//                    if (convertToGrayscale && currentFrameColor.channels() > 1) {
-//                        currentFrame = new Mat();
-//                        cvtColor(currentFrameColor, currentFrame, COLOR_BGR2GRAY);
-//                    } else {
-//                        currentFrame = currentFrameColor;
-//                    }
-//
-//                    if (currentFrame == null || currentFrame.isNull()) continue;
-//
-//                    currentFrame = matTransformer.apply(currentFrame);
-//
-//                    if (accumulator == null) {
-//                        accumulator = new Mat();
-//                        switch (mode) {
-//                            case AVG:
-//                            case SUM:
-//                                currentFrame.convertTo(accumulator, frameType);
-//                                break;
-//                            default: // Darkest and Brightest
-//                                // using convertTo() instead of clone() fixes the 180° flipping issue
-//                                currentFrame.convertTo(accumulator, currentFrame.type());
-//                                break;
-//                        }
-//                    } else {
-//                        switch (mode) {
-//                            case MIN:
-//                                opencv_core.min(accumulator, currentFrame, accumulator);
-//                                break;
-//                            case MAX:
-//                                opencv_core.max(accumulator, currentFrame, accumulator);
-//                                break;
-//                            case AVG:
-//                            case SUM:
-//                                try (Mat tempFloatFrame = new Mat()) {
-//                                    currentFrame.convertTo(tempFloatFrame, frameType);
-//                                    opencv_core.add(accumulator, tempFloatFrame, accumulator);
-//                                }
-//                                break;
-//                        }
-//                    }
-//
-//                    currentFrame.close();
-//                    currentFrameColor.close();
-//                    framesProcessedCount++;
-//                    if (statusService != null) {
-//                        statusService.showProgress(framesProcessedCount, framesToProcess);
-//                    }
-//                }
-//            }
-//
-//            if (accumulator == null) {
-//                throw new Exception("No frames were processed.");
-//            }
-//
-//            Mat resultMat;
-//            if (mode == OperationMode.AVG) {
-//                // The logic is: you opened a video file, which can only be 8-bit. No need to save anything higher than that.
-//                Mat tempMat = new Mat();
-//                double scale = 1.0 / framesProcessedCount;
-//                accumulator.convertTo(tempMat, frameType, scale, 0); // scale to create avg
-//                resultMat = new Mat();
-//                opencv_core.normalize( // normalize to 8 bit
-//                        tempMat,
-//                        resultMat,
-//                        0,
-//                        Math.pow(2, 8) - 1,
-//                        NORM_MINMAX,
-//                        tempMat.channels() == 1 ? opencv_core.CV_8UC1 : opencv_core.CV_8UC3,
-//                        null
-//                );
-//            } else {
-//                resultMat = accumulator;
-//            }
-//
-//            if (resultMat != accumulator) {
-//                accumulator.close();
-//            }
-//
-//            return resultMat;
-//
-//        }
-
-    }
 
     /**
      * Callback method to update the output filename when an input file changes.
@@ -346,11 +153,7 @@ public class ZProjectOpenCV extends DynamicCommand {
     public void initProc() {
         final MutableModuleItem<String> item =
                 getInfo().getMutableInput("mode", String.class);
-        item.setChoices(Arrays.stream(OperationMode.values()).map(OperationMode::getText).collect(Collectors.toList()));
+        item.setChoices(Arrays.stream(ZprojectConsumer.OperationMode.values()).map(ZprojectConsumer.OperationMode::getText).collect(Collectors.toList()));
     }
 
-    public static final Function<Mat, Mat> InvertFunction = (mat) -> {
-        opencv_core.bitwise_not(mat, mat);
-        return mat;
-    };
 }

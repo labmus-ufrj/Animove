@@ -9,6 +9,7 @@ import ij.process.StackStatistics;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.OpenCVFrameConverter;
+import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
@@ -37,6 +38,11 @@ public class ZFHelperMethods implements Command {
         // reduces loading time for FFmpegFrameGrabber
         Executors.newSingleThreadExecutor().submit(() -> ZFConfigs.ffmpeg);
     }
+
+    public static final Function<Mat, Mat> InvertFunction = (mat) -> {
+        opencv_core.bitwise_not(mat, mat);
+        return mat;
+    };
 
     @Parameter
     private LogService log;

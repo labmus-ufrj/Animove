@@ -7,24 +7,65 @@ import org.bytedeco.opencv.opencv_core.Mat;
 import java.util.function.Function;
 
 /**
+ * Processes video frames from an input file according to the specified operation mode
+ * (e.g., finding the darkest, brightest, average, or summing frames) and writes the
+ * resulting image to the output file.
+ * Converts the frames to grayscale, operates on a specific frame range.
+ * <p>
  * this is actually a consumer. the function just passes the input mat ahead.
  */
 public class ZprojectConsumer implements Function<Mat, Mat> {
 
+    public enum OperationMode {
+        MIN("Darkest (Min)"),
+        MAX("Brightest (Max)"),
+        AVG("Average"),
+        SUM("Sum");
+
+        private final String text;
+
+        OperationMode(String text) {
+            this.text = text;
+        }
+
+        public String getText() {
+            return this.text;
+        }
+
+        /**
+         * Finds an OperationMode by its user-facing text.
+         * This method is case-insensitive.
+         *
+         * @param text The text to search for (e.g., "Average")
+         * @return The matching OperationMode (null if nothing is found)
+         */
+        public static OperationMode fromText(String text) {
+            for (OperationMode mode : OperationMode.values()) {
+                if (mode.getText().equalsIgnoreCase(text)) {
+                    return mode;
+                }
+            }
+            return null;
+        }
+    }
+
     private Mat accumulator;
-    private final ZProjectOpenCV.OperationMode mode;
+    private final OperationMode mode;
     private int framesProcessedCount = 0;
 
-    public ZprojectConsumer(ZProjectOpenCV.OperationMode mode) {
+    public ZprojectConsumer(OperationMode mode) {
         this.mode = mode;
     }
 
+    /**
+     * you really need to close this mat. please. it leaks.
+     **/
     public Mat getResultMat() throws Exception {
         if (accumulator == null) {
             throw new Exception("No frames were processed.");
         }
         Mat resultMat;
-        if (mode == ZProjectOpenCV.OperationMode.AVG) {
+        if (mode == OperationMode.AVG) {
             // The logic is: you opened a video file, which can only be 8-bit. No need to save anything higher than that.
             Mat tempMat = new Mat();
             double scale = 1.0 / framesProcessedCount;
