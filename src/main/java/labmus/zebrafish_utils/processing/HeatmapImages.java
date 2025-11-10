@@ -8,6 +8,8 @@ import labmus.zebrafish_utils.ZFConfigs;
 import labmus.zebrafish_utils.ZFHelperMethods;
 import labmus.zebrafish_utils.tools.ImageCalculator;
 import labmus.zebrafish_utils.tools.ZProjectOpenCV;
+import labmus.zebrafish_utils.utils.ImageCalculatorFunction;
+import labmus.zebrafish_utils.utils.ZprojectConsumer;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.opencv_core.Mat;
@@ -157,25 +159,28 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
                 int startFrame = Integer.parseInt(a[0]);
                 int endFrame = Integer.parseInt(a[1]);
 
-                Mat avg = ZProjectOpenCV.applyVideoOperation(ZProjectOpenCV.OperationMode.AVG,
-                        inputFile, true, ZProjectOpenCV.InvertFunction, startFrame, endFrame, statusService);
+                ZprojectConsumer zprojectConsumerAvg = new ZprojectConsumer(ZProjectOpenCV.OperationMode.AVG);
+                ZFHelperMethods.iterateOverFrames(ZProjectOpenCV.InvertFunction.andThen(zprojectConsumerAvg), inputFile, startFrame, endFrame, statusService);
+                Mat avg = zprojectConsumerAvg.getResultMat();
+
 
                 // subtract avg from inverted stack
-                File tempVideo = File.createTempFile(ZFConfigs.pluginName + "_", ".avi");
-                log.info("Temp file: " + tempVideo.getAbsolutePath());
-                tempVideo.deleteOnExit();
-                ImageCalculator.calculateVideoOperation(ImageCalculator.OperationMode.ADD,
-                        inputFile, avg, tempVideo, startFrame, endFrame, statusService);
+//                File tempVideo = File.createTempFile(ZFConfigs.pluginName + "_", ".avi");
+//                log.info("Temp file: " + tempVideo.getAbsolutePath());
+//                tempVideo.deleteOnExit();
+//                ImageCalculator.calculateVideoOperation(ImageCalculator.OperationMode.ADD,
+//                        inputFile, avg, tempVideo, startFrame, endFrame, statusService);
 
-                Mat sum = ZProjectOpenCV.applyVideoOperation(ZProjectOpenCV.OperationMode.SUM,
-                        tempVideo, true,
-                        (frame) -> {
-                            frame.convertTo(frame, -1, 1, 30); // todo: maybe either calculate beta automatically or let the user choose...
-                            frame = ZProjectOpenCV.InvertFunction.apply(frame);
-                            return frame;
-                        }, startFrame, endFrame, statusService);
-                
-                Files.deleteIfExists(tempVideo.toPath());
+                Function<Mat, Mat> subtractFunction = new ImageCalculatorFunction(ImageCalculator.OperationMode.ADD, avg);
+                Function<Mat, Mat> bcFunction = (mat) -> {
+                    mat.convertTo(mat, -1, 1, 30); // todo: maybe either calculate beta automatically or let the user choose...
+                    return mat;
+                };
+                ZprojectConsumer zprojectConsumerSum = new ZprojectConsumer(ZProjectOpenCV.OperationMode.SUM);
+                ZFHelperMethods.iterateOverFrames(subtractFunction.andThen(bcFunction).andThen(ZProjectOpenCV.InvertFunction).andThen(zprojectConsumerSum), inputFile, startFrame, endFrame, statusService);
+                Mat sum = zprojectConsumerSum.getResultMat();
+
+//                Files.deleteIfExists(tempVideo.toPath());
 
                 try (Mat mat = new Mat()) {
                     // convert to 16-bits

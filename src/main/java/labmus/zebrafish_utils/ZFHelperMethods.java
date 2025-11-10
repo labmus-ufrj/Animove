@@ -1,15 +1,11 @@
 package labmus.zebrafish_utils;
 
-import com.sun.istack.internal.Nullable;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.process.ImageProcessor;
 import ij.process.ImageStatistics;
 import ij.process.StackStatistics;
-import labmus.zebrafish_utils.utils.ImageProjectFunction;
-import labmus.zebrafish_utils.utils.SimpleRecorderConsumer;
-import labmus.zebrafish_utils.utils.ZprojectConsumer;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.OpenCVFrameConverter;
@@ -61,8 +57,8 @@ public class ZFHelperMethods implements Command {
         // todo: investigate if this solves the heatmap video problem
     }
 
-    public void iterateOverFrames(Function<Mat, Mat> matFunction,
-                        File inputFile, int startFrame, int endFrame, @Nullable StatusService statusService) throws Exception {
+    public static void iterateOverFrames(Function<Mat, Mat> matFunction,
+                                         File inputFile, int startFrame, int endFrame, StatusService statusService) throws Exception {
         try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile)) {
 
             int actualStartFrame = Math.max(0, startFrame - 1);
@@ -102,6 +98,7 @@ public class ZFHelperMethods implements Command {
 
                 // No one knows why, and it took a few days to figure out why, but
                 // you NEED a new converter every frame here. Dw about it, it doesn't leak.
+                // todo: test without a new one every frame
                 try (OpenCVFrameConverter.ToMat cnv = new OpenCVFrameConverter.ToMat()) {
                     Mat currentFrameColor = cnv.convert(jcvFrame);
 
@@ -117,7 +114,10 @@ public class ZFHelperMethods implements Command {
 
 //                    currentFrame = matTransformer.apply(currentFrame);
 
-                    matFunction.apply(currentFrame);
+                    matFunction.andThen((mat) -> {
+                        mat.close();
+                        return null;
+                    }).apply(currentFrame);
 
                     currentFrame.close();
                     currentFrameColor.close();

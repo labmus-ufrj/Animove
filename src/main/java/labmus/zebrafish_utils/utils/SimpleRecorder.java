@@ -44,7 +44,6 @@ public class SimpleRecorder implements AutoCloseable {
 
     public enum Format {
         MP4, AVI, TIFF;
-
     }
 
     private FFmpegFrameRecorder recorder;
@@ -67,6 +66,16 @@ public class SimpleRecorder implements AutoCloseable {
     private boolean refitNeeded;
 
     private boolean isClosed = false;
+
+    /*
+    public SimpleRecorder(File outputFile, Mat mat, double frameRate) {
+        this.outputFile = outputFile;
+        this.proposedWidth = mat.arrayWidth();
+        this.proposedHeight = mat.arrayHeight();
+        this.frameRate = frameRate;
+        this.config = setupConfig();
+    }
+     */
 
     public SimpleRecorder(File outputFile, int imageWidth, int imageHeight, double frameRate) {
         this.outputFile = outputFile;

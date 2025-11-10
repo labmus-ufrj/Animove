@@ -1,10 +1,9 @@
 package labmus.zebrafish_utils.tools;
 
-import ij.IJ;
 import ij.ImagePlus;
 import labmus.zebrafish_utils.ZFConfigs;
-import org.bytedeco.javacv.FFmpegFrameGrabber;
-import org.bytedeco.javacv.Frame;
+import labmus.zebrafish_utils.ZFHelperMethods;
+import labmus.zebrafish_utils.utils.ZprojectConsumer;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.opencv_core.Mat;
@@ -25,9 +24,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.bytedeco.opencv.global.opencv_imgcodecs.imwrite;
-import static org.bytedeco.opencv.global.opencv_imgproc.COLOR_BGR2GRAY;
 import static org.bytedeco.opencv.global.opencv_imgproc.cvtColor;
-import static org.opencv.core.Core.NORM_MINMAX;
 
 /**
  * This plugin implements a video-to-image processing pipeline as a SciJava Command.
@@ -124,6 +121,7 @@ public class ZProjectOpenCV extends DynamicCommand {
         statusService.showStatus(0, 100, "Starting processing...");
 
         try {
+            /*
             Mat resultMat = applyVideoOperation(OperationMode.fromText(mode), inputFile, convertToGrayscale,
                     (frame) -> {
                 if (invertVideo) {
@@ -131,6 +129,11 @@ public class ZProjectOpenCV extends DynamicCommand {
                 }
                 return frame;
                     }, startFrame, endFrame, statusService);
+             */
+
+            Mat resultMat = applyVideoOperation
+                    (OperationMode.fromText(mode), inputFile, startFrame, endFrame, statusService);
+
             imwrite(outputFile.getAbsolutePath(), resultMat);
             resultMat.close();
 
@@ -159,142 +162,146 @@ public class ZProjectOpenCV extends DynamicCommand {
      *
      * @param mode               The operation mode to apply to the frames (MIN, MAX, AVG, SUM).
      * @param inputFile          The input video file.
-     * @param convertToGrayscale Whether to convert the frames to grayscale before processing.
      * @param startFrame         The starting frame of the range to process (one-indexed, inclusive).
      * @param endFrame           The ending frame of the range to process (one-indexed, inclusive).
      * @param statusService      Service for displaying status and progress updates. (nullable)
      * @return The resulting processed image as a Mat object.
      * @throws Exception If the operation cannot be completed (e.g., invalid frame range, no frames processed).
      */
-    public static Mat applyVideoOperation(OperationMode mode, File inputFile, boolean convertToGrayscale, Function<Mat, Mat> matTransformer, int startFrame, int endFrame, StatusService statusService) throws Exception {
-        try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile)) {
+    public static Mat applyVideoOperation(OperationMode mode, File inputFile, int startFrame, int endFrame, StatusService statusService) throws Exception {
+        ZprojectConsumer zprojectConsumer = new ZprojectConsumer(mode);
+        ZFHelperMethods.iterateOverFrames(zprojectConsumer, inputFile, startFrame, endFrame, statusService);
+        return zprojectConsumer.getResultMat();
 
-            int actualStartFrame = Math.max(0, startFrame - 1);
-            grabber.setFrameNumber(actualStartFrame);
+//        try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile)) {
+//
+//            int actualStartFrame = Math.max(0, startFrame - 1);
+//            grabber.setFrameNumber(actualStartFrame);
+//
+//            grabber.start();
+//
+//            int totalFrames = grabber.getLengthInFrames() - 1; // frame numbers are 0-indexed.
+//            /*
+//             this is NOT precise
+//             see https://javadoc.io/static/org.bytedeco/javacv/1.4.4/org/bytedeco/javacv/FFmpegFrameGrabber.html#getLengthInVideoFrames--
+//             that's why we are increasing the precision when its set for the entire video.
+//             */
+//            final boolean wholeVideo = (endFrame <= 0);
+//            int actualEndFrame = (wholeVideo || endFrame > totalFrames) ? totalFrames : endFrame;
+//            if (actualStartFrame >= actualEndFrame) {
+//                throw new Exception("Initial frame must be before end frame.");
+//            }
+//            int framesToProcess = actualEndFrame - actualStartFrame;
+//
+//            if (statusService != null) {
+//                statusService.showStatus("Processing frames... ");
+//            }
+//
+//            // it's better to declare these two here
+//            // for secret and random memory things
+//            Frame jcvFrame;
+//            Mat currentFrame;
+//            Mat accumulator = null;
+//            int framesProcessedCount = 0;
+//            int frameType = convertToGrayscale ? opencv_core.CV_32FC1 : opencv_core.CV_32FC3; // using float for everyone is safer
+//
+//            for (int i = actualStartFrame; i < actualEndFrame || wholeVideo; i++) {
+//                jcvFrame = grabber.grabImage();
+//                if (jcvFrame == null || jcvFrame.image == null) {
+//                    if (wholeVideo) {
+//                        break; // we are done!!
+//                    }
+//                    throw new Exception("Read terminated prematurely at frame " + i); // we were NOT done!!
+//                }
+//
+//                // No one knows why, and it took a few days to figure out why, but
+//                // you NEED a new converter every frame here. Dw about it, it doesn't leak.
+//                try (OpenCVFrameConverter.ToMat cnv = new OpenCVFrameConverter.ToMat()) {
+//                    Mat currentFrameColor = cnv.convert(jcvFrame);
+//
+//                    // check if we should be converting to grayscale
+//                    if (convertToGrayscale && currentFrameColor.channels() > 1) {
+//                        currentFrame = new Mat();
+//                        cvtColor(currentFrameColor, currentFrame, COLOR_BGR2GRAY);
+//                    } else {
+//                        currentFrame = currentFrameColor;
+//                    }
+//
+//                    if (currentFrame == null || currentFrame.isNull()) continue;
+//
+//                    currentFrame = matTransformer.apply(currentFrame);
+//
+//                    if (accumulator == null) {
+//                        accumulator = new Mat();
+//                        switch (mode) {
+//                            case AVG:
+//                            case SUM:
+//                                currentFrame.convertTo(accumulator, frameType);
+//                                break;
+//                            default: // Darkest and Brightest
+//                                // using convertTo() instead of clone() fixes the 180° flipping issue
+//                                currentFrame.convertTo(accumulator, currentFrame.type());
+//                                break;
+//                        }
+//                    } else {
+//                        switch (mode) {
+//                            case MIN:
+//                                opencv_core.min(accumulator, currentFrame, accumulator);
+//                                break;
+//                            case MAX:
+//                                opencv_core.max(accumulator, currentFrame, accumulator);
+//                                break;
+//                            case AVG:
+//                            case SUM:
+//                                try (Mat tempFloatFrame = new Mat()) {
+//                                    currentFrame.convertTo(tempFloatFrame, frameType);
+//                                    opencv_core.add(accumulator, tempFloatFrame, accumulator);
+//                                }
+//                                break;
+//                        }
+//                    }
+//
+//                    currentFrame.close();
+//                    currentFrameColor.close();
+//                    framesProcessedCount++;
+//                    if (statusService != null) {
+//                        statusService.showProgress(framesProcessedCount, framesToProcess);
+//                    }
+//                }
+//            }
+//
+//            if (accumulator == null) {
+//                throw new Exception("No frames were processed.");
+//            }
+//
+//            Mat resultMat;
+//            if (mode == OperationMode.AVG) {
+//                // The logic is: you opened a video file, which can only be 8-bit. No need to save anything higher than that.
+//                Mat tempMat = new Mat();
+//                double scale = 1.0 / framesProcessedCount;
+//                accumulator.convertTo(tempMat, frameType, scale, 0); // scale to create avg
+//                resultMat = new Mat();
+//                opencv_core.normalize( // normalize to 8 bit
+//                        tempMat,
+//                        resultMat,
+//                        0,
+//                        Math.pow(2, 8) - 1,
+//                        NORM_MINMAX,
+//                        tempMat.channels() == 1 ? opencv_core.CV_8UC1 : opencv_core.CV_8UC3,
+//                        null
+//                );
+//            } else {
+//                resultMat = accumulator;
+//            }
+//
+//            if (resultMat != accumulator) {
+//                accumulator.close();
+//            }
+//
+//            return resultMat;
+//
+//        }
 
-            grabber.start();
-
-            int totalFrames = grabber.getLengthInFrames() - 1; // frame numbers are 0-indexed.
-            /*
-             this is NOT precise
-             see https://javadoc.io/static/org.bytedeco/javacv/1.4.4/org/bytedeco/javacv/FFmpegFrameGrabber.html#getLengthInVideoFrames--
-             that's why we are increasing the precision when its set for the entire video.
-             */
-            final boolean wholeVideo = (endFrame <= 0);
-            int actualEndFrame = (wholeVideo || endFrame > totalFrames) ? totalFrames : endFrame;
-            if (actualStartFrame >= actualEndFrame) {
-                throw new Exception("Initial frame must be before end frame.");
-            }
-            int framesToProcess = actualEndFrame - actualStartFrame;
-
-            if (statusService != null) {
-                statusService.showStatus("Processing frames... ");
-            }
-
-            // it's better to declare these two here
-            // for secret and random memory things
-            Frame jcvFrame;
-            Mat currentFrame;
-            Mat accumulator = null;
-            int framesProcessedCount = 0;
-            int frameType = convertToGrayscale ? opencv_core.CV_32FC1 : opencv_core.CV_32FC3; // using float for everyone is safer
-
-            for (int i = actualStartFrame; i < actualEndFrame || wholeVideo; i++) {
-                jcvFrame = grabber.grabImage();
-                if (jcvFrame == null || jcvFrame.image == null) {
-                    if (wholeVideo){
-                        break; // we are done!!
-                    }
-                    throw new Exception("Read terminated prematurely at frame " + i); // we were NOT done!!
-                }
-
-                // No one knows why, and it took a few days to figure out why, but
-                // you NEED a new converter every frame here. Dw about it, it doesn't leak.
-                try (OpenCVFrameConverter.ToMat cnv = new OpenCVFrameConverter.ToMat()) {
-                    Mat currentFrameColor = cnv.convert(jcvFrame);
-
-                    // check if we should be converting to grayscale
-                    if (convertToGrayscale && currentFrameColor.channels() > 1) {
-                        currentFrame = new Mat();
-                        cvtColor(currentFrameColor, currentFrame, COLOR_BGR2GRAY);
-                    } else {
-                        currentFrame = currentFrameColor;
-                    }
-
-                    if (currentFrame == null || currentFrame.isNull()) continue;
-
-                    currentFrame = matTransformer.apply(currentFrame);
-
-                    if (accumulator == null) {
-                        accumulator = new Mat();
-                        switch (mode) {
-                            case AVG:
-                            case SUM:
-                                currentFrame.convertTo(accumulator, frameType);
-                                break;
-                            default: // Darkest and Brightest
-                                // using convertTo() instead of clone() fixes the 180° flipping issue
-                                currentFrame.convertTo(accumulator, currentFrame.type());
-                                break;
-                        }
-                    } else {
-                        switch (mode) {
-                            case MIN:
-                                opencv_core.min(accumulator, currentFrame, accumulator);
-                                break;
-                            case MAX:
-                                opencv_core.max(accumulator, currentFrame, accumulator);
-                                break;
-                            case AVG:
-                            case SUM:
-                                try (Mat tempFloatFrame = new Mat()) {
-                                    currentFrame.convertTo(tempFloatFrame, frameType);
-                                    opencv_core.add(accumulator, tempFloatFrame, accumulator);
-                                }
-                                break;
-                        }
-                    }
-
-                    currentFrame.close();
-                    currentFrameColor.close();
-                    framesProcessedCount++;
-                    if (statusService != null) {
-                        statusService.showProgress(framesProcessedCount, framesToProcess);
-                    }
-                }
-            }
-
-            if (accumulator == null) {
-                throw new Exception("No frames were processed.");
-            }
-
-            Mat resultMat;
-            if (mode == OperationMode.AVG) {
-                // The logic is: you opened a video file, which can only be 8-bit. No need to save anything higher than that.
-                Mat tempMat = new Mat();
-                double scale = 1.0 / framesProcessedCount;
-                accumulator.convertTo(tempMat, frameType, scale, 0); // scale to create avg
-                resultMat = new Mat();
-                opencv_core.normalize( // normalize to 8 bit
-                        tempMat,
-                        resultMat,
-                        0,
-                        Math.pow(2, 8) - 1,
-                        NORM_MINMAX,
-                        tempMat.channels() == 1 ? opencv_core.CV_8UC1 : opencv_core.CV_8UC3,
-                        null
-                );
-            } else {
-                resultMat = accumulator;
-            }
-
-            if (resultMat != accumulator) {
-                accumulator.close();
-            }
-
-            return resultMat;
-
-        }
     }
 
     /**

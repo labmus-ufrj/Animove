@@ -82,7 +82,7 @@ public class PerformanceTest implements Command {
             long pluginStartTime = System.currentTimeMillis(); // creating the converters is an overhead. preventable, that is, but still is.
             try (Java2DFrameConverter biConverter = new Java2DFrameConverter();
                  OpenCVFrameConverter.ToMat converter = new OpenCVFrameConverter.ToMat()) {
-                try (Mat maxFrame = ZProjectOpenCV.applyVideoOperation(ZProjectOpenCV.OperationMode.MAX, tempOutputFile, false, Function.identity(), 1, 0, statusService)) {
+                try (Mat maxFrame = ZProjectOpenCV.applyVideoOperation(ZProjectOpenCV.OperationMode.MAX, tempOutputFile, 1, 0, statusService)) {
                     ImagePlus pluginImp = new ImagePlus(ZFConfigs.pluginName, biConverter.convert(converter.convert(maxFrame)));
                     uiService.show(pluginImp);
                     long pluginEndTime = System.currentTimeMillis();

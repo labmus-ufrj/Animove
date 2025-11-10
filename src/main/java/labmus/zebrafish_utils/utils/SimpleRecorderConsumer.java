@@ -1,12 +1,39 @@
 package labmus.zebrafish_utils.utils;
 
+import ij.IJ;
+import labmus.zebrafish_utils.ZFConfigs;
 import org.bytedeco.opencv.opencv_core.Mat;
+import org.scijava.ui.DialogPrompt;
+import org.scijava.ui.UIService;
 
-import java.util.function.Consumer;
+import java.util.function.Function;
 
-public class SimpleRecorderConsumer implements Consumer<Mat> {
+/**
+ * this is actually a consumer. the function just passes the input mat ahead.
+ */
+public class SimpleRecorderConsumer implements Function<Mat, Mat>, AutoCloseable {
+    private final SimpleRecorder recorder;
+    private final UIService uiService;
+
+    public SimpleRecorderConsumer(SimpleRecorder recorder, UIService uiService) throws Exception {
+        this.recorder = recorder;
+        this.uiService = uiService;
+        recorder.start();
+    }
+
     @Override
-    public void accept(Mat mat) {
+    public Mat apply(Mat mat) {
+        try {
+            this.recorder.recordMat(mat);
+        } catch (Exception e) {
+            IJ.log(e.getMessage());
+            uiService.showDialog("An error occurred when writing the video to a file: " + e.getMessage(), ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
+        }
+        return mat;
+    }
 
+    @Override
+    public void close() throws Exception {
+        this.recorder.close();
     }
 }
