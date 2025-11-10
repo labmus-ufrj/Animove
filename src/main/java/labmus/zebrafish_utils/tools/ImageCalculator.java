@@ -2,8 +2,8 @@ package labmus.zebrafish_utils.tools;
 
 import labmus.zebrafish_utils.ZFConfigs;
 import labmus.zebrafish_utils.ZFHelperMethods;
-import labmus.zebrafish_utils.utils.functions.ImageCalculatorFunction;
 import labmus.zebrafish_utils.utils.SimpleRecorder;
+import labmus.zebrafish_utils.utils.functions.ImageCalculatorFunction;
 import labmus.zebrafish_utils.utils.functions.SimpleRecorderFunction;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.OpenCVFrameConverter;
@@ -23,8 +23,6 @@ import java.util.Arrays;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
-import static org.bytedeco.opencv.global.opencv_core.add;
-import static org.bytedeco.opencv.global.opencv_core.subtract;
 import static org.bytedeco.opencv.global.opencv_imgcodecs.imread;
 import static org.bytedeco.opencv.global.opencv_imgproc.COLOR_BGR2GRAY;
 import static org.bytedeco.opencv.global.opencv_imgproc.cvtColor;
@@ -56,7 +54,7 @@ public class ImageCalculator extends DynamicCommand {
     private File outputFile;
 
     @Parameter(label = "Output Format", choices = {"AVI", "TIFF", "MP4"}, callback = "updateExtensionChoice", persist = false)
-    String format = "TIFF";
+    String format = "AVI";
 
     @Parameter(label = "Operation", callback = "updateOutputName", initializer = "initOperation", persist = false)
     private String operation = "";

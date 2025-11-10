@@ -11,7 +11,6 @@ import java.util.function.Function;
  * resulting image to the output file.
  * Converts the frames to grayscale, operates on a specific frame range.
  * <p>
- * this is actually a consumer. the function just passes the input mat ahead.
  */
 public class ZprojectFunction implements Function<Mat, Mat> {
 
@@ -20,6 +19,7 @@ public class ZprojectFunction implements Function<Mat, Mat> {
         MAX("Brightest (Max)"),
         AVG("Average"),
         SUM("Sum");
+
 
         private final String text;
 
@@ -46,15 +46,24 @@ public class ZprojectFunction implements Function<Mat, Mat> {
             }
             return null;
         }
+
     }
 
     private Mat accumulator;
     private final OperationMode mode;
     private int framesProcessedCount = 0;
+    private final boolean returnAccumulator;
 
     public ZprojectFunction(OperationMode mode) {
         this.mode = mode;
+        this.returnAccumulator = false;
     }
+
+    public ZprojectFunction(OperationMode mode, boolean returnAccumulator) {
+        this.mode = mode;
+        this.returnAccumulator = returnAccumulator;
+    }
+
 
     /**
      * you really need to close this mat. please. it leaks.
@@ -120,6 +129,12 @@ public class ZprojectFunction implements Function<Mat, Mat> {
             }
         }
         framesProcessedCount++;
+        if (returnAccumulator) {
+            // this is expensive. that's why there's a field for opt-in.
+            Mat mat = new Mat(accumulator.rows(), accumulator.cols(), accumulator.type());
+            accumulator.copyTo(mat);
+            return mat;
+        }
         return currentFrame;
     }
 }

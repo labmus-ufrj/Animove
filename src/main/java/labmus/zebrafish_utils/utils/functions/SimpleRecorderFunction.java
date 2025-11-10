@@ -14,8 +14,8 @@ import java.util.function.Function;
  */
 public class SimpleRecorderFunction implements Function<Mat, Mat>, AutoCloseable {
     private final SimpleRecorder recorder;
-    private final UIService uiService;
 
+    private final UIService uiService;
     public SimpleRecorderFunction(SimpleRecorder recorder, UIService uiService) throws Exception {
         this.recorder = recorder;
         this.uiService = uiService;
@@ -25,6 +25,7 @@ public class SimpleRecorderFunction implements Function<Mat, Mat>, AutoCloseable
     @Override
     public Mat apply(Mat mat) {
         try {
+//            this.recorder.flush();
             this.recorder.recordMat(mat);
         } catch (Exception e) {
             IJ.log(e.getMessage());
@@ -36,5 +37,9 @@ public class SimpleRecorderFunction implements Function<Mat, Mat>, AutoCloseable
     @Override
     public void close() throws Exception {
         this.recorder.close();
+    }
+
+    public SimpleRecorder getRecorder() {
+        return recorder;
     }
 }

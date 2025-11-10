@@ -1,11 +1,14 @@
 package labmus.zebrafish_utils.processing;
 
+import ij.IJ;
 import io.scif.services.DatasetIOService;
 import labmus.zebrafish_utils.ZFConfigs;
+import labmus.zebrafish_utils.ZFHelperMethods;
 import labmus.zebrafish_utils.utils.SimpleRecorder;
-import org.bytedeco.javacv.FFmpegFrameGrabber;
-import org.bytedeco.javacv.Frame;
-import org.bytedeco.javacv.OpenCVFrameConverter;
+import labmus.zebrafish_utils.utils.functions.ImageCalculatorFunction;
+import labmus.zebrafish_utils.utils.functions.SimpleRecorderFunction;
+import labmus.zebrafish_utils.utils.functions.ZprojectFunction;
+import org.bytedeco.javacv.*;
 import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.scijava.app.StatusService;
@@ -22,6 +25,7 @@ import org.scijava.widget.FileWidget;
 import java.io.File;
 import java.nio.file.Files;
 import java.util.concurrent.Executors;
+import java.util.function.Function;
 
 import static org.bytedeco.opencv.global.opencv_imgproc.COLOR_BGR2GRAY;
 import static org.bytedeco.opencv.global.opencv_imgproc.cvtColor;
@@ -43,14 +47,10 @@ public class HeatmapVideo implements Command, Interactive {
     private File outputFile;
 
     @Parameter(label = "Output Format", choices = {"AVI", "TIFF", "MP4"}, callback = "updateExtensionChoice", persist = false)
-    String format = "TIFF";
-
-    @Parameter(label = "Grayscale", persist = false)
-    private boolean convertToGrayscale = true;
+    String format = "AVI";
 
     @Parameter(label = "Don't save, open in ImageJ instead", persist = false)
     private boolean openResultInstead = false;
-
 
     @Parameter(label = "Initial Frame", min = "1", persist = false)
     private int startFrame = 1;
@@ -72,6 +72,8 @@ public class HeatmapVideo implements Command, Interactive {
 
     @Override
     public void run() {
+        IJ.run("Console");
+        FFmpegLogCallback.set();
     }
 
     private void generate() {
@@ -86,74 +88,35 @@ public class HeatmapVideo implements Command, Interactive {
     }
 
     private void executeProcessing() {
-        // this is better than just calling ZProjectOpenCV.applyVideoOperation() on every frame
-        // we are using the same accumulator, its less compute-intensive.
-        try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile);
-             Mat accumulator = new Mat();
-             OpenCVFrameConverter.ToMat cnv = new OpenCVFrameConverter.ToMat()) {
 
-            int actualStartFrame = Math.max(0, startFrame - 1);
-            grabber.setFrameNumber(actualStartFrame);
-
-            grabber.start();
-
-            int totalFrames = grabber.getLengthInFrames() - 1; // frame numbers are 0-indexed
-            final boolean wholeVideo = (endFrame <= 0);
-            int actualEndFrame = (wholeVideo || endFrame > totalFrames) ? totalFrames : endFrame;
-            if (actualStartFrame >= actualEndFrame) {
-                throw new Exception("Initial frame must be before end frame.");
-            }
-            int framesToProcess = actualEndFrame - actualStartFrame;
-
-            statusService.showStatus("Processing frames...");
-
+        try {
             File tempOutputFile = File.createTempFile(ZFConfigs.pluginName + "_", "." + this.format.toLowerCase());
             log.info("Temp file: " + tempOutputFile.getAbsolutePath());
             tempOutputFile.deleteOnExit();
 
-            SimpleRecorder simpleRecorder = new SimpleRecorder(tempOutputFile, grabber);
-            simpleRecorder.start();
+            ZprojectFunction zprojectFunctionAvg = new ZprojectFunction(ZprojectFunction.OperationMode.AVG);
+            ZFHelperMethods.iterateOverFrames(ZFHelperMethods.InvertFunction.andThen(zprojectFunctionAvg), inputFile, startFrame, endFrame, statusService);
+            Mat avgMat = zprojectFunctionAvg.getResultMat();
 
-            Frame jcvFrame;
-            for (int i = actualStartFrame; i < actualEndFrame || wholeVideo; i++) {
-                log.info("zero indexed frame n: " + i + " - actual fn: " + (i + 1));
-                jcvFrame = grabber.grabImage();
-                if (jcvFrame == null || jcvFrame.image == null) {
-                    if (wholeVideo){
-                        break; // we are done!!
-                    }
-                    throw new Exception("Read terminated prematurely at frame " + i);
-                }
-                Mat currentFrameColor = cnv.convert(jcvFrame);
-                Mat currentFrame;
+            Function<Mat, Mat> subtractFunction = new ImageCalculatorFunction(ImageCalculatorFunction.OperationMode.ADD, avgMat);
+            Function<Mat, Mat> bcFunction = (mat) -> {
+                mat.convertTo(mat, -1, 1, 30); // todo: maybe either calculate beta automatically or let the user choose...
+                return mat;
+            };
+            ZprojectFunction zprojectFunctionSum = new ZprojectFunction(ZprojectFunction.OperationMode.SUM, true);
 
-                // check if we should be converting to grayscale
-                if (convertToGrayscale && currentFrameColor.channels() > 1) {
-                    currentFrame = new Mat();
-                    cvtColor(currentFrameColor, currentFrame, COLOR_BGR2GRAY);
-                } else {
-                    currentFrame = currentFrameColor;
-                }
-
-                if (i == actualStartFrame) {
-                    currentFrame.convertTo(accumulator, convertToGrayscale ? opencv_core.CV_32SC1 : opencv_core.CV_32SC3);
-                } else {
-                    try (Mat tempIntFrame = new Mat()) {
-                        currentFrame.convertTo(tempIntFrame, convertToGrayscale ? opencv_core.CV_32SC1 : opencv_core.CV_32SC3);
-                        opencv_core.add(accumulator, tempIntFrame, accumulator);
-                    }
-                }
-                currentFrame.close();
-
-                simpleRecorder.recordMat(accumulator, cnv);
-                statusService.showProgress(i + 1, framesToProcess);
-
+            double fps;
+            try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile)) {
+                grabber.start();
+                fps = grabber.getFrameRate();
             }
+            SimpleRecorderFunction simpleRecorderFunction = new SimpleRecorderFunction(new SimpleRecorder(tempOutputFile, avgMat, fps), uiService);
 
-            simpleRecorder.close();
+            ZFHelperMethods.iterateOverFrames(subtractFunction.andThen(bcFunction).andThen(zprojectFunctionSum).andThen(Function.identity()), inputFile, this.startFrame, this.endFrame, this.statusService);
+            simpleRecorderFunction.close();
 
             if (openResultInstead) {
-                simpleRecorder.openResultinIJ(uiService, datasetIOService);
+                simpleRecorderFunction.getRecorder().openResultinIJ(uiService, datasetIOService);
 
             } else {
                 Files.copy(tempOutputFile.toPath(), outputFile.toPath());
@@ -161,11 +124,90 @@ public class HeatmapVideo implements Command, Interactive {
                         ZFConfigs.pluginName, DialogPrompt.MessageType.INFORMATION_MESSAGE);
             }
 
-
         } catch (Exception e) {
             log.error(e);
             uiService.showDialog("A fatal error occurred during processing: \n" + e.getMessage(), ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
         }
+
+
+//        try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile);
+//             Mat accumulator = new Mat();
+//             OpenCVFrameConverter.ToMat cnv = new OpenCVFrameConverter.ToMat()) {
+//
+//            int actualStartFrame = Math.max(0, startFrame - 1);
+//            grabber.setFrameNumber(actualStartFrame);
+//
+//            grabber.start();
+//
+//            int totalFrames = grabber.getLengthInFrames() - 1; // frame numbers are 0-indexed
+//            final boolean wholeVideo = (endFrame <= 0);
+//            int actualEndFrame = (wholeVideo || endFrame > totalFrames) ? totalFrames : endFrame;
+//            if (actualStartFrame >= actualEndFrame) {
+//                throw new Exception("Initial frame must be before end frame.");
+//            }
+//            int framesToProcess = actualEndFrame - actualStartFrame;
+//
+//            statusService.showStatus("Processing frames...");
+//
+//            File tempOutputFile = File.createTempFile(ZFConfigs.pluginName + "_", "." + this.format.toLowerCase());
+//            log.info("Temp file: " + tempOutputFile.getAbsolutePath());
+//            tempOutputFile.deleteOnExit();
+//
+//            SimpleRecorder simpleRecorder = new SimpleRecorder(tempOutputFile, grabber);
+//            simpleRecorder.start();
+//
+//            Frame jcvFrame;
+//            for (int i = actualStartFrame; i < actualEndFrame || wholeVideo; i++) {
+//                log.info("zero indexed frame n: " + i + " - actual fn: " + (i + 1));
+//                jcvFrame = grabber.grabImage();
+//                if (jcvFrame == null || jcvFrame.image == null) {
+//                    if (wholeVideo){
+//                        break; // we are done!!
+//                    }
+//                    throw new Exception("Read terminated prematurely at frame " + i);
+//                }
+//                Mat currentFrameColor = cnv.convert(jcvFrame);
+//                Mat currentFrame;
+//
+//                // check if we should be converting to grayscale
+//                if (convertToGrayscale && currentFrameColor.channels() > 1) {
+//                    currentFrame = new Mat();
+//                    cvtColor(currentFrameColor, currentFrame, COLOR_BGR2GRAY);
+//                } else {
+//                    currentFrame = currentFrameColor;
+//                }
+//
+//                if (i == actualStartFrame) {
+//                    currentFrame.convertTo(accumulator, convertToGrayscale ? opencv_core.CV_32SC1 : opencv_core.CV_32SC3);
+//                } else {
+//                    try (Mat tempIntFrame = new Mat()) {
+//                        currentFrame.convertTo(tempIntFrame, convertToGrayscale ? opencv_core.CV_32SC1 : opencv_core.CV_32SC3);
+//                        opencv_core.add(accumulator, tempIntFrame, accumulator);
+//                    }
+//                }
+//                currentFrame.close();
+//
+//                simpleRecorder.recordMat(accumulator, cnv);
+//                statusService.showProgress(i + 1, framesToProcess);
+//
+//            }
+//
+//            simpleRecorder.close();
+//
+//            if (openResultInstead) {
+//                simpleRecorder.openResultinIJ(uiService, datasetIOService);
+//
+//            } else {
+//                Files.copy(tempOutputFile.toPath(), outputFile.toPath());
+//                uiService.showDialog("Heatmap video saved successfully!",
+//                        ZFConfigs.pluginName, DialogPrompt.MessageType.INFORMATION_MESSAGE);
+//            }
+//
+//
+//        } catch (Exception e) {
+//            log.error(e);
+//            uiService.showDialog("A fatal error occurred during processing: \n" + e.getMessage(), ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
+//        }
     }
 
     /**

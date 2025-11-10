@@ -282,4 +282,8 @@ public class SimpleRecorder implements AutoCloseable {
         }
         this.isClosed = true;
     }
+
+    public void flush() throws Exception {
+        this.recorder.flush();
+    }
 }

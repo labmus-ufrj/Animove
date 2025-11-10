@@ -159,31 +159,21 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
 
                 ZprojectFunction zprojectFunctionAvg = new ZprojectFunction(ZprojectFunction.OperationMode.AVG);
                 ZFHelperMethods.iterateOverFrames(ZFHelperMethods.InvertFunction.andThen(zprojectFunctionAvg), inputFile, startFrame, endFrame, statusService);
-                Mat avg = zprojectFunctionAvg.getResultMat();
+                Mat avgMat = zprojectFunctionAvg.getResultMat();
 
-
-                // subtract avg from inverted stack
-//                File tempVideo = File.createTempFile(ZFConfigs.pluginName + "_", ".avi");
-//                log.info("Temp file: " + tempVideo.getAbsolutePath());
-//                tempVideo.deleteOnExit();
-//                ImageCalculator.calculateVideoOperation(ImageCalculator.OperationMode.ADD,
-//                        inputFile, avg, tempVideo, startFrame, endFrame, statusService);
-
-                Function<Mat, Mat> subtractFunction = new ImageCalculatorFunction(ImageCalculatorFunction.OperationMode.ADD, avg);
+                Function<Mat, Mat> subtractFunction = new ImageCalculatorFunction(ImageCalculatorFunction.OperationMode.ADD, avgMat);
                 Function<Mat, Mat> bcFunction = (mat) -> {
                     mat.convertTo(mat, -1, 1, 30); // todo: maybe either calculate beta automatically or let the user choose...
                     return mat;
                 };
                 ZprojectFunction zprojectFunctionSum = new ZprojectFunction(ZprojectFunction.OperationMode.SUM);
                 ZFHelperMethods.iterateOverFrames(subtractFunction.andThen(bcFunction).andThen(ZFHelperMethods.InvertFunction).andThen(zprojectFunctionSum), inputFile, startFrame, endFrame, statusService);
-                Mat sum = zprojectFunctionSum.getResultMat();
-
-//                Files.deleteIfExists(tempVideo.toPath());
+                Mat sumMat = zprojectFunctionSum.getResultMat();
 
                 try (Mat mat = new Mat()) {
                     // convert to 16-bits
                     opencv_core.normalize(
-                            sum,
+                            sumMat,
                             mat,
                             0,
                             Math.pow(2, 16) - 1,
@@ -223,6 +213,8 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
                         uiService.showDialog("Processing done", ZFConfigs.pluginName, DialogPrompt.MessageType.INFORMATION_MESSAGE);
                     }
                 }
+                sumMat.close();
+                avgMat.close();
             }
         } catch (Exception e) {
             log.error(e);
