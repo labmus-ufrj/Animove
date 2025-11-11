@@ -59,14 +59,10 @@ public class HeatmapFunction implements Function<Mat, Mat> {
                 Mat matRGB = matConverter.convert(biConverter.getFrame(this.lastBi, 1.0, true));
                 Mat matBGR = new Mat();
 
-                IJ.log(matRGB.channels()+"");
-
                 if (matRGB.channels() == 4) {
-                    cvtColor(matRGB, matBGR, COLOR_RGBA2BGR);
-                } else if (matRGB.channels() == 3) {
-                    cvtColor(matRGB, matBGR, COLOR_RGB2BGR);
+                    cvtColor(matRGB, matBGR, COLOR_BGRA2BGR);
                 } else {
-                    matBGR = matRGB;
+                    matBGR = matRGB.clone();
                 }
                 matRGB.close();
 
