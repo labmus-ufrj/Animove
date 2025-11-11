@@ -19,4 +19,5 @@
 -> provide more test samples, ready to be tested ones, to be linked in each tool/feature
 
 -> HeatmapImages needs to use HeatmapFunction somehow. I may need a static function like RetainLastFrame that creates a copy of all frames given to it.
+-> SimpleRecorder.openResult() needs to open the right ammount of channels
 
