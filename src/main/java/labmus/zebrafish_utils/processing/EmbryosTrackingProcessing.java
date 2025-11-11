@@ -48,7 +48,7 @@ public class EmbryosTrackingProcessing extends DynamicCommand implements Interac
     @Parameter(label = "Output File", style = FileWidget.SAVE_STYLE, callback = "updateExtensionFile", persist = false, required = false)
     private File outputFile;
 
-    @Parameter(label = "Output Format", choices = {"AVI", "TIFF", "MP4"}, callback = "updateExtensionChoice", persist = false)
+    @Parameter(label = "Output Format", choices = {"AVI", "TIFF"}, callback = "updateExtensionChoice", persist = false)
     String format = "AVI";
 
     @Parameter(label = "Don't save, open in ImageJ instead", persist = false)

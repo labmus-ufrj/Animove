@@ -164,7 +164,7 @@ public class ZFHelperMethods implements Command {
                         statusService.showProgress(i + 1, framesToProcess);
                     }
                 }
-                if (i % 100 == 0) { // todo: make this less made-up-like. maybe do it 10 times or every 1k frames.
+                if (i % 1000 == 0) { // todo: make this less made-up-like. maybe do it 10 times or every 1k frames.
                     System.gc();
                 }
             }
