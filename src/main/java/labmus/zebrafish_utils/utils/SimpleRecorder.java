@@ -234,7 +234,7 @@ public class SimpleRecorder implements AutoCloseable {
                 break;
             case TIFF:
                 try (Frame frame = matConverter.convert(tempFrame)) {
-                    BufferedImage bi = biConverter.convert(frame);
+                    BufferedImage bi = biConverter.getBufferedImage(frame);
                     if (bi != null) {
                         writer.writeToSequence(new IIOImage(bi, null, null), this.params);
                     } else {

@@ -1,5 +1,43 @@
 # Generate Heatmap Images
 
+<!--
+info: 
+esse é o fluxograma dessa macro:
+selectImage(fullStackID);
+run("Duplicate...", "duplicate range="+intervals[i]);
+sliceID = getImageID();
+selectImage(sliceID);
+
+run("Invert", "stack");
+run("Z Project...", "projection=[Average Intensity]");
+avrID = getImageID();
+
+imageCalculator("Subtract create stack", sliceID, avrID);
+run("Invert", "stack");
+noBgID = getImageID();
+rename(intervals[i]);
+
+selectImage(sliceID);
+close();
+selectImage(avrID);
+close();
+
+brilhoContraste(noBgID);
+
+
+run("Z Project...", "projection=[Sum Slices]");
+run("Invert");
+sumID = getImageID();
+
+close(sliceID);
+selectImage(sumID);
+run("16-bit");
+
+ajusteMinMaxAuto(1);
+run("Apply LUT");
+-->
+
+
 ## Interface
 
 ![Interface image](img/gui-heatmapImages.png){ width="300em" }

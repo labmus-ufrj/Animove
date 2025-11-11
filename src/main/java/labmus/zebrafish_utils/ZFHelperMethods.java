@@ -18,7 +18,11 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.ui.UIService;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.stream.IntStream;
@@ -57,6 +61,38 @@ public class ZFHelperMethods implements Command {
         IJ.run("Console");
 //        autoAdjustBrightnessStack(imagePlus, true, log);
 //        FFmpegLogCallback.set();
+    }
+
+    public static ImagePlus getFirstFrame(File inputFile) throws Exception {
+        // todo: FFmpeg plugin should use this method
+
+        File tempFile = File.createTempFile(ZFConfigs.pluginName + "_", ".png");
+        tempFile.deleteOnExit();
+
+        // Build FFmpeg command
+        ArrayList<String> commandList = new ArrayList<>();
+        commandList.add(ZFConfigs.ffmpeg);
+
+        commandList.add("-y"); // todo: get this to ffmpeg?
+        commandList.add("-an");
+        commandList.add("-i");
+        commandList.add("\"" + inputFile.getAbsolutePath() + "\"");
+
+        commandList.add("-vframes");
+        commandList.add("1");
+
+        commandList.add("\"" + tempFile.getAbsolutePath() + "\"");
+
+        // Execute FFmpeg command
+        ProcessBuilder pb = new ProcessBuilder(commandList);
+        pb.redirectErrorStream(true);
+        Process process = pb.start();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            while ((reader.readLine()) != null) {
+            }
+        }
+        process.waitFor();
+        return new ImagePlus(tempFile.getAbsolutePath());
     }
 
     public static void iterateOverFrames(Function<Mat, Mat> matFunction,
@@ -127,7 +163,7 @@ public class ZFHelperMethods implements Command {
                         statusService.showProgress(i + 1, framesToProcess);
                     }
                 }
-                if (i % 100 == 0) {
+                if (i % 100 == 0) { // todo: make this less made-up-like. maybe do it 10 times or every 1k frames.
                     System.gc();
                 }
             }

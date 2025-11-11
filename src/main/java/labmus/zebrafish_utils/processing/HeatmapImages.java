@@ -24,11 +24,8 @@ import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 import org.scijava.widget.FileWidget;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.InputStreamReader;
 import java.nio.file.Files;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
@@ -102,6 +99,7 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
     private LogService log;
 
     private ImagePlus previewImagePlus = null;
+    private Roi lastRoi = null;
 
     @Override
     public void run() {
@@ -124,8 +122,9 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
             singleRoi = (rm != null && rm.getSelectedIndex() != -1) ? rm.getRoi(rm.getSelectedIndex()) : null;
         }
 
+        lastRoi = singleRoi == null ? lastRoi : singleRoi;
         // Validate ROI exists
-        if (singleRoi == null) {
+        if (lastRoi == null) {
             uiService.showDialog("Create a ROI enclosing your target area",
                     ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
             return;
@@ -133,8 +132,8 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
 
         previewImagePlus.close();
 
-        Roi finalSingleRoi = singleRoi;
-        Executors.newSingleThreadExecutor().submit(() -> this.executeProcessing(finalSingleRoi));
+        Roi finalRoi = lastRoi;
+        Executors.newSingleThreadExecutor().submit(() -> this.executeProcessing(finalRoi));
 
     }
 
@@ -200,7 +199,7 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
 
 //                yes, there's a way to apply LUT using opencv_core.LUT();
 //                but there's no clear path to convert imageJ LUT's to a valid openCV LUT.
-                    if (!lut.contains("Don't Change")) {
+                    if (!lut.contains(defaultLut)) {
                         IJ.run(imp, this.lut, "");
                     }
 
@@ -223,48 +222,6 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
 
     }
 
-    private void openFirstFrame() throws Exception {
-
-        File tempFile = File.createTempFile(ZFConfigs.pluginName + "_", ".png");
-        tempFile.deleteOnExit();
-
-        // Build FFmpeg command
-        ArrayList<String> commandList = new ArrayList<>();
-        commandList.add(ZFConfigs.ffmpeg);
-
-        commandList.add("-y"); // todo: get this to ffmpeg?
-        commandList.add("-an");
-        commandList.add("-i");
-        commandList.add("\"" + inputFile.getAbsolutePath() + "\"");
-
-        commandList.add("-vframes");
-        commandList.add("1");
-
-        commandList.add("\"" + tempFile.getAbsolutePath() + "\"");
-
-        log.info(commandList.toString());
-
-        // Execute FFmpeg command
-        ProcessBuilder pb = new ProcessBuilder(commandList);
-        pb.redirectErrorStream(true);
-        Process process = pb.start();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-            // Monitor progress
-            String line;
-            while ((line = reader.readLine()) != null) {
-//                log.info(line);
-            }
-        }
-        process.waitFor();
-
-        if (previewImagePlus != null && previewImagePlus.getWindow() != null) {
-            previewImagePlus.close();
-        }
-        previewImagePlus = new ImagePlus(tempFile.getAbsolutePath());
-        previewImagePlus.setTitle("First frame");
-        uiService.show(previewImagePlus);
-    }
-
     private void previewFrame() {
         if (inputFile == null || !inputFile.exists() || !inputFile.isFile()) {
             uiService.showDialog("Could not open video: \n Invalid file", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
@@ -277,7 +234,12 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
         }
         Executors.newSingleThreadExecutor().submit(() -> {
             try {
-                openFirstFrame();
+                if (previewImagePlus != null && previewImagePlus.getWindow() != null) {
+                    previewImagePlus.close();
+                }
+                previewImagePlus = ZFHelperMethods.getFirstFrame(inputFile);
+                previewImagePlus.setTitle("First frame");
+                uiService.show(previewImagePlus);
             } catch (Exception e) {
                 log.error(e);
                 uiService.showDialog("Could not open video: \n" + e.getMessage(), ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
@@ -296,6 +258,9 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
     public void initLUT() {
         final MutableModuleItem<String> item =
                 getInfo().getMutableInput("lut", String.class);
-        item.setChoices(Stream.concat(Stream.of("Don't Change"), Arrays.stream(IJ.getLuts())).collect(Collectors.toList()));
+        item.setChoices(Stream.concat(Stream.of(defaultLut), Arrays.stream(IJ.getLuts())).collect(Collectors.toList()));
     }
+
+    public static final String defaultLut = "Don't Change";
+
 }

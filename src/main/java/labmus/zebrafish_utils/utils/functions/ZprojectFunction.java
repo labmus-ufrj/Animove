@@ -132,7 +132,7 @@ public class ZprojectFunction implements Function<Mat, Mat> {
         if (returnAccumulator) {
             // this is expensive. that's why there's a field for opt-in.
             Mat mat = new Mat(accumulator.rows(), accumulator.cols(), accumulator.type());
-            accumulator.copyTo(mat);
+            accumulator.copyTo(mat); // as clone() seems to be leaking
             return mat;
         }
         return currentFrame;
