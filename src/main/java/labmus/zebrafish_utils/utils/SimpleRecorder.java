@@ -124,6 +124,8 @@ public class SimpleRecorder implements AutoCloseable {
                 recorder.setImageWidth(this.proposedWidth);
                 recorder.setImageHeight(this.proposedHeight);
                 recorder.setPixelFormat(avutil.AV_PIX_FMT_YUVJ420P);
+//                recorder.setPixelFormat(avutil.AV_PIX_FMT_YUV420P);
+//                recorder.setVideoOption("color_range", "pc");
                 // you can use other formats like rgb or AV_PIX_FMT_GRAY8
                 // but they may not be compatible with the codec, and will not be compatible with imageJ.
                 // if you are looking for a lossless alternative, use tiff.

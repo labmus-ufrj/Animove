@@ -84,7 +84,7 @@ public class PerformanceTest implements Command {
             try (Java2DFrameConverter biConverter = new Java2DFrameConverter();
                  OpenCVFrameConverter.ToMat converter = new OpenCVFrameConverter.ToMat()) {
 
-                ZprojectFunction zprojectFunction = new ZprojectFunction(ZprojectFunction.OperationMode.MAX);
+                ZprojectFunction zprojectFunction = new ZprojectFunction(ZprojectFunction.OperationMode.MAX, false);
                 ZFHelperMethods.iterateOverFrames(zprojectFunction, tempOutputFile, 1, 0, statusService);
 
                 try (Mat maxFrame = zprojectFunction.getResultMat()) {

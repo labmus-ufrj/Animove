@@ -75,6 +75,7 @@ public class ZFHelperMethods implements Command {
 
         commandList.add("-y"); // todo: get this to ffmpeg?
         commandList.add("-an");
+        commandList.add("-noautorotate"); // todo: get this to ffmpeg
         commandList.add("-i");
         commandList.add("\"" + inputFile.getAbsolutePath() + "\"");
 

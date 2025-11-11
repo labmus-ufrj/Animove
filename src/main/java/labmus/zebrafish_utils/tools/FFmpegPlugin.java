@@ -69,8 +69,6 @@ public class FFmpegPlugin implements Command, Interactive {
     private File outputFile;
     @Parameter(label = "Output Codec", choices = {"libx264", "libx265", "mjpeg"}, callback = "updateOutputFileExtension", persist = false)
     private String outputCodec = "mjpeg";
-    @Parameter(label = "Convert to grayscale", persist = false, required = false)
-    private boolean grayScale = false;
     @Parameter(label = "Quality (1=Lowest, 10=Highest)", style = NumberWidget.SLIDER_STYLE, min = "1", max = "10", persist = false)
     private int quality = 10;
     @Parameter(label = "Start Frame", min = "0", persist = false)
@@ -335,11 +333,9 @@ public class FFmpegPlugin implements Command, Interactive {
         // Get video properties from input file
         double fps;
         int totalFramesToProcess;
-//        double exifRotation;
         try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile)) {
             grabber.start();
             fps = grabber.getFrameRate();
-//            exifRotation = grabber.getDisplayRotation();
             int finalFrame = (endFrame <= 0 || endFrame > grabber.getLengthInFrames()) ? grabber.getLengthInFrames() : endFrame;
             totalFramesToProcess = Math.max(0, finalFrame - startFrame);
         }
@@ -347,8 +343,7 @@ public class FFmpegPlugin implements Command, Interactive {
         // For preview/posview modes, set output to temporary file and process single frame
         if (isPosview || isPreview) {
             totalFramesToProcess = 1;
-            currentOutputFile = new File(System.getProperty("java.io.tmpdir") + File.separator + System.currentTimeMillis() + ".png");
-            // todo: replace with File.createTempFile(ZFConfigs.pluginName + "_", ".png"); will need a -y option on ffmpeg
+            currentOutputFile = File.createTempFile(ZFConfigs.pluginName + "_", ".png");
             currentOutputFile.deleteOnExit();
         }
 
@@ -362,8 +357,16 @@ public class FFmpegPlugin implements Command, Interactive {
         commandList.add("-ss");
         commandList.add(convertFrameToTimestamp((float) fps, startFrame));
         commandList.add("-an");
+        commandList.add("-y");
+        commandList.add("-noautorotate");
         commandList.add("-i");
         commandList.add("\"" + inputFile.getAbsolutePath() + "\"");
+
+        commandList.add("-pix_fmt");
+        // maximizing compatibility with players. bgr24 works but breaks avi (VLC works, but it's an exception)
+        commandList.add("yuv420p");
+        commandList.add("-color_range");
+        commandList.add("pc");
 
         // Set codec and quality for normal video processing
         if (!isPosview && !isPreview) {
@@ -385,8 +388,7 @@ public class FFmpegPlugin implements Command, Interactive {
         // Add filters if not preview mode
         if (!isPreview) {
             commandList.add("-vf");
-//            commandList.add("\"" + buildVideoFilter(cropRoi, -1, exifRotation) + "\"");
-            commandList.add("\"" + buildVideoFilter(cropRoi, -1) + "\"");
+            commandList.add("\"" + buildVideoFilter(cropRoi) + "\"");
         }
 
         // Add output file
@@ -492,60 +494,12 @@ public class FFmpegPlugin implements Command, Interactive {
     }
 
     /**
-     * Creates a preview image (posview) from a single frame of the video with applied filters and transformations.
-     * This method:
-     * 1. Opens the input video file at the specified start frame
-     * 2. Applies video filters (crop, rotation, flips, etc.) to the frame
-     * 3. Converts the processed frame to a BufferedImage
-     * 4. Displays the resulting image
-     *
-     * @param cropRoi The region of interest to crop the frame (can be null for no cropping)
-     * @throws FrameGrabber.Exception If there's an error grabbing frames from the video
-     * @throws FrameFilter.Exception  If there's an error applying filters to the frame
-     */
-    private void createPosView(Roi cropRoi) throws FrameGrabber.Exception, FrameFilter.Exception {
-        try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile)) {
-            grabber.setFrameNumber(startFrame);
-            grabber.start();
-
-//            String videoFilter = buildVideoFilter(cropRoi, AV_PIX_FMT_ABGR, grabber.getDisplayRotation());
-            String videoFilter = buildVideoFilter(cropRoi, AV_PIX_FMT_ABGR);
-
-            try (FFmpegFrameFilter filter = new FFmpegFrameFilter(videoFilter, grabber.getImageWidth(), grabber.getImageHeight())) {
-                filter.start();
-                Frame frame = grabber.grabImage();
-                filter.push(frame);
-                Frame filteredFrame = filter.pullImage();
-
-                if (posviewImagePlus != null && posviewImagePlus.getWindow() != null) {
-                    posviewImagePlus.close();
-                }
-
-                Java2DFrameConverter converter = new Java2DFrameConverter();
-                BufferedImage bufferedImage = converter.convert(filteredFrame);
-
-                if (bufferedImage != null) {
-                    posviewImagePlus = new ImagePlus("Posview - " + outputFile.getName(), bufferedImage);
-                    uiService.show(posviewImagePlus);
-                } else {
-                    log.error("Something went wrong.");
-                }
-
-                converter.close();
-            }
-        }
-    }
-
-    /**
      * Builds the FFmpeg video filter string by combining various transformations and effects.
      *
      * @param roi          Region of interest to crop the video (can be null for no cropping)
-     * @param pixelFormat  The pixel format to use (e.g. AV_PIX_FMT_BGR24)
-//     * @param exifRotation EXIF rotation value from the input video
      * @return A string containing the FFmpeg video filter chain
      */
-//    private String buildVideoFilter(Roi roi, int pixelFormat, double exifRotation) {
-    private String buildVideoFilter(Roi roi, int pixelFormat) {
+    private String buildVideoFilter(Roi roi) {
         StringJoiner filterChain = new StringJoiner(",");
         filterChain.add("setpts=N/(" + outputFps + "*TB)");
         if (horizontalFlip) filterChain.add("hflip");
@@ -573,16 +527,17 @@ public class FFmpegPlugin implements Command, Interactive {
                 break;
         }
 
-        if (grayScale) {
-            pixelFormat = AV_PIX_FMT_GRAY8;
-        }
-        if (pixelFormat > -1) {
-            String pixFmtName = org.bytedeco.ffmpeg.global.avutil.av_get_pix_fmt_name(pixelFormat).getString();
-            if (pixFmtName == null) {
-                pixFmtName = "bgr24"; //default
-            }
-            filterChain.add("format=" + pixFmtName);
-        }
+//        if (grayScale) {
+//            pixelFormat = AV_PIX_FMT_GRAY8;
+//        }
+//        if (pixelFormat > -1) {
+//            String pixFmtName = org.bytedeco.ffmpeg.global.avutil.av_get_pix_fmt_name(pixelFormat).getString();
+//            if (pixFmtName == null) {
+//                pixFmtName = "bgr24"; //default
+//            }
+//            filterChain.add("format=" + pixFmtName);
+//        }
+//        filterChain.add("format=yuvj420p");
         return filterChain.toString();
     }
 
