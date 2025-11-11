@@ -6,11 +6,10 @@ import ij.gui.Roi;
 import ij.plugin.frame.RoiManager;
 import labmus.zebrafish_utils.ZFConfigs;
 import labmus.zebrafish_utils.ZFHelperMethods;
-import labmus.zebrafish_utils.utils.functions.HeatmapFunction;
+import labmus.zebrafish_utils.utils.functions.BrightnessLUTFunction;
 import labmus.zebrafish_utils.utils.functions.ImageCalculatorFunction;
 import labmus.zebrafish_utils.utils.functions.ZprojectFunction;
 import org.bytedeco.javacv.OpenCVFrameConverter;
-import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
@@ -26,7 +25,6 @@ import org.scijava.widget.Button;
 import org.scijava.widget.FileWidget;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
@@ -108,10 +106,7 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
     }
 
     private void generate() {
-        if (inputFile == null || !inputFile.exists()) {
-            return;
-        }
-        if ((outputDir == null || !Files.isDirectory(outputDir.toPath())) && !openResultInstead) {
+        if (!checkFiles()){
             return;
         }
 
@@ -170,11 +165,11 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
                 ZFHelperMethods.iterateOverFrames(subtractFunction.andThen(bcFunction).andThen(ZFHelperMethods.InvertFunction).andThen(zprojectFunctionSum), inputFile, startFrame, endFrame, statusService);
                 Mat sumMat = zprojectFunctionSum.getResultMat();
 
-                HeatmapFunction heatmapFunction = new HeatmapFunction(roi, this.lut);
-                heatmapFunction.apply(sumMat);
+                BrightnessLUTFunction brightnessLUTFunction = new BrightnessLUTFunction(roi, this.lut);
+                brightnessLUTFunction.apply(sumMat);
 
-                ImagePlus imp = new ImagePlus("", heatmapFunction.getLastBi());
-                heatmapFunction.close();
+                ImagePlus imp = new ImagePlus("", brightnessLUTFunction.getLastBi());
+                brightnessLUTFunction.close();
 
                 if (openResultInstead) {
                     imp.setTitle(interval);
@@ -234,5 +229,19 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
     }
 
     public static final String defaultLut = "Don't Change";
+
+    private boolean checkFiles() {
+        if (inputFile == null || !inputFile.exists()) {
+            uiService.showDialog("Invalid input file", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
+            return false;
+        }
+        if (outputDir == null || !outputDir.isDirectory() || !outputDir.exists()) {
+            if (!openResultInstead) {
+                uiService.showDialog("Invalid output folder", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
+                return false;
+            }
+        }
+        return true;
+    }
 
 }

@@ -20,6 +20,7 @@ public abstract class ZFConfigs {
     public static final String helperPath = toolsPath + "Helper";
     public static final String saveStackPath = toolsPath + "Save Stack as video";
     public static final String performanceTest = toolsPath + "Performance Test";
+    public static final String invertPath = toolsPath + "Invert Video";
 
     public static final String heatmapImagesPath = processingPath + "Generate Heatmap Images";
     public static final String heatmapVideoPath = processingPath + "Generate Heatmap Video";

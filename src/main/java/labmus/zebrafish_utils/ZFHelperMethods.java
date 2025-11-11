@@ -20,6 +20,7 @@ import org.scijava.ui.UIService;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -151,8 +152,6 @@ public class ZFHelperMethods implements Command {
 
                     if (currentFrame.isNull()) continue;
 
-//                    currentFrame = matTransformer.apply(currentFrame);
-
                     matFunction.andThen((mat) -> {
                         mat.close();
                         return null;
@@ -164,9 +163,10 @@ public class ZFHelperMethods implements Command {
                         statusService.showProgress(i + 1, framesToProcess);
                     }
                 }
-                if (i % 1000 == 0) { // todo: make this less made-up-like. maybe do it 10 times or every 1k frames.
-                    System.gc();
-                }
+//                if (framesToProcess > 1000 && i % Math.max((framesToProcess / 10), 1000) == 0) {
+//                    IJ.log("gccccc");
+//                    System.gc();
+//                }
             }
             System.gc();
 
@@ -176,6 +176,12 @@ public class ZFHelperMethods implements Command {
         }
     }
 
+    public static File createPluginTempFile(String extension) throws IOException {
+        File tempOutputFile = File.createTempFile(ZFConfigs.pluginName + "_", "." + extension);
+//        IJ.log("Temp file: " + tempOutputFile.getAbsolutePath());
+        tempOutputFile.deleteOnExit();
+        return tempOutputFile;
+    }
 
     public static void autoAdjustBrightnessStack(ImagePlus imp, boolean useROI) {
         if (!useROI) {

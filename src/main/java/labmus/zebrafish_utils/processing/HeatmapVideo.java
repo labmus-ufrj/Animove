@@ -8,7 +8,7 @@ import io.scif.services.DatasetIOService;
 import labmus.zebrafish_utils.ZFConfigs;
 import labmus.zebrafish_utils.ZFHelperMethods;
 import labmus.zebrafish_utils.utils.SimpleRecorder;
-import labmus.zebrafish_utils.utils.functions.HeatmapFunction;
+import labmus.zebrafish_utils.utils.functions.BrightnessLUTFunction;
 import labmus.zebrafish_utils.utils.functions.ImageCalculatorFunction;
 import labmus.zebrafish_utils.utils.functions.SimpleRecorderFunction;
 import labmus.zebrafish_utils.utils.functions.ZprojectFunction;
@@ -87,14 +87,11 @@ public class HeatmapVideo extends DynamicCommand implements Interactive {
 
     @Override
     public void run() {
-        IJ.run("Console");
+//        IJ.run("Console");
     }
 
     private void generate() {
-        if (inputFile == null || !inputFile.exists()) {
-            return;
-        }
-        if (outputFile == null && !openResultInstead) {
+        if (!checkFiles()){
             return;
         }
 
@@ -131,7 +128,6 @@ public class HeatmapVideo extends DynamicCommand implements Interactive {
             ZFHelperMethods.iterateOverFrames(ZFHelperMethods.InvertFunction.andThen(zprojectFunctionAvg), inputFile, startFrame, endFrame, statusService);
             Mat avgMat = zprojectFunctionAvg.getResultMat();
 
-            // todo: this needs to get into heatmap function
             Function<Mat, Mat> subtractFunction = new ImageCalculatorFunction(ImageCalculatorFunction.OperationMode.ADD, avgMat);
             Function<Mat, Mat> bcFunction = (mat) -> {
                 mat.convertTo(mat, -1, 1, 30); // todo: maybe either calculate beta automatically or let the user choose...
@@ -139,7 +135,7 @@ public class HeatmapVideo extends DynamicCommand implements Interactive {
             };
             ZprojectFunction zprojectFunctionSum = new ZprojectFunction(ZprojectFunction.OperationMode.SUM, true);
 
-            HeatmapFunction lutFunction = new HeatmapFunction(roi, this.lut);
+            BrightnessLUTFunction brightnessLUTFunction = new BrightnessLUTFunction(roi, this.lut);
 
             double fps;
             try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile)) {
@@ -152,16 +148,15 @@ public class HeatmapVideo extends DynamicCommand implements Interactive {
                     .andThen(bcFunction)
                     .andThen(ZFHelperMethods.InvertFunction)
                     .andThen(zprojectFunctionSum)
-                    .andThen(lutFunction)
+                    .andThen(brightnessLUTFunction)
                     .andThen(simpleRecorderFunction), inputFile, this.startFrame, this.endFrame, this.statusService);
 
-            lutFunction.close();
+            brightnessLUTFunction.close();
             simpleRecorderFunction.close();
 
             if (openResultInstead) {
                 statusService.showStatus("Opening result in ImageJ...");
                 simpleRecorderFunction.getRecorder().openResultinIJ(uiService, datasetIOService);
-
             } else {
                 Files.copy(tempOutputFile.toPath(), outputFile.toPath());
                 uiService.showDialog("Video saved successfully!",
@@ -175,10 +170,6 @@ public class HeatmapVideo extends DynamicCommand implements Interactive {
 
     }
 
-    /**
-     * Callback method to update the output filename when an input file changes.
-     * Generates a unique output filename by appending "_heatmap" and the appropriate extension.
-     */
     private void updateOutputName() {
         if (inputFile == null || !inputFile.exists()) {
             return;
@@ -249,6 +240,23 @@ public class HeatmapVideo extends DynamicCommand implements Interactive {
     public void initLUT() {
         final MutableModuleItem<String> item =
                 getInfo().getMutableInput("lut", String.class);
-        item.setChoices(Stream.concat(Stream.of("Don't Change"), Arrays.stream(IJ.getLuts())).collect(Collectors.toList()));
+        item.setChoices(Stream.concat(Stream.of(HeatmapImages.defaultLut), Arrays.stream(IJ.getLuts())).collect(Collectors.toList()));
+    }
+
+    private boolean checkFiles() {
+        if (inputFile == null || !inputFile.exists()) {
+            uiService.showDialog("Invalid input file", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
+            return false;
+        }
+        if (outputFile == null || outputFile.isDirectory()) {
+            if (!openResultInstead) {
+                uiService.showDialog("Invalid output file", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
+                return false;
+            }
+        } else if (outputFile.exists()){
+            uiService.showDialog("Output file already exists", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
+            return false;
+        }
+        return true;
     }
 }

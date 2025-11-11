@@ -1,6 +1,7 @@
 package labmus.zebrafish_utils.processing;
 
 import ij.IJ;
+import ij.ImagePlus;
 import io.scif.services.DatasetIOService;
 import labmus.zebrafish_utils.ZFConfigs;
 import labmus.zebrafish_utils.ZFHelperMethods;
@@ -45,6 +46,9 @@ public class EmbryosTrackingProcessing extends DynamicCommand implements Interac
     @Parameter(label = "Input Video", style = FileWidget.OPEN_STYLE, callback = "updateOutputName", persist = false, required = false)
     private File inputFile;
 
+    @Parameter(label = "Open Frame", callback = "previewFrame")
+    private Button btn1;
+
     @Parameter(label = "Output File", style = FileWidget.SAVE_STYLE, callback = "updateExtensionFile", persist = false, required = false)
     private File outputFile;
 
@@ -72,17 +76,19 @@ public class EmbryosTrackingProcessing extends DynamicCommand implements Interac
     @Parameter
     private DatasetIOService datasetIOService;
 
+    private ImagePlus previewImagePlus = null;
+
     @Override
     public void run() {
-        IJ.run("Console");
+//        IJ.run("Console");
     }
 
     private void generate() {
-        if (inputFile == null || !inputFile.exists()) {
+        if (!checkFiles()){
             return;
         }
-        if (outputFile == null && !openResultInstead) {
-            return;
+        if (previewImagePlus != null){
+            previewImagePlus.close();
         }
         Executors.newSingleThreadExecutor().submit(() -> this.executeProcessing());
     }
@@ -189,5 +195,47 @@ public class EmbryosTrackingProcessing extends DynamicCommand implements Interac
         final MutableModuleItem<String> item =
                 getInfo().getMutableInput("lut", String.class);
         item.setChoices(Stream.concat(Stream.of("Don't Change"), Arrays.stream(IJ.getLuts())).collect(Collectors.toList()));
+    }
+
+    private boolean checkFiles() {
+        if (inputFile == null || !inputFile.exists()) {
+            uiService.showDialog("Invalid input file", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
+            return false;
+        }
+        if (outputFile == null || outputFile.isDirectory()) {
+            if (!openResultInstead) {
+                uiService.showDialog("Invalid output file", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
+                return false;
+            }
+        } else if (outputFile.exists()){
+            uiService.showDialog("Output file already exists", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
+            return false;
+        }
+        return true;
+    }
+
+    private void previewFrame() {
+        if (inputFile == null || !inputFile.exists() || !inputFile.isFile()) {
+            uiService.showDialog("Could not open video: \n Invalid file", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
+            return;
+        }
+        String extension = inputFile.getName().substring(inputFile.getName().lastIndexOf(".") + 1).toLowerCase();
+        if (!extension.contentEquals("avi") && !extension.contentEquals("mp4")) {
+            uiService.showDialog("Could not open video: \n Invalid extension ." + extension, ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
+            return;
+        }
+        Executors.newSingleThreadExecutor().submit(() -> {
+            try {
+                if (previewImagePlus != null && previewImagePlus.getWindow() != null) {
+                    previewImagePlus.close();
+                }
+                previewImagePlus = ZFHelperMethods.getFirstFrame(inputFile);
+                previewImagePlus.setTitle("First frame");
+                uiService.show(previewImagePlus);
+            } catch (Exception e) {
+                log.error(e);
+                uiService.showDialog("Could not open video: \n" + e.getMessage(), ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
+            }
+        });
     }
 }

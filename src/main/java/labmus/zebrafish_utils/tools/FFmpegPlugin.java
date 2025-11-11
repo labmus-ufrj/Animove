@@ -4,7 +4,9 @@ import ij.ImagePlus;
 import ij.gui.Roi;
 import ij.plugin.frame.RoiManager;
 import labmus.zebrafish_utils.ZFConfigs;
-import org.bytedeco.javacv.*;
+import labmus.zebrafish_utils.ZFHelperMethods;
+import org.bytedeco.javacv.FFmpegFrameGrabber;
+import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
 import org.scijava.command.Interactive;
@@ -17,7 +19,6 @@ import org.scijava.widget.Button;
 import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
 
-import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
@@ -29,8 +30,6 @@ import java.util.StringJoiner;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static org.bytedeco.ffmpeg.global.avutil.*;
 
 /**
  * A SciJava Command for video processing and conversion using FFmpeg.
@@ -63,7 +62,7 @@ public class FFmpegPlugin implements Command, Interactive {
 
     @Parameter(label = "Input File", style = FileWidget.OPEN_STYLE, callback = "updateOutputName", persist = false, required = false)
     private File inputFile;
-    @Parameter(label = "Preview Frame & Get Info", callback = "previewFrame")
+    @Parameter(label = "Open Frame & Get Info", callback = "previewFrame")
     private Button previewButton;
     @Parameter(label = "Output File", style = FileWidget.SAVE_STYLE, persist = false, required = false)
     private File outputFile;
@@ -150,11 +149,28 @@ public class FFmpegPlugin implements Command, Interactive {
      */
     private void previewFrame() {
         try {
-            if (!inputFile.exists()) {
-                throw new Exception("Input file does not exist.");
+            if (inputFile == null || !inputFile.exists() || !inputFile.isFile()) {
+                uiService.showDialog("Could not open video: \n Invalid file", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
+                return;
             }
-
-            processVideo(null, null, false, true);
+            String extension = inputFile.getName().substring(inputFile.getName().lastIndexOf(".") + 1).toLowerCase();
+            if (!extension.contentEquals("avi") && !extension.contentEquals("mp4")) {
+                uiService.showDialog("Could not open video: \n Invalid extension ." + extension, ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
+                return;
+            }
+            Executors.newSingleThreadExecutor().submit(() -> {
+                try {
+                    if (previewImagePlus != null && previewImagePlus.getWindow() != null) {
+                        previewImagePlus.close();
+                    }
+                    previewImagePlus = ZFHelperMethods.getFirstFrame(inputFile);
+                    previewImagePlus.setTitle("First frame");
+                    uiService.show(previewImagePlus);
+                } catch (Exception e) {
+                    log.error(e);
+                    uiService.showDialog("Could not open video: \n" + e.getMessage(), ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
+                }
+            });
 
             try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile)) {
                 grabber.start();
@@ -162,9 +178,6 @@ public class FFmpegPlugin implements Command, Interactive {
                 if (inputFps > 0) {
                     this.outputFps = inputFps;
                 }
-//                if (endFrame < 1) {
-//                    endFrame = grabber.getLengthInFrames();
-//                }
             }
 
         } catch (Exception e) {
@@ -172,10 +185,6 @@ public class FFmpegPlugin implements Command, Interactive {
             uiService.showDialog("Could not open a preview of the file (it may not be a valid video): " + inputFile.getName(),
                     "Error", DialogPrompt.MessageType.ERROR_MESSAGE);
             previewImagePlus = null;
-        }
-
-        if (previewImagePlus != null && previewImagePlus.getWindow() != null) {
-            previewImagePlus.close();
         }
     }
 
@@ -274,7 +283,7 @@ public class FFmpegPlugin implements Command, Interactive {
                     File finalOutputFile = new File(outputDirectory, outputName);
 
                     // Process video for this ROI
-                    processVideo(finalOutputFile, roi, isPosview, false); // isPosview is always false here but idc
+                    processVideo(finalOutputFile, roi, isPosview); // isPosview is always false here
                 }
             }
             // Handle single ROI mode
@@ -299,7 +308,7 @@ public class FFmpegPlugin implements Command, Interactive {
                 }
 
                 // Process video with single ROI
-                processVideo(outputFile, singleRoi, isPosview, false);
+                processVideo(outputFile, singleRoi, isPosview);
             }
 
             // Clear status and show completion message
@@ -326,10 +335,9 @@ public class FFmpegPlugin implements Command, Interactive {
      * @param currentOutputFile The output file where processed video/image will be saved
      * @param cropRoi           Region of interest for cropping the video (can be null)
      * @param isPosview         If true, generates a single frame posview image
-     * @param isPreview         If true, generates a single frame preview image
      * @throws Exception If any error occurs during processing
      */
-    private void processVideo(File currentOutputFile, Roi cropRoi, boolean isPosview, boolean isPreview) throws Exception {
+    private void processVideo(File currentOutputFile, Roi cropRoi, boolean isPosview) throws Exception {
         // Get video properties from input file
         double fps;
         int totalFramesToProcess;
@@ -341,7 +349,7 @@ public class FFmpegPlugin implements Command, Interactive {
         }
 
         // For preview/posview modes, set output to temporary file and process single frame
-        if (isPosview || isPreview) {
+        if (isPosview) {
             totalFramesToProcess = 1;
             currentOutputFile = File.createTempFile(ZFConfigs.pluginName + "_", ".png");
             currentOutputFile.deleteOnExit();
@@ -369,7 +377,7 @@ public class FFmpegPlugin implements Command, Interactive {
         commandList.add("pc");
 
         // Set codec and quality for normal video processing
-        if (!isPosview && !isPreview) {
+        if (!isPosview) {
             commandList.add("-vcodec");
             commandList.add(outputCodec);
 
@@ -381,15 +389,12 @@ public class FFmpegPlugin implements Command, Interactive {
             commandList.add(mapQualityToCodec(outputCodec, quality));
         }
 
+        commandList.add("-vf");
+        commandList.add("\"" + buildVideoFilter(cropRoi) + "\"");
+
         // Set number of frames to process
         commandList.add("-vframes");
         commandList.add(String.valueOf(totalFramesToProcess));
-
-        // Add filters if not preview mode
-        if (!isPreview) {
-            commandList.add("-vf");
-            commandList.add("\"" + buildVideoFilter(cropRoi) + "\"");
-        }
 
         // Add output file
         commandList.add("\"" + currentOutputFile.getAbsolutePath() + "\"");
@@ -421,7 +426,7 @@ public class FFmpegPlugin implements Command, Interactive {
         }
         process.waitFor();
 
-        // Show preview/posview if needed
+        // Show posview if needed
         if (isPosview) {
             if (posviewImagePlus != null && posviewImagePlus.getWindow() != null) {
                 posviewImagePlus.close();
@@ -429,13 +434,6 @@ public class FFmpegPlugin implements Command, Interactive {
             posviewImagePlus = new ImagePlus(currentOutputFile.getAbsolutePath());
             posviewImagePlus.setTitle("Posview Image");
             uiService.show(posviewImagePlus);
-        } else if (isPreview) {
-            if (previewImagePlus != null && previewImagePlus.getWindow() != null) {
-                previewImagePlus.close();
-            }
-            previewImagePlus = new ImagePlus(currentOutputFile.getAbsolutePath());
-            previewImagePlus.setTitle("Preview Image");
-            uiService.show(previewImagePlus);
         }
     }
 
@@ -496,7 +494,7 @@ public class FFmpegPlugin implements Command, Interactive {
     /**
      * Builds the FFmpeg video filter string by combining various transformations and effects.
      *
-     * @param roi          Region of interest to crop the video (can be null for no cropping)
+     * @param roi Region of interest to crop the video (can be null for no cropping)
      * @return A string containing the FFmpeg video filter chain
      */
     private String buildVideoFilter(Roi roi) {

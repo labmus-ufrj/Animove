@@ -1,17 +1,18 @@
 package labmus.zebrafish_utils.tools;
 
 import ij.ImagePlus;
+import io.scif.services.DatasetIOService;
 import labmus.zebrafish_utils.ZFConfigs;
 import labmus.zebrafish_utils.ZFHelperMethods;
-import labmus.zebrafish_utils.utils.functions.ZprojectFunction;
+import labmus.zebrafish_utils.utils.SimpleRecorder;
+import labmus.zebrafish_utils.utils.functions.SimpleRecorderFunction;
+import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.OpenCVFrameConverter;
-import org.bytedeco.opencv.opencv_core.Mat;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
 import org.scijava.command.DynamicCommand;
 import org.scijava.command.Interactive;
 import org.scijava.log.LogService;
-import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.ui.DialogPrompt;
@@ -20,22 +21,10 @@ import org.scijava.widget.Button;
 
 import java.io.File;
 import java.nio.file.Files;
-import java.util.Arrays;
 import java.util.concurrent.Executors;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
-import static org.bytedeco.opencv.global.opencv_imgcodecs.imwrite;
-
-/**
- * This plugin implements a video-to-image processing pipeline as a SciJava Command.
- * It allows users to process video frames and generate a resultant image using various modes such as
- * "Darkest (Min)", "Brightest (Max)", "Average", and "Sum". The plugin also supports optional conversion
- * to grayscale and can handle specific frame ranges for processing.
- */
-@SuppressWarnings({"FieldCanBeLocal"})
-@Plugin(type = Command.class, menuPath = ZFConfigs.avgPath)
-public class ZProjectOpenCV extends DynamicCommand implements Interactive {
+@Plugin(type = Command.class, menuPath = ZFConfigs.invertPath)
+public class InvertOpenCV extends DynamicCommand implements Interactive {
 
     static {
         // this runs on a Menu click
@@ -44,28 +33,25 @@ public class ZProjectOpenCV extends DynamicCommand implements Interactive {
         Executors.newSingleThreadExecutor().submit(OpenCVFrameConverter.ToMat::new);
     }
 
-    @Parameter(label = "Input Video", style = "file", callback = "updateOutputName", persist = false, required = false)
+    @Parameter(label = "Input Video", style = "file", callback = "updateOutputName", persist = false)
     private File inputFile;
 
     @Parameter(label = "Open Frame", callback = "previewFrame")
     private Button btn1;
 
-    @Parameter(label = "Output Image", style = "save", persist = false, required = false)
+    @Parameter(label = "Output File", style = "save", persist = false)
     private File outputFile;
 
-    @Parameter(label = "Processing Mode", callback = "updateOutputName", initializer = "initProc", persist = false)
-    private String mode = "";
-
-    @Parameter(label = "Invert before operation", persist = false)
-    private boolean invertVideo = false;
+    @Parameter(label = "Output Format", choices = {"AVI", "TIFF", "MP4"}, callback = "updateExtensionChoice", persist = false)
+    String format = "AVI";
 
     @Parameter(label = "Don't save, open in ImageJ instead", persist = false)
     private boolean openResultInstead = false;
 
-    @Parameter(label = "Initial Frame", min = "1", persist = false)
+    @Parameter(label = "Start Frame", min = "1", persist = false)
     private int startFrame = 1;
 
-    @Parameter(label = "End Frame (0 = whole video)", min = "0", persist = false)
+    @Parameter(label = "End Frame (0 for entire video)", min = "0", persist = false)
     private int endFrame = 0;
 
     @Parameter(label = "Process", callback = "generate")
@@ -77,16 +63,13 @@ public class ZProjectOpenCV extends DynamicCommand implements Interactive {
     private StatusService statusService;
     @Parameter
     private LogService log;
+    @Parameter
+    private DatasetIOService datasetIOService;
 
     private ImagePlus previewImagePlus = null;
 
-    @Override
-    public void run() {
-//        IJ.run("Console");
-    }
-
     private void generate() {
-        if (!checkFiles()) {
+        if (!checkFiles()){
             return;
         }
         if (previewImagePlus != null){
@@ -95,26 +78,32 @@ public class ZProjectOpenCV extends DynamicCommand implements Interactive {
         Executors.newSingleThreadExecutor().submit(this::executeProcessing);
     }
 
-    private void executeProcessing(){
+    private void executeProcessing() {
         try {
-            File tempOutputFile = ZFHelperMethods.createPluginTempFile(
-                    outputFile.getName().substring(outputFile.getName().lastIndexOf(".") + 1));
-            // whatever the user chooses if imwrite supports it
+            File tempOutputFile = File.createTempFile(ZFConfigs.pluginName + "_", "." + this.format.toLowerCase());
+            log.info("Temp file: " + tempOutputFile.getAbsolutePath());
+            tempOutputFile.deleteOnExit();
 
-            Function<Mat, Mat> inverter = invertVideo ? ZFHelperMethods.InvertFunction : Function.identity();
-            ZprojectFunction zprojectFunction = new ZprojectFunction(ZprojectFunction.OperationMode.fromText(mode));
-            ZFHelperMethods.iterateOverFrames(inverter.andThen(zprojectFunction), inputFile, startFrame, endFrame, statusService);
-            Mat resultMat = zprojectFunction.getResultMat();
+            double fps;
+            int w;
+            int h;
+            try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile)) {
+                grabber.start();
+                fps = grabber.getFrameRate();
+                w = grabber.getImageWidth();
+                h = grabber.getImageHeight();
+            }
+            SimpleRecorderFunction simpleRecorderFunction = new SimpleRecorderFunction(new SimpleRecorder(tempOutputFile, w, h, fps), uiService);
 
-            imwrite(tempOutputFile.getAbsolutePath(), resultMat);
-            resultMat.close();
+            ZFHelperMethods.iterateOverFrames(ZFHelperMethods.InvertFunction
+                    .andThen(simpleRecorderFunction), inputFile, this.startFrame, this.endFrame, this.statusService);
 
             if (openResultInstead) {
                 statusService.showStatus("Opening result in ImageJ...");
-                uiService.show(new ImagePlus(tempOutputFile.getAbsolutePath()));
+                simpleRecorderFunction.getRecorder().openResultinIJ(uiService, datasetIOService);
             } else {
                 Files.copy(tempOutputFile.toPath(), outputFile.toPath());
-                uiService.showDialog("Image saved successfully!",
+                uiService.showDialog("Video saved successfully!",
                         ZFConfigs.pluginName, DialogPrompt.MessageType.INFORMATION_MESSAGE);
             }
 
@@ -122,52 +111,49 @@ public class ZProjectOpenCV extends DynamicCommand implements Interactive {
             log.error(e);
             uiService.showDialog("A fatal error occurred during processing: \n" + e.getMessage(), ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
         }
+
     }
 
-
-    /**
-     * Callback method to update the output filename when an input file changes.
-     * Generates a unique output filename by appending a mode-matching suffix and the appropriate extension.
-     */
-    protected void updateOutputName() {
+    private void updateOutputName() {
         if (inputFile == null || !inputFile.exists()) {
             return;
         }
-
-        String suffix = "_";
-
-        switch (mode) {
-            case "Darkest (Min)":
-                suffix += "darkest";
-                break;
-            case "Brightest (Max)":
-                suffix += "brightest";
-                break;
-            case "Average":
-                suffix += "avg";
-                break;
-            case "Sum":
-                suffix += "sum";
-                break;
-        }
-
         String parentDir = inputFile.getParent();
         String baseName = inputFile.getName().replaceFirst("[.][^.]+$", "");
-        File testFile = new File(parentDir, baseName + suffix + ".tif");
+        File testFile = new File(parentDir, baseName + "_inverted" + "." + format.toLowerCase());
 
         int count = 2;
         while (testFile.exists()) {
             // naming the file with a sequential number to avoid overwriting
-            testFile = new File(parentDir, baseName + suffix + count + ".tif");
+            testFile = new File(parentDir, baseName + "_inverted_" + count + "." + format.toLowerCase());
             count++;
         }
         outputFile = testFile;
+        updateExtensionFile();
     }
 
-    public void initProc() {
-        final MutableModuleItem<String> item =
-                getInfo().getMutableInput("mode", String.class);
-        item.setChoices(Arrays.stream(ZprojectFunction.OperationMode.values()).map(ZprojectFunction.OperationMode::getText).collect(Collectors.toList()));
+    public void updateExtensionChoice() {
+        if (outputFile == null) {
+            return;
+        }
+        String newFileName = outputFile.getAbsolutePath()
+                .substring(0, outputFile.getAbsolutePath().lastIndexOf(".") + 1)
+                .concat(this.format.toLowerCase());
+        this.outputFile = new File(newFileName);
+    }
+
+    public void updateExtensionFile() {
+        if (outputFile == null) {
+            return;
+        }
+        String extension = outputFile.getName().substring(outputFile.getName().lastIndexOf(".") + 1);
+        if (extension.equalsIgnoreCase("tiff") || extension.equalsIgnoreCase("tif")) {
+            format = "TIFF";
+        } else if (extension.equalsIgnoreCase("mp4")) {
+            format = "MP4";
+        } else if (extension.equalsIgnoreCase("avi")) {
+            format = "AVI";
+        }
     }
 
     private void previewFrame() {
@@ -205,11 +191,10 @@ public class ZProjectOpenCV extends DynamicCommand implements Interactive {
                 uiService.showDialog("Invalid output file", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
                 return false;
             }
-        } else if (outputFile.exists()) {
+        } else if (outputFile.exists()){
             uiService.showDialog("Output file already exists", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
             return false;
         }
         return true;
     }
-
 }

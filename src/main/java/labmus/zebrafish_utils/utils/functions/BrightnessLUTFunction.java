@@ -16,14 +16,14 @@ import java.util.function.Function;
 import static labmus.zebrafish_utils.processing.HeatmapImages.defaultLut;
 import static org.bytedeco.opencv.global.opencv_imgproc.*;
 
-public class HeatmapFunction implements Function<Mat, Mat> {
+public class BrightnessLUTFunction implements Function<Mat, Mat> {
 
     private final Java2DFrameConverter biConverter = new Java2DFrameConverter();
     private final Roi roi;
     private final String lut;
     private BufferedImage lastBi;
 
-    public HeatmapFunction(Roi roi, String lut) {
+    public BrightnessLUTFunction(Roi roi, String lut) {
         this.roi = roi;
         this.lut = lut;
     }

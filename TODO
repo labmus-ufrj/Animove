@@ -6,7 +6,6 @@
     -> inform about converting to grayscale everywhere? where it belongs
     -> image calc: images and videos might be in different resolutions, bit depths, channel count, etc. lets document that.
 
--> Generate Heatmap Images
 -> Quantify Heatmap
 -> Extract Frequency Data
 -> Calculate Score Sectors
@@ -18,5 +17,7 @@
 
 -> provide more test samples, ready to be tested ones, to be linked in each tool/feature
 
--> performance dropped on Zproject?
+-> posview?
+-> about plugin
+
 
