@@ -6,6 +6,7 @@ import ij.gui.Roi;
 import ij.plugin.frame.RoiManager;
 import labmus.zebrafish_utils.ZFConfigs;
 import labmus.zebrafish_utils.ZFHelperMethods;
+import labmus.zebrafish_utils.utils.functions.HeatmapFunction;
 import labmus.zebrafish_utils.utils.functions.ImageCalculatorFunction;
 import labmus.zebrafish_utils.utils.functions.ZprojectFunction;
 import org.bytedeco.javacv.OpenCVFrameConverter;
@@ -169,48 +170,19 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
                 ZFHelperMethods.iterateOverFrames(subtractFunction.andThen(bcFunction).andThen(ZFHelperMethods.InvertFunction).andThen(zprojectFunctionSum), inputFile, startFrame, endFrame, statusService);
                 Mat sumMat = zprojectFunctionSum.getResultMat();
 
-                try (Mat mat = new Mat()) {
-                    // convert to 16-bits
-                    opencv_core.normalize(
-                            sumMat,
-                            mat,
-                            0,
-                            Math.pow(2, 16) - 1,
-                            opencv_core.NORM_MINMAX,
-                            opencv_core.CV_16UC1,
-                            null
-                    );
+                HeatmapFunction heatmapFunction = new HeatmapFunction(roi, this.lut);
+                heatmapFunction.apply(sumMat);
 
-                    // auto brightness adjust
-//                    -> get mask mat from user ROI
-//                    -> minMaxLoc to figure out minMax
-//                    -> either normalize or adjust alfa beta to auto adjust
-                    // OR
-//                    -> open the image in fiji and run ZFHelperMethods.autoAdjustBrightnessStack(imp, true)
+                ImagePlus imp = new ImagePlus("", heatmapFunction.getLastBi());
+                heatmapFunction.close();
 
-                    File tempImage = File.createTempFile(ZFConfigs.pluginName + "_", ".tif");
-                    tempImage.deleteOnExit();
-                    imwrite(tempImage.getAbsolutePath(), mat);
-
-                    ImagePlus imp = IJ.openImage(tempImage.getAbsolutePath());
-                    imp.setRoi(roi);
-                    ZFHelperMethods.autoAdjustBrightnessStack(imp, true);
-                    imp.deleteRoi();
-
-//                yes, there's a way to apply LUT using opencv_core.LUT();
-//                but there's no clear path to convert imageJ LUT's to a valid openCV LUT.
-                    if (!lut.contains(defaultLut)) {
-                        IJ.run(imp, this.lut, "");
-                    }
-
-                    if (openResultInstead) {
-                        imp.setTitle(interval);
-                        imp.show();
-                    } else {
-                        IJ.save(imp, outputDir.toPath().resolve(interval + ".tif").toString());
-                        imp.close();
-                        uiService.showDialog("Processing done", ZFConfigs.pluginName, DialogPrompt.MessageType.INFORMATION_MESSAGE);
-                    }
+                if (openResultInstead) {
+                    imp.setTitle(interval);
+                    imp.show();
+                } else {
+                    IJ.save(imp, outputDir.toPath().resolve(interval + ".tif").toString());
+                    imp.close();
+                    uiService.showDialog("Processing done", ZFConfigs.pluginName, DialogPrompt.MessageType.INFORMATION_MESSAGE);
                 }
                 sumMat.close();
                 avgMat.close();

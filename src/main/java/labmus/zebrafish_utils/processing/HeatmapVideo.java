@@ -149,6 +149,7 @@ public class HeatmapVideo extends DynamicCommand implements Interactive {
             SimpleRecorderFunction simpleRecorderFunction = new SimpleRecorderFunction(new SimpleRecorder(tempOutputFile, avgMat, fps), uiService);
 
             ZFHelperMethods.iterateOverFrames(subtractFunction.andThen(bcFunction).andThen(ZFHelperMethods.InvertFunction).andThen(zprojectFunctionSum).andThen(lutFunction).andThen(simpleRecorderFunction), inputFile, this.startFrame, this.endFrame, this.statusService);
+
             lutFunction.close();
             simpleRecorderFunction.close();
 

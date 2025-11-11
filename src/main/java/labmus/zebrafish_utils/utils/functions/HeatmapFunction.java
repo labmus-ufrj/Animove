@@ -10,6 +10,7 @@ import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.opencv_core.Mat;
 
+import java.awt.image.BufferedImage;
 import java.util.function.Function;
 
 import static labmus.zebrafish_utils.processing.HeatmapImages.defaultLut;
@@ -20,6 +21,7 @@ public class HeatmapFunction implements Function<Mat, Mat> {
     private final Java2DFrameConverter biConverter = new Java2DFrameConverter();
     private final Roi roi;
     private final String lut;
+    private BufferedImage lastBi;
 
     public HeatmapFunction(Roi roi, String lut) {
         this.roi = roi;
@@ -40,18 +42,25 @@ public class HeatmapFunction implements Function<Mat, Mat> {
         sumMat.close();
         try (OpenCVFrameConverter.ToMat matConverter = new OpenCVFrameConverter.ToMat()) {
             try (Frame frame = matConverter.convert(mat)) {
-                ImagePlus imp = new ImagePlus("LUT", biConverter.convert(frame));
+                ImagePlus imp = new ImagePlus("LUT", biConverter.convert(frame)); // todo: are you setting the statusBar?
                 imp.setRoi(roi);
-                ZFHelperMethods.autoAdjustBrightnessStack(imp, true);
+                ZFHelperMethods.autoAdjustBrightnessStack(imp, true); // todo: or are you?
                 imp.deleteRoi();
                 if (!lut.contains(defaultLut)) {
+//                    yes, there 's a way to apply LUT using opencv_core.LUT();
+//                    but there 's no clear path to convert imageJ LUT' s to a valid openCV LUT.
                     IJ.run(imp, this.lut, "");
                 }
                 ImagePlus impLUT = imp.flatten();
 
+                this.lastBi = impLUT.getBufferedImage();
+
                 // imp.getBufferedImage() returns a RGBA image, and openCV uses a BGR mat
-                Mat matRGB = matConverter.convert(biConverter.getFrame(impLUT.getBufferedImage(), 1.0, true));
+                Mat matRGB = matConverter.convert(biConverter.getFrame(this.lastBi, 1.0, true));
                 Mat matBGR = new Mat();
+
+                IJ.log(matRGB.channels()+"");
+
                 if (matRGB.channels() == 4) {
                     cvtColor(matRGB, matBGR, COLOR_RGBA2BGR);
                 } else if (matRGB.channels() == 3) {
@@ -68,5 +77,11 @@ public class HeatmapFunction implements Function<Mat, Mat> {
 
     public void close() {
         this.biConverter.close();
+        this.lastBi.flush();
+        this.lastBi = null;
+    }
+
+    public BufferedImage getLastBi() {
+        return lastBi;
     }
 }

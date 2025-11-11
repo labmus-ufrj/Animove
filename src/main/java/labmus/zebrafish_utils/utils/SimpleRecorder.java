@@ -44,7 +44,7 @@ public class SimpleRecorder implements AutoCloseable {
     }
 
     private FFmpegFrameRecorder recorder;
-    private final SCIFIOConfig config;
+    private SCIFIOConfig config = null;
 
     private ImageOutputStream ios;
     private ImageWriter writer;
@@ -71,7 +71,6 @@ public class SimpleRecorder implements AutoCloseable {
         this.proposedWidth = mat.arrayWidth();
         this.proposedHeight = mat.arrayHeight();
         this.frameRate = frameRate;
-        this.config = setupConfig();
     }
 
     public SimpleRecorder(File outputFile, int imageWidth, int imageHeight, double frameRate) {
@@ -79,7 +78,6 @@ public class SimpleRecorder implements AutoCloseable {
         this.proposedWidth = imageWidth;
         this.proposedHeight = imageHeight;
         this.frameRate = frameRate;
-        this.config = setupConfig();
     }
 
     public SimpleRecorder(File outputFile, FFmpegFrameGrabber grabber) {
@@ -158,14 +156,17 @@ public class SimpleRecorder implements AutoCloseable {
         this.recorder.start();
     }
 
-    private SCIFIOConfig setupConfig() {
+    private SCIFIOConfig setupConfig(boolean openAllChannels) {
         SCIFIOConfig config = new SCIFIOConfig();
         config.enableBufferedReading(true); // this is the virtual stack setting
-
-        // avi will have 3 channels (YUV) due to pixel format. all with the same data. only need to open one.
-        Map<AxisType, Range> regionMap = new HashMap<>();
-        regionMap.put(Axes.CHANNEL, new Range(0L));
-        config.imgOpenerSetRegion(new ImageRegion(regionMap));
+        if (!openAllChannels) {
+            // avi will have 3 channels (YUV) due to pixel format. all with the same data. only need to open one.
+            Map<AxisType, Range> regionMap = new HashMap<>();
+            regionMap.put(Axes.CHANNEL, new Range(0L));
+            config.imgOpenerSetRegion(new ImageRegion(regionMap));
+        } else {
+            config.imgOpenerSetImgModes(SCIFIOConfig.ImgMode.PLANAR);
+        }
         return config;
     }
 
@@ -185,6 +186,9 @@ public class SimpleRecorder implements AutoCloseable {
      * @throws Exception If anything goes wrong, read the message
      */
     public void recordMat(Mat frameMat, OpenCVFrameConverter.ToMat matConverter) throws Exception {
+        if (this.config == null) {
+            this.config = setupConfig(frameMat.channels() > 1);
+        }
         Mat tempFrame;
         if (frameMat.elemSize1() == 1) { // if it's already 8-bit
             tempFrame = frameMat;
