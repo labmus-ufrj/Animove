@@ -14,7 +14,7 @@ public class SubtractBackgroundFunction implements Function<Mat, Mat> {
 //    private final Mat morphOpenKernel;
 
     public SubtractBackgroundFunction(int radius) {
-        Size size = new Size(2 * radius + 1, 2 * radius + 1);
+        Size size = new Size(2 * radius, 2 * radius);
         this.topHatKernel = opencv_imgproc.getStructuringElement(opencv_imgproc.MORPH_ELLIPSE, size);
 //        this.morphOpenKernel = opencv_imgproc.getStructuringElement(opencv_imgproc.MORPH_RECT, new Size(5, 5));
     }
