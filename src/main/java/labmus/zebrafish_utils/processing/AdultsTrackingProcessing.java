@@ -61,8 +61,11 @@ public class AdultsTrackingProcessing extends DynamicCommand implements Interact
     @Parameter(label = "End Frame (0 = whole video)", min = "0", persist = false)
     private int endFrame = 0;
 
-    @Parameter(label = "Process", callback = "generate")
+    @Parameter(label = "Preview", callback = "generatePreview")
     private Button btn2;
+
+    @Parameter(label = "Process", callback = "generateFull")
+    private Button btn3;
 
     @Parameter
     private UIService uiService;
@@ -80,21 +83,27 @@ public class AdultsTrackingProcessing extends DynamicCommand implements Interact
 //        IJ.run("Console");
     }
 
-    private void generate() {
+    private void generatePreview() {
+        generate(true);
+    }
+
+    private void generateFull() {
+        generate(false);
+    }
+
+    private void generate(boolean doPreview) {
         if (!checkFiles()) {
             return;
         }
         if (previewImagePlus != null) {
             previewImagePlus.close();
         }
-        Executors.newSingleThreadExecutor().submit(this::executeProcessing);
+        Executors.newSingleThreadExecutor().submit(() -> this.executeProcessing(doPreview));
     }
 
-    private void executeProcessing() {
+    private void executeProcessing(boolean doPreview) {
         try {
-            File tempOutputFile = File.createTempFile(ZFConfigs.pluginName + "_", "." + this.format.toLowerCase());
-            log.info("Temp file: " + tempOutputFile.getAbsolutePath());
-            tempOutputFile.deleteOnExit();
+            File tempOutputFile = ZFHelperMethods.createPluginTempFile(this.format.toLowerCase());
 
             double fps;
             int w;
@@ -113,49 +122,10 @@ public class AdultsTrackingProcessing extends DynamicCommand implements Interact
                             .andThen(new ThresholdBrightnessFunction(0.7))
                             .andThen(recorderFunction));
 
-            ZFHelperMethods.iterateOverFrames(processFunction, inputFile, startFrame, endFrame, statusService);
+            ZFHelperMethods.iterateOverFrames(processFunction, inputFile, startFrame, doPreview ? startFrame + 10 : endFrame, statusService);
             recorderFunction.close();
 
             recorderFunction.getRecorder().openResultinIJ(uiService, datasetIOService);
-
-//            ZprojectFunction zprojectFunctionAvg = new ZprojectFunction(ZprojectFunction.OperationMode.AVG);
-//            ZFHelperMethods.iterateOverFrames(ZFHelperMethods.InvertFunction.andThen(zprojectFunctionAvg), inputFile, startFrame, endFrame * 5, statusService); // todo: 5 times is a guess
-//            Mat avgMat = zprojectFunctionAvg.getResultMat();
-//
-//            ImageCalculatorFunction imageCalculatorFunction = new ImageCalculatorFunction(ImageCalculatorFunction.OperationMode.ADD, avgMat);
-//
-//            Function<Mat, Mat> bcFunction = (mat) -> {
-//                mat.convertTo(mat, -1, 1, 30); // todo: maybe either calculate beta automatically or let the user choose...
-//                return mat;
-//            };
-//
-//            double fps;
-//            try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile)) {
-//                grabber.start();
-//                fps = grabber.getFrameRate();
-//            }
-//            SimpleRecorderFunction recorderFunction = new SimpleRecorderFunction(
-//                    new SimpleRecorder(tempOutputFile, avgMat, fps), uiService);
-//
-//            Function<Mat, Mat> processFunction = ZFHelperMethods.InvertFunction
-//                    .andThen(new SubtractBackgroundFunction(50)) // todo: hardcoded value
-//                    .andThen(imageCalculatorFunction)
-//                    .andThen(bcFunction)
-//                    .andThen(ZFHelperMethods.InvertFunction)
-//                    .andThen(recorderFunction);
-//
-//            ZFHelperMethods.iterateOverFrames(processFunction, inputFile, startFrame, endFrame, statusService);
-//            recorderFunction.close();
-//
-//            if (openResultInstead) {
-//                statusService.showStatus("Opening result in ImageJ...");
-//                recorderFunction.getRecorder().openResultinIJ(uiService, datasetIOService);
-//
-//            } else {
-//                Files.copy(tempOutputFile.toPath(), outputFile.toPath());
-//                uiService.showDialog("Video saved successfully!",
-//                        ZFConfigs.pluginName, DialogPrompt.MessageType.INFORMATION_MESSAGE);
-//            }
 
         } catch (Exception e) {
             log.error(e);

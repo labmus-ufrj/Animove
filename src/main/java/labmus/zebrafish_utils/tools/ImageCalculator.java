@@ -1,6 +1,7 @@
 package labmus.zebrafish_utils.tools;
 
 import ij.ImagePlus;
+import ij.gui.Roi;
 import io.scif.services.DatasetIOService;
 import labmus.zebrafish_utils.ZFConfigs;
 import labmus.zebrafish_utils.ZFHelperMethods;
@@ -74,8 +75,11 @@ public class ImageCalculator extends DynamicCommand implements Interactive {
     @Parameter(label = "End Frame (0 for entire video)", min = "0", persist = false)
     private int endFrame = 0;
 
-    @Parameter(label = "Process", callback = "generate")
+    @Parameter(label = "Preview", callback = "generatePreview")
     private Button btn2;
+
+    @Parameter(label = "Process", callback = "generateFull")
+    private Button btn3;
 
     @Parameter
     private UIService uiService;
@@ -93,22 +97,27 @@ public class ImageCalculator extends DynamicCommand implements Interactive {
 //        IJ.run("Console");
     }
 
-    private void generate(){
+    private void generatePreview() {
+        generate(true);
+    }
+
+    private void generateFull() {
+        generate(false);
+    }
+
+    private void generate(boolean doPreview){
         if (!checkFiles()) {
             return;
         }
         if (previewImagePlus != null){
             previewImagePlus.close();
         }
-        Executors.newSingleThreadExecutor().submit(this::executeProcessing);
+        Executors.newSingleThreadExecutor().submit(() -> this.executeProcessing(doPreview));
     }
 
-    private void executeProcessing() {
-        statusService.showStatus("Starting video processing...");
+    private void executeProcessing(boolean doPreview) {
         try {
-            File tempOutputFile = File.createTempFile(ZFConfigs.pluginName + "_", "." + this.format.toLowerCase());
-            log.info("Temp file: " + tempOutputFile.getAbsolutePath());
-            tempOutputFile.deleteOnExit();
+            File tempOutputFile = ZFHelperMethods.createPluginTempFile(this.format.toLowerCase());
 
             Mat image = imread(imageFile.getAbsolutePath());
             Mat grayImage;
@@ -132,10 +141,12 @@ public class ImageCalculator extends DynamicCommand implements Interactive {
             SimpleRecorderFunction simpleRecorderFunction = new SimpleRecorderFunction(new SimpleRecorder(tempOutputFile, image, fps), uiService);
             ImageCalculatorFunction imageCalculatorFunction = new ImageCalculatorFunction(ImageCalculatorFunction.OperationMode.fromText(this.operation), grayImage);
 
-            ZFHelperMethods.iterateOverFrames(inverter.andThen(imageCalculatorFunction).andThen(simpleRecorderFunction), inputVideoFile, this.startFrame, this.endFrame, this.statusService);
+            ZFHelperMethods.iterateOverFrames(inverter
+                    .andThen(imageCalculatorFunction)
+                    .andThen(simpleRecorderFunction), inputVideoFile, this.startFrame, doPreview ? this.startFrame + 10 : this.endFrame, this.statusService);
             simpleRecorderFunction.close();
 
-            if (openResultInstead) {
+            if (openResultInstead || doPreview) {
                 statusService.showStatus("Opening result in ImageJ...");
                 simpleRecorderFunction.getRecorder().openResultinIJ(uiService, datasetIOService);
             } else {

@@ -34,13 +34,13 @@ public class InvertOpenCV extends DynamicCommand implements Interactive {
         Executors.newSingleThreadExecutor().submit(OpenCVFrameConverter.ToMat::new);
     }
 
-    @Parameter(label = "Input Video", style = "file", callback = "updateOutputName", persist = false)
+    @Parameter(label = "Input Video", style = "file", callback = "updateOutputName", persist = false, required = false)
     private File inputFile;
 
     @Parameter(label = "Open Frame", callback = "openFrame")
     private Button btn1;
 
-    @Parameter(label = "Output File", style = "save", persist = false)
+    @Parameter(label = "Output File", style = "save", persist = false, required = false)
     private File outputFile;
 
     @Parameter(label = "Output Format", choices = {"AVI", "TIFF", "MP4"}, callback = "updateExtensionChoice", persist = false)
@@ -55,8 +55,11 @@ public class InvertOpenCV extends DynamicCommand implements Interactive {
     @Parameter(label = "End Frame (0 for entire video)", min = "0", persist = false)
     private int endFrame = 0;
 
-    @Parameter(label = "Process", callback = "generate")
+    @Parameter(label = "Preview", callback = "generatePreview")
     private Button btn2;
+
+    @Parameter(label = "Process", callback = "generateFull")
+    private Button btn3;
 
     @Parameter
     private UIService uiService;
@@ -69,21 +72,27 @@ public class InvertOpenCV extends DynamicCommand implements Interactive {
 
     private ImagePlus previewImagePlus = null;
 
-    private void generate() {
+    private void generatePreview() {
+        generate(true);
+    }
+
+    private void generateFull() {
+        generate(false);
+    }
+
+    private void generate(boolean doPreview) {
         if (!checkFiles()){
             return;
         }
         if (previewImagePlus != null){
             previewImagePlus.close();
         }
-        Executors.newSingleThreadExecutor().submit(this::executeProcessing);
+        Executors.newSingleThreadExecutor().submit(() -> this.executeProcessing(doPreview));
     }
 
-    private void executeProcessing() {
+    private void executeProcessing(boolean doPreview) {
         try {
-            File tempOutputFile = File.createTempFile(ZFConfigs.pluginName + "_", "." + this.format.toLowerCase());
-            log.info("Temp file: " + tempOutputFile.getAbsolutePath());
-            tempOutputFile.deleteOnExit();
+            File tempOutputFile = ZFHelperMethods.createPluginTempFile(this.format.toLowerCase());
 
             double fps;
             int w;
@@ -97,9 +106,9 @@ public class InvertOpenCV extends DynamicCommand implements Interactive {
             SimpleRecorderFunction simpleRecorderFunction = new SimpleRecorderFunction(new SimpleRecorder(tempOutputFile, w, h, fps), uiService);
 
             ZFHelperMethods.iterateOverFrames(ZFHelperMethods.InvertFunction
-                    .andThen(simpleRecorderFunction), inputFile, this.startFrame, this.endFrame, this.statusService);
+                    .andThen(simpleRecorderFunction), inputFile, this.startFrame, doPreview ? startFrame + 10 : endFrame, this.statusService);
 
-            if (openResultInstead) {
+            if (openResultInstead || doPreview) {
                 statusService.showStatus("Opening result in ImageJ...");
                 simpleRecorderFunction.getRecorder().openResultinIJ(uiService, datasetIOService);
             } else {

@@ -45,8 +45,7 @@ public class ZFHelperMethods {
 
 
     public static ImagePlus getFirstFrame(File inputFile) throws Exception {
-        File tempFile = File.createTempFile(ZFConfigs.pluginName + "_", ".png");
-        tempFile.deleteOnExit();
+        File tempFile = ZFHelperMethods.createPluginTempFile("png");
 
         // Build FFmpeg command
         ArrayList<String> commandList = new ArrayList<>();

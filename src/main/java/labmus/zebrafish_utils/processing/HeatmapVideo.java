@@ -71,8 +71,11 @@ public class HeatmapVideo extends DynamicCommand implements Interactive {
     @Parameter(label = "End Frame (0 = whole video)", min = "0", persist = false)
     private int endFrame = 0;
 
-    @Parameter(label = "Process", callback = "generate")
+    @Parameter(label = "Preview", callback = "generatePreview")
     private Button btn2;
+
+    @Parameter(label = "Process", callback = "generateFull")
+    private Button btn3;
 
     @Parameter
     private UIService uiService;
@@ -91,7 +94,15 @@ public class HeatmapVideo extends DynamicCommand implements Interactive {
 //        IJ.run("Console");
     }
 
-    private void generate() {
+    private void generatePreview() {
+        generate(true);
+    }
+
+    private void generateFull() {
+        generate(false);
+    }
+
+    private void generate(boolean doPreview) {
         if (!checkFiles()){
             return;
         }
@@ -115,18 +126,16 @@ public class HeatmapVideo extends DynamicCommand implements Interactive {
         previewImagePlus.close();
 
         Roi finalRoi = lastRoi;
-        Executors.newSingleThreadExecutor().submit(() -> this.executeProcessing(finalRoi));
+        Executors.newSingleThreadExecutor().submit(() -> this.executeProcessing(finalRoi, doPreview));
     }
 
-    private void executeProcessing(Roi roi) {
+    private void executeProcessing(Roi roi, boolean doPreview) {
 
         try {
-            File tempOutputFile = File.createTempFile(ZFConfigs.pluginName + "_", "." + this.format.toLowerCase());
-            log.info("Temp file: " + tempOutputFile.getAbsolutePath());
-            tempOutputFile.deleteOnExit();
+            File tempOutputFile = ZFHelperMethods.createPluginTempFile(this.format.toLowerCase());
 
             ZprojectFunction zprojectFunctionAvg = new ZprojectFunction(ZprojectFunction.OperationMode.AVG);
-            ZFHelperMethods.iterateOverFrames(ZFHelperMethods.InvertFunction.andThen(zprojectFunctionAvg), inputFile, startFrame, endFrame, statusService);
+            ZFHelperMethods.iterateOverFrames(ZFHelperMethods.InvertFunction.andThen(zprojectFunctionAvg), inputFile, startFrame, doPreview ? startFrame + 10 : endFrame, statusService);
             Mat avgMat = zprojectFunctionAvg.getResultMat();
 
             Function<Mat, Mat> subtractFunction = new ImageCalculatorFunction(ImageCalculatorFunction.OperationMode.ADD, avgMat);
@@ -150,12 +159,12 @@ public class HeatmapVideo extends DynamicCommand implements Interactive {
                     .andThen(ZFHelperMethods.InvertFunction)
                     .andThen(zprojectFunctionSum)
                     .andThen(brightnessLUTFunction)
-                    .andThen(simpleRecorderFunction), inputFile, this.startFrame, this.endFrame, this.statusService);
+                    .andThen(simpleRecorderFunction), this.inputFile, this.startFrame, doPreview ? this.startFrame + 10 : this.endFrame, this.statusService);
 
             brightnessLUTFunction.close();
             simpleRecorderFunction.close();
 
-            if (openResultInstead) {
+            if (openResultInstead || doPreview) {
                 statusService.showStatus("Opening result in ImageJ...");
                 simpleRecorderFunction.getRecorder().openResultinIJ(uiService, datasetIOService);
             } else {

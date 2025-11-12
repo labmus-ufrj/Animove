@@ -68,8 +68,11 @@ public class ZProjectOpenCV extends DynamicCommand implements Interactive {
     @Parameter(label = "End Frame (0 = whole video)", min = "0", persist = false)
     private int endFrame = 0;
 
-    @Parameter(label = "Process", callback = "generate")
+    @Parameter(label = "Preview", callback = "generatePreview")
     private Button btn2;
+
+    @Parameter(label = "Process", callback = "generateFull")
+    private Button btn3;
 
     @Parameter
     private UIService uiService;
@@ -85,17 +88,25 @@ public class ZProjectOpenCV extends DynamicCommand implements Interactive {
 //        IJ.run("Console");
     }
 
-    private void generate() {
+    private void generatePreview() {
+        generate(true);
+    }
+
+    private void generateFull() {
+        generate(false);
+    }
+
+    private void generate(boolean doPreview) {
         if (!checkFiles()) {
             return;
         }
         if (previewImagePlus != null){
             previewImagePlus.close();
         }
-        Executors.newSingleThreadExecutor().submit(this::executeProcessing);
+        Executors.newSingleThreadExecutor().submit(() -> this.executeProcessing(doPreview));
     }
 
-    private void executeProcessing(){
+    private void executeProcessing(boolean doPreview) {
         try {
             File tempOutputFile = ZFHelperMethods.createPluginTempFile(
                     outputFile.getName().substring(outputFile.getName().lastIndexOf(".") + 1));
@@ -103,13 +114,13 @@ public class ZProjectOpenCV extends DynamicCommand implements Interactive {
 
             Function<Mat, Mat> inverter = invertVideo ? ZFHelperMethods.InvertFunction : Function.identity();
             ZprojectFunction zprojectFunction = new ZprojectFunction(ZprojectFunction.OperationMode.fromText(mode));
-            ZFHelperMethods.iterateOverFrames(inverter.andThen(zprojectFunction), inputFile, startFrame, endFrame, statusService);
+            ZFHelperMethods.iterateOverFrames(inverter.andThen(zprojectFunction), inputFile, startFrame, doPreview ? startFrame + 10 : endFrame, statusService);
             Mat resultMat = zprojectFunction.getResultMat();
 
             imwrite(tempOutputFile.getAbsolutePath(), resultMat);
             resultMat.close();
 
-            if (openResultInstead) {
+            if (openResultInstead || doPreview) {
                 statusService.showStatus("Opening result in ImageJ...");
                 uiService.show(new ImagePlus(tempOutputFile.getAbsolutePath()));
             } else {

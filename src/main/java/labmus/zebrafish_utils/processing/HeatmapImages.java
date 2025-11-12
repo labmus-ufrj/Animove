@@ -114,7 +114,6 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
         generate(false);
     }
 
-
     private void generate(boolean doPreview) {
         if (!checkFiles()) {
             return;

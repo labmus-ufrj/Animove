@@ -100,7 +100,7 @@ public class FFmpegPlugin implements Command, Interactive {
     @Parameter(label = "Multi-Crop (one video per ROI)", persist = false)
     private boolean multiCrop = false;
 
-    @Parameter(label = "Posview", callback = "showPosview")
+    @Parameter(label = "Preview", callback = "showPosview")
     private Button posviewButton;
 
     @Parameter(label = "Process", callback = "runProcessing")
@@ -156,10 +156,6 @@ public class FFmpegPlugin implements Command, Interactive {
         outputFile = testFile;
     }
 
-    /**
-     * Callback method for the "Preview" button.
-     * Grabs a single frame from video to show a preview and get video data.
-     */
     private void openFrame() {
         try {
             if (inputFile == null || !inputFile.exists() || !inputFile.isFile()) {
@@ -342,8 +338,7 @@ public class FFmpegPlugin implements Command, Interactive {
      * Processes a video file by applying specified filters and transformations.
      * This method handles different processing modes:
      * 1. Normal video processing: Converts video with specified codec and filters
-     * 2. Preview mode: Creates a single frame preview image
-     * 3. Posview mode: Creates a single frame with all filters applied for preview
+     * 2. Posview mode: Creates a single frame with all filters applied for preview
      *
      * @param currentOutputFile The output file where processed video/image will be saved
      * @param cropRoi           Region of interest for cropping the video (can be null)
@@ -361,7 +356,7 @@ public class FFmpegPlugin implements Command, Interactive {
             totalFramesToProcess = Math.max(0, finalFrame - startFrame);
         }
 
-        // For preview/posview modes, set output to temporary file and process single frame
+        // For posview modes, set output to temporary file and process single frame
         if (isPosview) {
             totalFramesToProcess = 1;
             currentOutputFile = File.createTempFile(ZFConfigs.pluginName + "_", ".png");
@@ -445,7 +440,7 @@ public class FFmpegPlugin implements Command, Interactive {
                 posviewImagePlus.close();
             }
             posviewImagePlus = new ImagePlus(currentOutputFile.getAbsolutePath());
-            posviewImagePlus.setTitle("Posview Image");
+            posviewImagePlus.setTitle("Preview Image");
             uiService.show(posviewImagePlus);
         }
     }

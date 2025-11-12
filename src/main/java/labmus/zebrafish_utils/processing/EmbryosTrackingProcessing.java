@@ -66,8 +66,11 @@ public class EmbryosTrackingProcessing extends DynamicCommand implements Interac
     @Parameter(label = "End Frame (0 = whole video)", min = "0", persist = false)
     private int endFrame = 0;
 
-    @Parameter(label = "Process", callback = "generate")
+    @Parameter(label = "Preview", callback = "generatePreview")
     private Button btn2;
+
+    @Parameter(label = "Process", callback = "generateFull")
+    private Button btn3;
 
     @Parameter
     private UIService uiService;
@@ -85,25 +88,31 @@ public class EmbryosTrackingProcessing extends DynamicCommand implements Interac
 //        IJ.run("Console");
     }
 
-    private void generate() {
+    private void generatePreview() {
+        generate(true);
+    }
+
+    private void generateFull() {
+        generate(false);
+    }
+
+    private void generate(boolean doPreview) {
         if (!checkFiles()){
             return;
         }
         if (previewImagePlus != null){
             previewImagePlus.close();
         }
-        Executors.newSingleThreadExecutor().submit(this::executeProcessing);
+        Executors.newSingleThreadExecutor().submit(() -> this.executeProcessing(doPreview));
     }
 
-    private void executeProcessing() {
+    private void executeProcessing(boolean doPreview) {
         try {
-            File tempOutputFile = File.createTempFile(ZFConfigs.pluginName + "_", "." + this.format.toLowerCase());
-            log.info("Temp file: " + tempOutputFile.getAbsolutePath());
-            tempOutputFile.deleteOnExit();
+            File tempOutputFile = ZFHelperMethods.createPluginTempFile(this.format.toLowerCase());
 
             ZprojectFunction zprojectFunctionAvg = new ZprojectFunction(ZprojectFunction.OperationMode.AVG);
             ZFHelperMethods.iterateOverFrames(ZFHelperMethods.InvertFunction
-                    .andThen(zprojectFunctionAvg), inputFile, startFrame, endFrame * 5, statusService); // todo: 5 times is a guess
+                    .andThen(zprojectFunctionAvg), inputFile, startFrame, (doPreview ? startFrame + 10 : endFrame) * 5, statusService); // todo: 5 times is a guess
             Mat avgMat = zprojectFunctionAvg.getResultMat();
 
             ImageCalculatorFunction imageCalculatorFunction = new ImageCalculatorFunction(ImageCalculatorFunction.OperationMode.ADD, avgMat);
@@ -128,10 +137,10 @@ public class EmbryosTrackingProcessing extends DynamicCommand implements Interac
                     .andThen(ZFHelperMethods.InvertFunction)
                     .andThen(recorderFunction);
 
-            ZFHelperMethods.iterateOverFrames(processFunction, inputFile, startFrame, endFrame, statusService);
+            ZFHelperMethods.iterateOverFrames(processFunction, inputFile, startFrame, doPreview ? startFrame + 10 : endFrame, statusService);
             recorderFunction.close();
 
-            if (openResultInstead) {
+            if (openResultInstead || doPreview) {
                 statusService.showStatus("Opening result in ImageJ...");
                 recorderFunction.getRecorder().openResultinIJ(uiService, datasetIOService);
 
