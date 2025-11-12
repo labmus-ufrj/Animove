@@ -47,7 +47,7 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
     @Parameter(label = "Input Video", style = FileWidget.OPEN_STYLE, callback = "updateOutputFolder", persist = false, required = false)
     private File inputFile;
 
-    @Parameter(label = "Open Frame", callback = "previewFrame")
+    @Parameter(label = "Open Frame", callback = "openFrame")
     private Button btn1;
 
     @Parameter(label = "Output Folder", style = FileWidget.DIRECTORY_STYLE, persist = false, required = false)
@@ -87,8 +87,11 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
     @Parameter(label = "Interval")
     private String customInterval = "5401-6400";
 
-    @Parameter(label = "Process", callback = "generate")
+    @Parameter(label = "Preview", callback = "generate")
     private Button btn2;
+
+    @Parameter(label = "Process", callback = "generate")
+    private Button btn3;
 
     @Parameter
     private UIService uiService;
@@ -189,7 +192,7 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
 
     }
 
-    private void previewFrame() {
+    private void openFrame() {
         if (inputFile == null || !inputFile.exists() || !inputFile.isFile()) {
             uiService.showDialog("Could not open video: \n Invalid file", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
             return;

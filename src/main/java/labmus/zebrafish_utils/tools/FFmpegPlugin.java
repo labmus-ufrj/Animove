@@ -62,7 +62,7 @@ public class FFmpegPlugin implements Command, Interactive {
 
     @Parameter(label = "Input File", style = FileWidget.OPEN_STYLE, callback = "updateOutputName", persist = false, required = false)
     private File inputFile;
-    @Parameter(label = "Open Frame & Get Info", callback = "previewFrame")
+    @Parameter(label = "Open Frame & Get Info", callback = "openFrame")
     private Button previewButton;
     @Parameter(label = "Output File", style = FileWidget.SAVE_STYLE, persist = false, required = false)
     private File outputFile;
@@ -147,7 +147,7 @@ public class FFmpegPlugin implements Command, Interactive {
      * Callback method for the "Preview" button.
      * Grabs a single frame from video to show a preview and get video data.
      */
-    private void previewFrame() {
+    private void openFrame() {
         try {
             if (inputFile == null || !inputFile.exists() || !inputFile.isFile()) {
                 uiService.showDialog("Could not open video: \n Invalid file", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);

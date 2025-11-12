@@ -46,7 +46,7 @@ public class ImageCalculator extends DynamicCommand implements Interactive {
     @Parameter(label = "Input Video", style = "file", callback = "updateOutputName", persist = false, required = false)
     private File inputVideoFile;
 
-    @Parameter(label = "Open Frame", callback = "previewFrame")
+    @Parameter(label = "Open Frame", callback = "openFrame")
     private Button btn1;
 
     @Parameter(label = "Input Image", style = "file", persist = false, required = false)
@@ -220,7 +220,7 @@ public class ImageCalculator extends DynamicCommand implements Interactive {
         }
     }
 
-    private void previewFrame() {
+    private void openFrame() {
         if (inputVideoFile == null || !inputVideoFile.exists() || !inputVideoFile.isFile()) {
             uiService.showDialog("Could not open video: \n Invalid file", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
             return;

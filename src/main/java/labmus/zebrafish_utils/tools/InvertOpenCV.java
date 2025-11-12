@@ -36,7 +36,7 @@ public class InvertOpenCV extends DynamicCommand implements Interactive {
     @Parameter(label = "Input Video", style = "file", callback = "updateOutputName", persist = false)
     private File inputFile;
 
-    @Parameter(label = "Open Frame", callback = "previewFrame")
+    @Parameter(label = "Open Frame", callback = "openFrame")
     private Button btn1;
 
     @Parameter(label = "Output File", style = "save", persist = false)
@@ -156,7 +156,7 @@ public class InvertOpenCV extends DynamicCommand implements Interactive {
         }
     }
 
-    private void previewFrame() {
+    private void openFrame() {
         if (inputFile == null || !inputFile.exists() || !inputFile.isFile()) {
             uiService.showDialog("Could not open video: \n Invalid file", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
             return;
