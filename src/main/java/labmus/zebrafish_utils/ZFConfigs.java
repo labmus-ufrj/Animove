@@ -19,7 +19,7 @@ public abstract class ZFConfigs {
     public static final String avgPath = toolsPath + "Z-project";
     public static final String imgCalcPath = toolsPath + "Image Calculator";
     public static final String checkDepsPath = toolsPath + "Check Dependencies";
-//    public static final String helperPath = toolsPath + "Helper";
+    //    public static final String helperPath = toolsPath + "Helper";
     public static final String saveStackPath = toolsPath + "Save Stack as video";
     public static final String performanceTest = toolsPath + "Performance Test";
     public static final String invertPath = toolsPath + "Invert Video";
@@ -27,6 +27,7 @@ public abstract class ZFConfigs {
     public static final String heatmapImagesPath = processingPath + "Generate Heatmap Images";
     public static final String heatmapVideoPath = processingPath + "Generate Heatmap Video";
     public static final String embryosTrackingPath = processingPath + "Embryos Tracking";
+    public static final String adultsTrackingPath = "Adults Tracking";
 
     private static final String embryosPath = analysisPath + "Embryos Analysis>";
     public static final String roisPath = embryosPath + "Create ROIs";

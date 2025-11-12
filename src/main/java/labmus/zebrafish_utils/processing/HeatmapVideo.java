@@ -36,6 +36,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@SuppressWarnings({"FieldCanBeLocal"})
 @Plugin(type = Command.class, menuPath = ZFConfigs.heatmapVideoPath)
 public class HeatmapVideo extends DynamicCommand implements Interactive {
 

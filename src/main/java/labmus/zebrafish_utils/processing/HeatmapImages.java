@@ -31,8 +31,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.bytedeco.opencv.global.opencv_imgcodecs.imwrite;
-
 @SuppressWarnings({"FieldCanBeLocal"})
 @Plugin(type = Command.class, menuPath = ZFConfigs.heatmapImagesPath)
 public class HeatmapImages extends DynamicCommand implements Interactive {

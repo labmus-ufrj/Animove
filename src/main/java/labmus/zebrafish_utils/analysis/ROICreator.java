@@ -13,22 +13,18 @@ import org.scijava.command.Command;
 import org.scijava.command.DynamicCommand;
 import org.scijava.command.Interactive;
 import org.scijava.log.LogService;
+import org.scijava.module.MutableModuleItem;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.ui.DialogPrompt;
 import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 
+@SuppressWarnings({"FieldCanBeLocal"})
 @Plugin(type = Command.class, menuPath = ZFConfigs.roisPath)
 public class ROICreator extends DynamicCommand implements Interactive {
-    @Parameter
-    private LogService log;
-    @Parameter
-    private UIService uiService;
-    @Parameter
-    private ImageDisplayService imageDisplayService;
 
-    @Parameter(label = "Well ammount", min = "1", persist = false, callback = "refreshUnit" )
+    @Parameter(label = "Well amount", min = "1", persist = false, callback = "refreshUnit" )
     private int wellNum = 1;
 
     @Parameter(label = "Well size", min = "1", persist = false, callback = "refreshUnit")
@@ -40,37 +36,35 @@ public class ROICreator extends DynamicCommand implements Interactive {
     @Parameter(label = "Process", callback = "execute")
     private Button executeButton;
 
+    @Parameter
+    private LogService log;
+    @Parameter
+    private UIService uiService;
+    @Parameter
+    private ImageDisplayService imageDisplayService;
+
+    @Parameter
+    Dataset dataset;
+
     @Override
     public void run() {
-        initUnit(imageDisplayService.getActiveImageDisplay());
-    }
-
-    private boolean checkForImage() {
-        ImageDisplay imageDisplay = imageDisplayService.getActiveImageDisplay();
-        if (imageDisplay == null) {
-            uiService.showDialog("No image found", "Plugin Error", DialogPrompt.MessageType.ERROR_MESSAGE);
-            return false;
-        }
-        return true;
+        initUnit();
     }
 
     private void execute() {
-        ImageDisplay imageDisplay = imageDisplayService.getActiveImageDisplay();
-        if (!checkForImage()) {
-            return;
-        }
-        initUnit(imageDisplay);
-        distributeROIs(imageDisplay);
+        initUnit();
+        distributeROIs();
     }
 
     private void refreshUnit(){
-        initUnit(imageDisplayService.getActiveImageDisplay());
+        initUnit();
     }
 
-    private void initUnit(ImageDisplay imageDisplay) {
-        Dataset currentDataset = (Dataset) imageDisplay.getActiveView().getData();
-        CalibratedAxis xAxis = currentDataset.axis(0);
-        this.unit = xAxis.unit();
+    private void initUnit() {
+        CalibratedAxis xAxis = dataset.axis(0);
+        final MutableModuleItem<String> item =
+                getInfo().getMutableInput("unit", String.class);
+        item.setValue(this, xAxis.unit()); // this fixes the delayed refresh
     }
 
 
@@ -80,15 +74,13 @@ public class ROICreator extends DynamicCommand implements Interactive {
      * circular ROIs with a specified size. The ROIs are added to ImageJ's ROI Manager and named
      * sequentially as "Well_X" where X is the well number.
      *
-     * @param imageDisplay The active image display where ROIs will be created
      */
-    private void distributeROIs(ImageDisplay imageDisplay) {
+    private void distributeROIs() {
         int[] factors = getFactors(wellNum);
 
-        Dataset currentDataset = (Dataset) imageDisplay.getActiveView().getData();
-        double width = currentDataset.dimension(0);
-        double height = currentDataset.dimension(1);
-        CalibratedAxis xAxis = currentDataset.axis(0);
+        double width = dataset.dimension(0);
+        double height = dataset.dimension(1);
+        CalibratedAxis xAxis = dataset.axis(0);
 
         double calibratedSize = wellSize / xAxis.calibratedValue(1);
 
@@ -115,7 +107,6 @@ public class ROICreator extends DynamicCommand implements Interactive {
                 roiManager.addRoi(imp.getRoi());
             }
         }
-
         imp.deleteRoi();
         imp.updateAndDraw();
     }

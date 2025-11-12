@@ -23,6 +23,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.util.concurrent.Executors;
 
+@SuppressWarnings({"FieldCanBeLocal"})
 @Plugin(type = Command.class, menuPath = ZFConfigs.invertPath)
 public class InvertOpenCV extends DynamicCommand implements Interactive {
 

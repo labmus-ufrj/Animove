@@ -43,6 +43,7 @@ import java.util.regex.Pattern;
  * This is an interactive plugin that maintains UI responsiveness during processing
  * by running operations in background threads. This also means it is non-blocking by nature.
  */
+@SuppressWarnings({"FieldCanBeLocal"})
 @Plugin(type = Command.class, menuPath = ZFConfigs.ffmpegPath)
 public class FFmpegPlugin implements Command, Interactive {
 
@@ -62,28 +63,40 @@ public class FFmpegPlugin implements Command, Interactive {
 
     @Parameter(label = "Input File", style = FileWidget.OPEN_STYLE, callback = "updateOutputName", persist = false, required = false)
     private File inputFile;
+
     @Parameter(label = "Open Frame & Get Info", callback = "openFrame")
     private Button previewButton;
+
     @Parameter(label = "Output File", style = FileWidget.SAVE_STYLE, persist = false, required = false)
     private File outputFile;
+
     @Parameter(label = "Output Codec", choices = {"libx264", "libx265", "mjpeg"}, callback = "updateOutputFileExtension", persist = false)
     private String outputCodec = "mjpeg";
+
     @Parameter(label = "Quality (1=Lowest, 10=Highest)", style = NumberWidget.SLIDER_STYLE, min = "1", max = "10", persist = false)
     private int quality = 10;
+
     @Parameter(label = "Start Frame", min = "0", persist = false)
     private int startFrame = 0;
+
     @Parameter(label = "End Frame (0 for the last frame)", persist = false)
     private int endFrame = 0;
+
     @Parameter(label = "Output FPS", min = "1", persist = false)
     private double outputFps = 25.0;
+
     @Parameter(label = "Horizontal Flip", persist = false)
     private boolean horizontalFlip = false;
+
     @Parameter(label = "Vertical Flip", persist = false)
     private boolean verticalFlip = false;
+
     @Parameter(label = "Rotation", choices = {"0°", "90°", "180°", "270°", "-90°", "-180°", "-270°"}, persist = false)
     private String rotation = "0°";
+
     @Parameter(label = "Crop using active ROI", persist = false)
     private boolean useRoiCrop = false;
+
     @Parameter(label = "Multi-Crop (one video per ROI)", persist = false)
     private boolean multiCrop = false;
 

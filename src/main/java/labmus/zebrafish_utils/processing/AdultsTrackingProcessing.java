@@ -33,10 +33,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@SuppressWarnings({"FieldCanBeLocal"})
-@Plugin(type = Command.class, menuPath = ZFConfigs.embryosTrackingPath)
-public class EmbryosTrackingProcessing extends DynamicCommand implements Interactive {
-
+@Plugin(type = Command.class, menuPath = ZFConfigs.adultsTrackingPath)
+public class AdultsTrackingProcessing extends DynamicCommand implements Interactive {
     static {
         // this runs on a Menu click
         // reduces loading time for FFmpegFrameGrabber and for OpenCV
@@ -111,8 +109,6 @@ public class EmbryosTrackingProcessing extends DynamicCommand implements Interac
                 return mat;
             };
 
-            // todo: add some blur, median or gaussian
-
             double fps;
             try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile)) {
                 grabber.start();
@@ -156,12 +152,12 @@ public class EmbryosTrackingProcessing extends DynamicCommand implements Interac
         }
         String parentDir = inputFile.getParent();
         String baseName = inputFile.getName().replaceFirst("[.][^.]+$", "");
-        File testFile = new File(parentDir, baseName + "_embryosTracking" + "." + format.toLowerCase());
+        File testFile = new File(parentDir, baseName + "_adultsTracking" + "." + format.toLowerCase());
 
         int count = 2;
         while (testFile.exists()) {
             // naming the file with a sequential number to avoid overwriting
-            testFile = new File(parentDir, baseName + "_embryosTracking_" + count + "." + format.toLowerCase());
+            testFile = new File(parentDir, baseName + "_adultsTracking_" + count + "." + format.toLowerCase());
             count++;
         }
         outputFile = testFile;

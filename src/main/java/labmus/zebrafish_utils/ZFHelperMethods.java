@@ -12,11 +12,6 @@ import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.scijava.app.StatusService;
-import org.scijava.command.Command;
-import org.scijava.log.LogService;
-import org.scijava.plugin.Parameter;
-import org.scijava.plugin.Plugin;
-import org.scijava.ui.UIService;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -37,11 +32,11 @@ import static org.bytedeco.opencv.global.opencv_imgproc.cvtColor;
 //@Plugin(type = Command.class, menuPath = ZFConfigs.helperPath)
 public class ZFHelperMethods {
 
-//    static {
-//        // this runs on a Menu click
-//        // reduces loading time for FFmpegFrameGrabber
-//        Executors.newSingleThreadExecutor().submit(() -> ZFConfigs.ffmpeg);
-//    }
+    static {
+        // this runs on a Menu click
+        // reduces loading time for FFmpegFrameGrabber
+        Executors.newSingleThreadExecutor().submit(() -> ZFConfigs.ffmpeg);
+    }
 
     public static final Function<Mat, Mat> InvertFunction = (mat) -> {
         opencv_core.bitwise_not(mat, mat);

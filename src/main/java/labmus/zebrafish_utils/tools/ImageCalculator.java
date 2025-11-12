@@ -33,6 +33,7 @@ import static org.bytedeco.opencv.global.opencv_imgcodecs.imread;
 import static org.bytedeco.opencv.global.opencv_imgproc.COLOR_BGR2GRAY;
 import static org.bytedeco.opencv.global.opencv_imgproc.cvtColor;
 
+@SuppressWarnings({"FieldCanBeLocal"})
 @Plugin(type = Command.class, menuPath = ZFConfigs.imgCalcPath)
 public class ImageCalculator extends DynamicCommand implements Interactive {
 

@@ -1,6 +1,8 @@
 package labmus.zebrafish_utils;
 
+import org.scijava.app.StatusService;
 import org.scijava.command.Command;
+import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 import javax.swing.*;
@@ -10,8 +12,12 @@ import java.net.URI;
 @Plugin(type = Command.class, menuPath = ZFConfigs.aboutPath)
 public class AboutPlugin implements Command {
 
+    @Parameter
+    private StatusService statusService;
+
     @Override
     public void run() {
+        statusService.showStatus("Loading...");
         final String version = AppInfo.getProperty("app.version");
         final String url = AppInfo.getProperty("app.url");
 
@@ -53,6 +59,7 @@ public class AboutPlugin implements Command {
                     "About",
                     JOptionPane.INFORMATION_MESSAGE
             );
+            statusService.clearStatus();
         });
     }
 }

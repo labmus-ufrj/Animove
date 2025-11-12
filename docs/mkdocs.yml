@@ -28,9 +28,13 @@ nav:
       - 'FFmpeg': 'tools/ffmpeg.md'
       - 'Z-project': 'tools/z-project.md'
       - 'Image Calculator': 'tools/image-calculator.md'
+      - 'Performance Test': 'tools/performance-test.md'
+      - 'Invert Video': 'tools/invert-video.md'
   - 'Processing':
       - 'Generate Heatmap Images': 'processing/heatmap-images.md'
       - 'Generate Heatmap Video': 'processing/heatmap-video.md'
+      - 'Embryos Tracking': 'processing/embryos-tracking.md'
+      - 'Adults Tracking': 'processing/adults-tracking.md'
   - 'Analysis':
       - 'Extract Tracking Data': 'analysis/tracking-data.md'
       - 'Calculate Score Gradient': 'analysis/score-gradient.md'
