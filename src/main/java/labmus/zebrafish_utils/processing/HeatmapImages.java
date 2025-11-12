@@ -85,10 +85,10 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
     @Parameter(label = "Interval")
     private String customInterval = "5401-6400";
 
-    @Parameter(label = "Preview", callback = "generate")
+    @Parameter(label = "Preview", callback = "generatePreview")
     private Button btn2;
 
-    @Parameter(label = "Process", callback = "generate")
+    @Parameter(label = "Process", callback = "generateFull")
     private Button btn3;
 
     @Parameter
@@ -106,8 +106,17 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
 //        IJ.run("Console", "");
     }
 
-    private void generate() {
-        if (!checkFiles()){
+    private void generatePreview() {
+        generate(true);
+    }
+
+    private void generateFull() {
+        generate(false);
+    }
+
+
+    private void generate(boolean doPreview) {
+        if (!checkFiles()) {
             return;
         }
 
@@ -130,11 +139,11 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
         previewImagePlus.close();
 
         Roi finalRoi = lastRoi;
-        Executors.newSingleThreadExecutor().submit(() -> this.executeProcessing(finalRoi));
+        Executors.newSingleThreadExecutor().submit(() -> this.executeProcessing(finalRoi, doPreview));
 
     }
 
-    private void executeProcessing(Roi roi) {
+    private void executeProcessing(Roi roi, boolean doPreview) {
         try {
             // this just allows to re-use the same code for all intervals.
             // looks messy, ik
@@ -151,7 +160,8 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
                 }
 
                 int startFrame = Integer.parseInt(a[0]);
-                int endFrame = Integer.parseInt(a[1]);
+                int endFrame = doPreview ? startFrame + 10 : Integer.parseInt(a[1]);
+                interval = a[0] + "-" + a[1]; // making sure displayed data is right
 
                 ZprojectFunction zprojectFunctionAvg = new ZprojectFunction(ZprojectFunction.OperationMode.AVG);
                 ZFHelperMethods.iterateOverFrames(ZFHelperMethods.InvertFunction.andThen(zprojectFunctionAvg), inputFile, startFrame, endFrame, statusService);
@@ -172,16 +182,21 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
                 ImagePlus imp = new ImagePlus("", brightnessLUTFunction.getLastBi());
                 brightnessLUTFunction.close();
 
-                if (openResultInstead) {
+                if (openResultInstead || doPreview) {
                     imp.setTitle(interval);
                     imp.show();
                 } else {
                     IJ.save(imp, outputDir.toPath().resolve(interval + ".tif").toString());
                     imp.close();
-                    uiService.showDialog("Processing done", ZFConfigs.pluginName, DialogPrompt.MessageType.INFORMATION_MESSAGE);
+                }
+                if (doPreview) {
+                    break;
                 }
                 sumMat.close();
                 avgMat.close();
+            }
+            if (!doPreview){
+                uiService.showDialog("Processing done", ZFConfigs.pluginName, DialogPrompt.MessageType.INFORMATION_MESSAGE);
             }
         } catch (Exception e) {
             log.error(e);

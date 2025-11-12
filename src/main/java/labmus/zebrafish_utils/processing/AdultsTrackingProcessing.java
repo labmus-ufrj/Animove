@@ -6,9 +6,7 @@ import io.scif.services.DatasetIOService;
 import labmus.zebrafish_utils.ZFConfigs;
 import labmus.zebrafish_utils.ZFHelperMethods;
 import labmus.zebrafish_utils.utils.SimpleRecorder;
-import labmus.zebrafish_utils.utils.functions.ImageCalculatorFunction;
-import labmus.zebrafish_utils.utils.functions.SimpleRecorderFunction;
-import labmus.zebrafish_utils.utils.functions.ZprojectFunction;
+import labmus.zebrafish_utils.utils.functions.*;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.opencv.opencv_core.Mat;
@@ -83,10 +81,10 @@ public class AdultsTrackingProcessing extends DynamicCommand implements Interact
     }
 
     private void generate() {
-        if (!checkFiles()){
+        if (!checkFiles()) {
             return;
         }
-        if (previewImagePlus != null){
+        if (previewImagePlus != null) {
             previewImagePlus.close();
         }
         Executors.newSingleThreadExecutor().submit(this::executeProcessing);
@@ -98,42 +96,66 @@ public class AdultsTrackingProcessing extends DynamicCommand implements Interact
             log.info("Temp file: " + tempOutputFile.getAbsolutePath());
             tempOutputFile.deleteOnExit();
 
-            ZprojectFunction zprojectFunctionAvg = new ZprojectFunction(ZprojectFunction.OperationMode.AVG);
-            ZFHelperMethods.iterateOverFrames(ZFHelperMethods.InvertFunction.andThen(zprojectFunctionAvg), inputFile, startFrame, endFrame * 5, statusService); // todo: 5 times is a guess
-            Mat avgMat = zprojectFunctionAvg.getResultMat();
-
-            ImageCalculatorFunction imageCalculatorFunction = new ImageCalculatorFunction(ImageCalculatorFunction.OperationMode.ADD, avgMat);
-
-            Function<Mat, Mat> bcFunction = (mat) -> {
-                mat.convertTo(mat, -1, 1, 30); // todo: maybe either calculate beta automatically or let the user choose...
-                return mat;
-            };
-
             double fps;
+            int w;
+            int h;
             try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile)) {
                 grabber.start();
                 fps = grabber.getFrameRate();
+                w = grabber.getImageWidth();
+                h = grabber.getImageHeight();
             }
             SimpleRecorderFunction recorderFunction = new SimpleRecorderFunction(
-                    new SimpleRecorder(tempOutputFile, avgMat, fps), uiService);
+                    new SimpleRecorder(tempOutputFile, w, h, fps), uiService);
 
-            Function<Mat, Mat> processFunction = imageCalculatorFunction
-                    .andThen(bcFunction)
-                    .andThen(ZFHelperMethods.InvertFunction)
-                    .andThen(recorderFunction);
+            Function<Mat, Mat> processFunction = ZFHelperMethods.InvertFunction
+                    .andThen(new SubtractBackgroundFunction(25) // todo: hardcoded value
+                            .andThen(new ThresholdBrightnessFunction(0.7))
+                            .andThen(recorderFunction));
 
             ZFHelperMethods.iterateOverFrames(processFunction, inputFile, startFrame, endFrame, statusService);
             recorderFunction.close();
 
-            if (openResultInstead) {
-                statusService.showStatus("Opening result in ImageJ...");
-                recorderFunction.getRecorder().openResultinIJ(uiService, datasetIOService);
+            recorderFunction.getRecorder().openResultinIJ(uiService, datasetIOService);
 
-            } else {
-                Files.copy(tempOutputFile.toPath(), outputFile.toPath());
-                uiService.showDialog("Video saved successfully!",
-                        ZFConfigs.pluginName, DialogPrompt.MessageType.INFORMATION_MESSAGE);
-            }
+//            ZprojectFunction zprojectFunctionAvg = new ZprojectFunction(ZprojectFunction.OperationMode.AVG);
+//            ZFHelperMethods.iterateOverFrames(ZFHelperMethods.InvertFunction.andThen(zprojectFunctionAvg), inputFile, startFrame, endFrame * 5, statusService); // todo: 5 times is a guess
+//            Mat avgMat = zprojectFunctionAvg.getResultMat();
+//
+//            ImageCalculatorFunction imageCalculatorFunction = new ImageCalculatorFunction(ImageCalculatorFunction.OperationMode.ADD, avgMat);
+//
+//            Function<Mat, Mat> bcFunction = (mat) -> {
+//                mat.convertTo(mat, -1, 1, 30); // todo: maybe either calculate beta automatically or let the user choose...
+//                return mat;
+//            };
+//
+//            double fps;
+//            try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile)) {
+//                grabber.start();
+//                fps = grabber.getFrameRate();
+//            }
+//            SimpleRecorderFunction recorderFunction = new SimpleRecorderFunction(
+//                    new SimpleRecorder(tempOutputFile, avgMat, fps), uiService);
+//
+//            Function<Mat, Mat> processFunction = ZFHelperMethods.InvertFunction
+//                    .andThen(new SubtractBackgroundFunction(50)) // todo: hardcoded value
+//                    .andThen(imageCalculatorFunction)
+//                    .andThen(bcFunction)
+//                    .andThen(ZFHelperMethods.InvertFunction)
+//                    .andThen(recorderFunction);
+//
+//            ZFHelperMethods.iterateOverFrames(processFunction, inputFile, startFrame, endFrame, statusService);
+//            recorderFunction.close();
+//
+//            if (openResultInstead) {
+//                statusService.showStatus("Opening result in ImageJ...");
+//                recorderFunction.getRecorder().openResultinIJ(uiService, datasetIOService);
+//
+//            } else {
+//                Files.copy(tempOutputFile.toPath(), outputFile.toPath());
+//                uiService.showDialog("Video saved successfully!",
+//                        ZFConfigs.pluginName, DialogPrompt.MessageType.INFORMATION_MESSAGE);
+//            }
 
         } catch (Exception e) {
             log.error(e);
@@ -204,7 +226,7 @@ public class AdultsTrackingProcessing extends DynamicCommand implements Interact
                 uiService.showDialog("Invalid output file", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
                 return false;
             }
-        } else if (outputFile.exists()){
+        } else if (outputFile.exists()) {
             uiService.showDialog("Output file already exists", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
             return false;
         }

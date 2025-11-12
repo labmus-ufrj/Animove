@@ -8,6 +8,7 @@ import labmus.zebrafish_utils.ZFHelperMethods;
 import labmus.zebrafish_utils.utils.SimpleRecorder;
 import labmus.zebrafish_utils.utils.functions.ImageCalculatorFunction;
 import labmus.zebrafish_utils.utils.functions.SimpleRecorderFunction;
+import labmus.zebrafish_utils.utils.functions.SubtractBackgroundFunction;
 import labmus.zebrafish_utils.utils.functions.ZprojectFunction;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.OpenCVFrameConverter;
@@ -101,7 +102,8 @@ public class EmbryosTrackingProcessing extends DynamicCommand implements Interac
             tempOutputFile.deleteOnExit();
 
             ZprojectFunction zprojectFunctionAvg = new ZprojectFunction(ZprojectFunction.OperationMode.AVG);
-            ZFHelperMethods.iterateOverFrames(ZFHelperMethods.InvertFunction.andThen(zprojectFunctionAvg), inputFile, startFrame, endFrame * 5, statusService); // todo: 5 times is a guess
+            ZFHelperMethods.iterateOverFrames(ZFHelperMethods.InvertFunction
+                    .andThen(zprojectFunctionAvg), inputFile, startFrame, endFrame * 5, statusService); // todo: 5 times is a guess
             Mat avgMat = zprojectFunctionAvg.getResultMat();
 
             ImageCalculatorFunction imageCalculatorFunction = new ImageCalculatorFunction(ImageCalculatorFunction.OperationMode.ADD, avgMat);

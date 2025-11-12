@@ -27,7 +27,7 @@ public abstract class ZFConfigs {
     public static final String heatmapImagesPath = processingPath + "Generate Heatmap Images";
     public static final String heatmapVideoPath = processingPath + "Generate Heatmap Video";
     public static final String embryosTrackingPath = processingPath + "Embryos Tracking";
-    public static final String adultsTrackingPath = "Adults Tracking";
+    public static final String adultsTrackingPath = processingPath + "Adults Tracking";
 
     private static final String embryosPath = analysisPath + "Embryos Analysis>";
     public static final String roisPath = embryosPath + "Create ROIs";
