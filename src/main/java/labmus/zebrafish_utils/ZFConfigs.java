@@ -3,7 +3,7 @@ package labmus.zebrafish_utils;
 import org.bytedeco.javacpp.Loader;
 
 public abstract class ZFConfigs {
-    public static final String pluginName = "ZF Utils";
+    public static final String pluginName = AppInfo.getProperty("app.artifactId");
 
     public static final String ffmpeg = Loader.load(org.bytedeco.ffmpeg.ffmpeg.class);
 
@@ -13,11 +13,13 @@ public abstract class ZFConfigs {
     private static final String processingPath = prePath + "Processing>"; // processing / generation / some other word
     private static final String analysisPath = prePath + "Analysis>";
 
+    public static final String aboutPath = prePath + "About";
+
     public static final String ffmpegPath = toolsPath + "FFmpeg";
     public static final String avgPath = toolsPath + "Z-project";
     public static final String imgCalcPath = toolsPath + "Image Calculator";
     public static final String checkDepsPath = toolsPath + "Check Dependencies";
-    public static final String helperPath = toolsPath + "Helper";
+//    public static final String helperPath = toolsPath + "Helper";
     public static final String saveStackPath = toolsPath + "Save Stack as video";
     public static final String performanceTest = toolsPath + "Performance Test";
     public static final String invertPath = toolsPath + "Invert Video";

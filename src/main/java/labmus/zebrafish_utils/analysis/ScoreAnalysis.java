@@ -8,6 +8,7 @@ import ij.gui.ShapeRoi;
 import ij.measure.Calibration;
 import ij.measure.ResultsTable;
 import labmus.zebrafish_utils.ZFConfigs;
+import labmus.zebrafish_utils.ZFHelperMethods;
 import org.scijava.command.Command;
 import org.scijava.command.Interactive;
 import org.scijava.log.LogService;
@@ -251,7 +252,13 @@ public class ScoreAnalysis implements Command, Interactive, MouseListener, Mouse
             if (!videoFile.exists()) {
                 throw new Exception("Input file does not exist.");
             }
-            displayFirstFrame();
+
+            if (videoFrame != null && videoFrame.getWindow() != null) {
+                videoFrame.close();
+            }
+            videoFrame = ZFHelperMethods.getFirstFrame(videoFile);
+            videoFrame.setTitle("Video frame");
+            uiService.show(videoFrame);
 
             // maybe get max and min from fish positions?
             min = (int) (videoFrame.getWidth() * 0.9);
@@ -276,49 +283,6 @@ public class ScoreAnalysis implements Command, Interactive, MouseListener, Mouse
                     "Error", DialogPrompt.MessageType.ERROR_MESSAGE);
             videoFrame = null;
         }
-    }
-
-    private void displayFirstFrame() throws Exception {
-        File currentOutputFile = new File(System.getProperty("java.io.tmpdir") + File.separator + System.currentTimeMillis() + ".png");
-        currentOutputFile.deleteOnExit();
-
-        // Build FFmpeg command
-        // Start by getting the binary path from bytedeco's lib
-        // yep that's a thing, and that's how this works
-        ArrayList<String> commandList = new ArrayList<>();
-        commandList.add(ZFConfigs.ffmpeg);
-
-        commandList.add("-i");
-        commandList.add("\"" + videoFile.getAbsolutePath() + "\"");
-
-        // Set number of frames to process
-        commandList.add("-vframes");
-        commandList.add(String.valueOf(1));
-
-        // Add output file
-        commandList.add("\"" + currentOutputFile.getAbsolutePath() + "\"");
-
-        log.info(commandList.toString());
-
-        // Execute FFmpeg command
-        ProcessBuilder pb = new ProcessBuilder(commandList);
-        pb.redirectErrorStream(true);
-
-        Process process = pb.start();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                log.info(line);
-            }
-        }
-        process.waitFor();
-
-        if (videoFrame != null && videoFrame.getWindow() != null) {
-            videoFrame.close();
-        }
-        videoFrame = new ImagePlus(currentOutputFile.getAbsolutePath());
-        videoFrame.setTitle("Video frame");
-        uiService.show(videoFrame);
     }
 
     private void changeMax() {

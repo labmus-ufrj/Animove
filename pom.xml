@@ -18,17 +18,16 @@
         <relativePath/>
     </parent>
 
+    <name>ZebraFish_Utils.jar</name>
     <groupId>labmus-ufrj.plugins</groupId>
     <artifactId>ZebraFish_Utils</artifactId>
     <version>0.0.1</version>
 
-    <name>ZebraFish_Utils.jar</name>
     <description>
         <!--		TODO: write description-->
         descrevendo tudo
     </description>
-    <!--		TODO: write URL-->
-    <url>https://sites.google.com/histo.ufrj.br/labmus/</url>
+    <url>https://github.com/labmus-ufrj/tracking-plugin.git</url>
 
     <inceptionYear>2025</inceptionYear>
     <organization>
@@ -252,6 +251,23 @@
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>app.properties</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <excludes>
+                    <exclude>app.properties</exclude>
+                </excludes>
+            </resource>
+        </resources>
+
         <plugins>
             <plugin>
                 <groupId>org.scijava</groupId>
@@ -297,11 +313,5 @@
             <!--		        </configuration>-->
             <!--      		</plugin>-->
         </plugins>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
-            </resource>
-        </resources>
     </build>
 </project>

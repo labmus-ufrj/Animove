@@ -22,7 +22,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
@@ -35,38 +34,22 @@ import static org.bytedeco.opencv.global.opencv_imgproc.cvtColor;
  * Not for use during prod, this class has useful code snippets used
  * in many other Commands in this package
  */
-@Plugin(type = Command.class, menuPath = ZFConfigs.helperPath)
-public class ZFHelperMethods implements Command {
+//@Plugin(type = Command.class, menuPath = ZFConfigs.helperPath)
+public class ZFHelperMethods {
 
-    static {
-        // this runs on a Menu click
-        // reduces loading time for FFmpegFrameGrabber
-        Executors.newSingleThreadExecutor().submit(() -> ZFConfigs.ffmpeg);
-    }
+//    static {
+//        // this runs on a Menu click
+//        // reduces loading time for FFmpegFrameGrabber
+//        Executors.newSingleThreadExecutor().submit(() -> ZFConfigs.ffmpeg);
+//    }
 
     public static final Function<Mat, Mat> InvertFunction = (mat) -> {
         opencv_core.bitwise_not(mat, mat);
         return mat;
     };
 
-    @Parameter
-    private LogService log;
-
-    @Parameter
-    private UIService uiService;
-    @Parameter
-    private StatusService statusService;
-
-    @Override
-    public void run() {
-        IJ.run("Console");
-//        autoAdjustBrightnessStack(imagePlus, true, log);
-//        FFmpegLogCallback.set();
-    }
 
     public static ImagePlus getFirstFrame(File inputFile) throws Exception {
-        // todo: FFmpeg plugin should use this method
-
         File tempFile = File.createTempFile(ZFConfigs.pluginName + "_", ".png");
         tempFile.deleteOnExit();
 
@@ -74,9 +57,9 @@ public class ZFHelperMethods implements Command {
         ArrayList<String> commandList = new ArrayList<>();
         commandList.add(ZFConfigs.ffmpeg);
 
-        commandList.add("-y"); // todo: get this to ffmpeg?
+        commandList.add("-y");
         commandList.add("-an");
-        commandList.add("-noautorotate"); // todo: get this to ffmpeg
+        commandList.add("-noautorotate");
         commandList.add("-i");
         commandList.add("\"" + inputFile.getAbsolutePath() + "\"");
 
