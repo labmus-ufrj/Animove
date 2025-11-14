@@ -13,8 +13,10 @@
 
 -> provide more test samples, ready to be tested ones, to be linked in each tool/feature
 
--> framerate reduction for tracking processing
+-> framerate reduction for tracking processing?
 -> add more stuff to about plugin section
+
+-> change apply brightness function to use openCV one
 
 
 
