@@ -240,6 +240,9 @@ public class HeatmapVideo extends DynamicCommand implements Interactive {
                 }
                 previewImagePlus = ZFHelperMethods.getFirstFrame(inputFile);
                 previewImagePlus.setTitle("First frame");
+                if (lastRoi != null) {
+                    previewImagePlus.setRoi(lastRoi);
+                }
                 uiService.show(previewImagePlus);
             } catch (Exception e) {
                 log.error(e);

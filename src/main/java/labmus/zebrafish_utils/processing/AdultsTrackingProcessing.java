@@ -241,6 +241,9 @@ public class AdultsTrackingProcessing extends DynamicCommand implements Interact
                 }
                 previewImagePlus = ZFHelperMethods.getFirstFrame(inputFile);
                 previewImagePlus.setTitle("First frame");
+                if (lastRoi != null) {
+                    previewImagePlus.setRoi(lastRoi);
+                }
                 uiService.show(previewImagePlus);
             } catch (Exception e) {
                 log.error(e);
