@@ -122,14 +122,15 @@ public class HeatmapVideo extends DynamicCommand implements Interactive {
                     ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
             return;
         }
-
-        previewImagePlus.close();
+        if (previewImagePlus != null) {
+            previewImagePlus.close();
+        }
 
         Roi finalRoi = lastRoi;
-        Executors.newSingleThreadExecutor().submit(() -> this.executeProcessing(finalRoi, doPreview));
+        Executors.newSingleThreadExecutor().submit(() -> this.executeProcessing(doPreview));
     }
 
-    private void executeProcessing(Roi roi, boolean doPreview) {
+    private void executeProcessing(boolean doPreview) {
 
         try {
             File tempOutputFile = ZFHelperMethods.createPluginTempFile(this.format.toLowerCase());
@@ -145,7 +146,7 @@ public class HeatmapVideo extends DynamicCommand implements Interactive {
             };
             ZprojectFunction zprojectFunctionSum = new ZprojectFunction(ZprojectFunction.OperationMode.SUM, true);
 
-            BrightnessLUTFunction brightnessLUTFunction = new BrightnessLUTFunction(roi, this.lut);
+            BrightnessLUTFunction brightnessLUTFunction = new BrightnessLUTFunction(this.lastRoi, this.lut);
 
             double fps;
             try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile)) {

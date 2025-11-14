@@ -42,9 +42,9 @@ public class BrightnessLUTFunction implements Function<Mat, Mat> {
         sumMat.close();
         try (OpenCVFrameConverter.ToMat matConverter = new OpenCVFrameConverter.ToMat()) {
             try (Frame frame = matConverter.convert(mat)) {
-                ImagePlus imp = new ImagePlus("LUT", biConverter.convert(frame)); // todo: are you setting the statusBar?
-                imp.setRoi(roi);
-                ZFHelperMethods.autoAdjustBrightnessStack(imp, true); // todo: or are you?
+                ImagePlus imp = new ImagePlus("LUT", biConverter.convert(frame));
+                imp.setRoi(roi); // todo: this can be replaced by convertTo like ThresholdBrightnessFunction... or just a normalize
+                ZFHelperMethods.autoAdjustBrightnessStack(imp, true);
                 imp.deleteRoi();
                 if (!lut.contains(defaultLut)) {
 //                    yes, there 's a way to apply LUT using opencv_core.LUT();

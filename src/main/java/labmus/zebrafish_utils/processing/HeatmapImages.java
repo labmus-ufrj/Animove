@@ -135,14 +135,16 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
             return;
         }
 
-        previewImagePlus.close();
+        if (previewImagePlus != null) {
+            previewImagePlus.close();
+        }
 
         Roi finalRoi = lastRoi;
-        Executors.newSingleThreadExecutor().submit(() -> this.executeProcessing(finalRoi, doPreview));
+        Executors.newSingleThreadExecutor().submit(() -> this.executeProcessing(doPreview));
 
     }
 
-    private void executeProcessing(Roi roi, boolean doPreview) {
+    private void executeProcessing(boolean doPreview) {
         try {
             // this just allows to re-use the same code for all intervals.
             // looks messy, ik
@@ -175,7 +177,7 @@ public class HeatmapImages extends DynamicCommand implements Interactive {
                 ZFHelperMethods.iterateOverFrames(subtractFunction.andThen(bcFunction).andThen(ZFHelperMethods.InvertFunction).andThen(zprojectFunctionSum), inputFile, startFrame, endFrame, statusService);
                 Mat sumMat = zprojectFunctionSum.getResultMat();
 
-                BrightnessLUTFunction brightnessLUTFunction = new BrightnessLUTFunction(roi, this.lut);
+                BrightnessLUTFunction brightnessLUTFunction = new BrightnessLUTFunction(this.lastRoi, this.lut);
                 brightnessLUTFunction.apply(sumMat);
 
                 ImagePlus imp = new ImagePlus("", brightnessLUTFunction.getLastBi());

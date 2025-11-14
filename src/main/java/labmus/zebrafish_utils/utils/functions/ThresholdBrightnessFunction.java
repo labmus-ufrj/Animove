@@ -1,9 +1,13 @@
 package labmus.zebrafish_utils.utils.functions;
 
 import ij.IJ;
+import ij.gui.Roi;
 import ij.process.AutoThresholder;
+import labmus.zebrafish_utils.ZFHelperMethods;
+import org.bytedeco.javacpp.DoublePointer;
 import org.bytedeco.javacpp.FloatPointer;
 import org.bytedeco.javacpp.indexer.FloatIndexer;
+import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.opencv_core.Mat;
 
 import java.util.function.Function;
@@ -11,21 +15,34 @@ import org.bytedeco.opencv.global.opencv_imgproc;
 import org.bytedeco.opencv.opencv_core.MatVector;
 
 public class ThresholdBrightnessFunction implements Function<Mat, Mat> {
-    private final double factor;
 
-    public ThresholdBrightnessFunction(double factor) {
+    private final double factor;
+    private final Mat mask;
+
+    public ThresholdBrightnessFunction(double factor, Mat mask) {
         this.factor = factor;
+        this.mask = mask;
     }
 
     @Override
     public Mat apply(Mat mat) {
 
         int threshold = getYenThreshold(mat);
-        IJ.log("Threshold: " + threshold);
 
+        DoublePointer max = new DoublePointer(1);
+        opencv_core.minMaxLoc(mat, null, max, null, null, mask);
 
+        double minVal = threshold * this.factor;
 
-        return null;
+        double alpha = 255.0 / (max.get() - minVal);
+        double beta = -minVal * alpha;
+
+        mat.convertTo(mat, opencv_core.CV_8UC1, alpha, beta);
+//        opencv_core.normalize(mat, mat, 0, 255, opencv_core.NORM_MINMAX, opencv_core.CV_8UC1, mask);
+
+        max.close();
+
+        return mat;
     }
 
     /**

@@ -2,6 +2,8 @@ package labmus.zebrafish_utils.processing;
 
 import ij.IJ;
 import ij.ImagePlus;
+import ij.gui.Roi;
+import ij.plugin.frame.RoiManager;
 import io.scif.services.DatasetIOService;
 import labmus.zebrafish_utils.ZFConfigs;
 import labmus.zebrafish_utils.ZFHelperMethods;
@@ -77,6 +79,7 @@ public class AdultsTrackingProcessing extends DynamicCommand implements Interact
     private DatasetIOService datasetIOService;
 
     private ImagePlus previewImagePlus = null;
+    private Roi lastRoi = null;
 
     @Override
     public void run() {
@@ -93,6 +96,21 @@ public class AdultsTrackingProcessing extends DynamicCommand implements Interact
 
     private void generate(boolean doPreview) {
         if (!checkFiles()) {
+            return;
+        }
+        Roi singleRoi;
+        if (previewImagePlus != null) {
+            singleRoi = previewImagePlus.getRoi();
+        } else {
+            RoiManager rm = RoiManager.getInstance();
+            singleRoi = (rm != null && rm.getSelectedIndex() != -1) ? rm.getRoi(rm.getSelectedIndex()) : null;
+        }
+
+        lastRoi = singleRoi == null ? lastRoi : singleRoi;
+        // Validate ROI exists
+        if (lastRoi == null) {
+            uiService.showDialog("Create a ROI enclosing your target area",
+                    ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
             return;
         }
         if (previewImagePlus != null) {
@@ -117,13 +135,16 @@ public class AdultsTrackingProcessing extends DynamicCommand implements Interact
             SimpleRecorderFunction recorderFunction = new SimpleRecorderFunction(
                     new SimpleRecorder(tempOutputFile, w, h, fps), uiService);
 
+            Mat mask = ZFHelperMethods.getMaskMatFromRoi(w, h, lastRoi);
+
             Function<Mat, Mat> processFunction = ZFHelperMethods.InvertFunction
                     .andThen(new SubtractBackgroundFunction(25) // todo: hardcoded value
-                            .andThen(new ThresholdBrightnessFunction(0.7))
+                            .andThen(new ThresholdBrightnessFunction(0.7, mask))
                             .andThen(recorderFunction));
 
             ZFHelperMethods.iterateOverFrames(processFunction, inputFile, startFrame, doPreview ? startFrame + 10 : endFrame, statusService);
             recorderFunction.close();
+            mask.close();
 
             recorderFunction.getRecorder().openResultinIJ(uiService, datasetIOService);
 

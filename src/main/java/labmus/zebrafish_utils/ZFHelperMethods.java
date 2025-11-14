@@ -3,16 +3,24 @@ package labmus.zebrafish_utils;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.gui.Roi;
+import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ImageStatistics;
 import ij.process.StackStatistics;
+import org.bytedeco.javacpp.DoublePointer;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Frame;
+import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.scijava.app.StatusService;
+import org.scijava.command.Command;
+import org.scijava.plugin.Parameter;
+import org.scijava.plugin.Plugin;
 
+import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -32,6 +40,22 @@ import static org.bytedeco.opencv.global.opencv_imgproc.cvtColor;
 //@Plugin(type = Command.class, menuPath = ZFConfigs.helperPath)
 public class ZFHelperMethods {
 
+//    @Parameter
+//    ImagePlus imp;
+//
+//    @Override
+//    public void run() {
+//        final Java2DFrameConverter biConverter = new Java2DFrameConverter();
+//        OpenCVFrameConverter.ToMat matConverter = new OpenCVFrameConverter.ToMat();
+//        Mat mat = matConverter.convert(biConverter.convert(imp.getBufferedImage()));
+//
+//        Mat mask = getMaskMatFromRoi(mat.arrayWidth(), mat.arrayHeight(), imp.getRoi());
+//
+//        DoublePointer max = new DoublePointer(1);
+//        opencv_core.minMaxLoc(mat, null, max, null, null, mask);
+//        IJ.log("max: " + max.get());
+//    }
+
     static {
         // this runs on a Menu click
         // reduces loading time for FFmpegFrameGrabber
@@ -43,6 +67,31 @@ public class ZFHelperMethods {
         return mat;
     };
 
+    /**
+     * this is expensive. think about it.
+     */
+    public static Mat getMaskMatFromRoi(int width, int height, Roi roi) {
+        if (roi == null) {
+            return null; // this is intended behavior
+        }
+        ImageProcessor bp = new ByteProcessor(width, height);
+        ImagePlus imp = new ImagePlus("", bp);
+        imp.setRoi(roi);
+
+        Java2DFrameConverter biConverter = new Java2DFrameConverter();
+        OpenCVFrameConverter.ToMat matConverter = new OpenCVFrameConverter.ToMat();
+
+        BufferedImage bi = imp.createRoiMask().getBufferedImage();
+//        new ImagePlus("roi", bi).show();
+
+        Mat convert = matConverter.convert(biConverter.convert(bi));
+        Mat mask8u = new Mat();
+        convert.convertTo(mask8u, opencv_core.CV_8U, 255.0, 0.0);
+        biConverter.close();
+        matConverter.close();
+
+        return mask8u;
+    }
 
     public static ImagePlus getFirstFrame(File inputFile) throws Exception {
         File tempFile = ZFHelperMethods.createPluginTempFile("png");
