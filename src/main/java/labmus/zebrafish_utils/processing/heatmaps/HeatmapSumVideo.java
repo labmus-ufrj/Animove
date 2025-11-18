@@ -1,4 +1,4 @@
-package labmus.zebrafish_utils.processing;
+package labmus.zebrafish_utils.processing.heatmaps;
 
 import ij.IJ;
 import ij.ImagePlus;
@@ -8,7 +8,10 @@ import io.scif.services.DatasetIOService;
 import labmus.zebrafish_utils.ZFConfigs;
 import labmus.zebrafish_utils.ZFHelperMethods;
 import labmus.zebrafish_utils.utils.SimpleRecorder;
-import labmus.zebrafish_utils.utils.functions.*;
+import labmus.zebrafish_utils.utils.functions.BrightnessLUTFunction;
+import labmus.zebrafish_utils.utils.functions.ImageCalculatorFunction;
+import labmus.zebrafish_utils.utils.functions.SimpleRecorderFunction;
+import labmus.zebrafish_utils.utils.functions.ZprojectFunction;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.opencv.opencv_core.Mat;
@@ -33,8 +36,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Plugin(type = Command.class, menuPath = ZFConfigs.adultsTrackingPath)
-public class AdultsTrackingProcessing extends DynamicCommand implements Interactive {
+@SuppressWarnings({"FieldCanBeLocal"})
+@Plugin(type = Command.class, menuPath = ZFConfigs.heatmapSumVideoPath)
+public class HeatmapSumVideo extends DynamicCommand implements Interactive {
+
     static {
         // this runs on a Menu click
         // reduces loading time for FFmpegFrameGrabber and for OpenCV
@@ -51,7 +56,10 @@ public class AdultsTrackingProcessing extends DynamicCommand implements Interact
     @Parameter(label = "Output File", style = FileWidget.SAVE_STYLE, callback = "updateExtensionFile", persist = false, required = false)
     private File outputFile;
 
-    @Parameter(label = "Output Format", choices = {"AVI", "TIFF"}, callback = "updateExtensionChoice", persist = false)
+    @Parameter(label = "Lookup Table", persist = false, initializer = "initLUT")
+    private String lut = "";
+
+    @Parameter(label = "Output Format", choices = {"AVI", "TIFF", "MP4"}, callback = "updateExtensionChoice", persist = false)
     String format = "AVI";
 
     @Parameter(label = "Don't save, open in ImageJ instead", persist = false)
@@ -95,9 +103,10 @@ public class AdultsTrackingProcessing extends DynamicCommand implements Interact
     }
 
     private void generate(boolean doPreview) {
-        if (!checkFiles()) {
+        if (!checkFiles()){
             return;
         }
+
         Roi singleRoi;
         if (previewImagePlus != null) {
             singleRoi = previewImagePlus.getRoi();
@@ -116,61 +125,74 @@ public class AdultsTrackingProcessing extends DynamicCommand implements Interact
         if (previewImagePlus != null) {
             previewImagePlus.close();
         }
+
+        Roi finalRoi = lastRoi;
         Executors.newSingleThreadExecutor().submit(() -> this.executeProcessing(doPreview));
     }
 
     private void executeProcessing(boolean doPreview) {
+
         try {
             File tempOutputFile = ZFHelperMethods.createPluginTempFile(this.format.toLowerCase());
 
+            ZprojectFunction zprojectFunctionAvg = new ZprojectFunction(ZprojectFunction.OperationMode.AVG);
+            ZFHelperMethods.iterateOverFrames(ZFHelperMethods.InvertFunction.andThen(zprojectFunctionAvg), inputFile, startFrame, doPreview ? startFrame + 10 : endFrame, statusService);
+            Mat avgMat = zprojectFunctionAvg.getResultMat();
+
+            Function<Mat, Mat> subtractFunction = new ImageCalculatorFunction(ImageCalculatorFunction.OperationMode.ADD, avgMat);
+            Function<Mat, Mat> bcFunction = (mat) -> {
+                mat.convertTo(mat, -1, 1, 30); // todo: maybe either calculate beta automatically or let the user choose...
+                return mat;
+            };
+            ZprojectFunction zprojectFunctionSum = new ZprojectFunction(ZprojectFunction.OperationMode.SUM, true);
+
+            BrightnessLUTFunction brightnessLUTFunction = new BrightnessLUTFunction(this.lastRoi, this.lut);
+
             double fps;
-            int w;
-            int h;
             try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile)) {
                 grabber.start();
                 fps = grabber.getFrameRate();
-                w = grabber.getImageWidth();
-                h = grabber.getImageHeight();
             }
-            SimpleRecorderFunction recorderFunction = new SimpleRecorderFunction(
-                    new SimpleRecorder(tempOutputFile, w, h, fps), uiService);
+            SimpleRecorderFunction simpleRecorderFunction = new SimpleRecorderFunction(new SimpleRecorder(tempOutputFile, avgMat, fps), uiService);
 
-            Mat mask = ZFHelperMethods.getMaskMatFromRoi(w, h, lastRoi);
+            ZFHelperMethods.iterateOverFrames(subtractFunction
+                    .andThen(bcFunction)
+                    .andThen(ZFHelperMethods.InvertFunction)
+                    .andThen(zprojectFunctionSum)
+                    .andThen(brightnessLUTFunction)
+                    .andThen(simpleRecorderFunction), this.inputFile, this.startFrame, doPreview ? this.startFrame + 10 : this.endFrame, this.statusService);
 
-            Function<Mat, Mat> processFunction = ZFHelperMethods.InvertFunction
-                    .andThen(new SubtractBackgroundFunction(25) // todo: hardcoded value
-                            .andThen(new ThresholdBrightnessFunction(0.7, mask))
-                            .andThen(recorderFunction));
+            brightnessLUTFunction.close();
+            simpleRecorderFunction.close();
 
-            ZFHelperMethods.iterateOverFrames(processFunction, inputFile, startFrame, doPreview ? startFrame + 10 : endFrame, statusService);
-            recorderFunction.close();
-            mask.close();
-
-            recorderFunction.getRecorder().openResultinIJ(uiService, datasetIOService);
+            if (openResultInstead || doPreview) {
+                statusService.showStatus("Opening result in ImageJ...");
+                simpleRecorderFunction.getRecorder().openResultinIJ(uiService, datasetIOService);
+            } else {
+                Files.copy(tempOutputFile.toPath(), outputFile.toPath());
+                uiService.showDialog("Video saved successfully!",
+                        ZFConfigs.pluginName, DialogPrompt.MessageType.INFORMATION_MESSAGE);
+            }
 
         } catch (Exception e) {
             log.error(e);
             uiService.showDialog("A fatal error occurred during processing: \n" + e.getMessage(), ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
         }
+
     }
 
-
-    /**
-     * Callback method to update the output filename when an input file changes.
-     * Generates a unique output filename by appending "_heatmap" and the appropriate extension.
-     */
     private void updateOutputName() {
         if (inputFile == null || !inputFile.exists()) {
             return;
         }
         String parentDir = inputFile.getParent();
         String baseName = inputFile.getName().replaceFirst("[.][^.]+$", "");
-        File testFile = new File(parentDir, baseName + "_adultsTracking" + "." + format.toLowerCase());
+        File testFile = new File(parentDir, baseName + "_heatmapVideo" + "." + format.toLowerCase());
 
         int count = 2;
         while (testFile.exists()) {
             // naming the file with a sequential number to avoid overwriting
-            testFile = new File(parentDir, baseName + "_adultsTracking_" + count + "." + format.toLowerCase());
+            testFile = new File(parentDir, baseName + "_heatmapVideo_" + count + "." + format.toLowerCase());
             count++;
         }
         outputFile = testFile;
@@ -201,29 +223,6 @@ public class AdultsTrackingProcessing extends DynamicCommand implements Interact
         }
     }
 
-    public void initLUT() {
-        final MutableModuleItem<String> item =
-                getInfo().getMutableInput("lut", String.class);
-        item.setChoices(Stream.concat(Stream.of("Don't Change"), Arrays.stream(IJ.getLuts())).collect(Collectors.toList()));
-    }
-
-    private boolean checkFiles() {
-        if (inputFile == null || !inputFile.exists()) {
-            uiService.showDialog("Invalid input file", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
-            return false;
-        }
-        if (outputFile == null || outputFile.isDirectory()) {
-            if (!openResultInstead) {
-                uiService.showDialog("Invalid output file", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
-                return false;
-            }
-        } else if (outputFile.exists()) {
-            uiService.showDialog("Output file already exists", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
-            return false;
-        }
-        return true;
-    }
-
     private void openFrame() {
         if (inputFile == null || !inputFile.exists() || !inputFile.isFile()) {
             uiService.showDialog("Could not open video: \n Invalid file", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
@@ -250,5 +249,28 @@ public class AdultsTrackingProcessing extends DynamicCommand implements Interact
                 uiService.showDialog("Could not open video: \n" + e.getMessage(), ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
             }
         });
+    }
+
+    public void initLUT() {
+        final MutableModuleItem<String> item =
+                getInfo().getMutableInput("lut", String.class);
+        item.setChoices(Stream.concat(Stream.of(HeatmapSumImages.defaultLut), Arrays.stream(IJ.getLuts())).collect(Collectors.toList()));
+    }
+
+    private boolean checkFiles() {
+        if (inputFile == null || !inputFile.exists()) {
+            uiService.showDialog("Invalid input file", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
+            return false;
+        }
+        if (outputFile == null || outputFile.isDirectory()) {
+            if (!openResultInstead) {
+                uiService.showDialog("Invalid output file", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
+                return false;
+            }
+        } else if (outputFile.exists()){
+            uiService.showDialog("Output file already exists", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
+            return false;
+        }
+        return true;
     }
 }

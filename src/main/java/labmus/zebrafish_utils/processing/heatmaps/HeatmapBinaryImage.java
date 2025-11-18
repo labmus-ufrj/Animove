@@ -1,8 +1,9 @@
-package labmus.zebrafish_utils.tools;
+package labmus.zebrafish_utils.processing.heatmaps;
 
 import ij.ImagePlus;
 import labmus.zebrafish_utils.ZFConfigs;
 import labmus.zebrafish_utils.ZFHelperMethods;
+import labmus.zebrafish_utils.utils.functions.BinarizeFromThresholdFunction;
 import labmus.zebrafish_utils.utils.functions.ZprojectFunction;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.opencv.opencv_core.Mat;
@@ -27,15 +28,9 @@ import java.util.stream.Collectors;
 
 import static org.bytedeco.opencv.global.opencv_imgcodecs.imwrite;
 
-/**
- * This plugin implements a video-to-image processing pipeline as a SciJava Command.
- * It allows users to process video frames and generate a resultant image using various modes such as
- * "Darkest (Min)", "Brightest (Max)", "Average", and "Sum". The plugin also supports optional conversion
- * to grayscale and can handle specific frame ranges for processing.
- */
 @SuppressWarnings({"FieldCanBeLocal"})
-@Plugin(type = Command.class, menuPath = ZFConfigs.avgPath)
-public class ZProjectOpenCV extends DynamicCommand implements Interactive {
+@Plugin(type = Command.class, menuPath = ZFConfigs.heatmapBinaryImagePath)
+public class HeatmapBinaryImage extends DynamicCommand implements Interactive {
 
     static {
         // this runs on a Menu click
@@ -52,9 +47,6 @@ public class ZProjectOpenCV extends DynamicCommand implements Interactive {
 
     @Parameter(label = "Output Image", style = "save", persist = false, required = false)
     private File outputFile;
-
-    @Parameter(label = "Processing Mode", callback = "updateOutputName", initializer = "initProc", persist = false)
-    private String mode = "";
 
     @Parameter(label = "Invert before operation", persist = false)
     private boolean invertVideo = false;
@@ -100,7 +92,7 @@ public class ZProjectOpenCV extends DynamicCommand implements Interactive {
         if (!checkFiles()) {
             return;
         }
-        if (previewImagePlus != null) {
+        if (previewImagePlus != null){
             previewImagePlus.close();
         }
         Executors.newSingleThreadExecutor().submit(() -> this.executeProcessing(doPreview));
@@ -113,8 +105,9 @@ public class ZProjectOpenCV extends DynamicCommand implements Interactive {
             // whatever the user chooses if imwrite supports it
 
             Function<Mat, Mat> inverter = invertVideo ? ZFHelperMethods.InvertFunction : Function.identity();
-            ZprojectFunction zprojectFunction = new ZprojectFunction(ZprojectFunction.OperationMode.fromText(mode));
-            ZFHelperMethods.iterateOverFrames(inverter.andThen(zprojectFunction), inputFile, startFrame, doPreview ? startFrame + 10 : endFrame, statusService);
+            BinarizeFromThresholdFunction binarizeFromThresholdFunction = new BinarizeFromThresholdFunction();
+            ZprojectFunction zprojectFunction = new ZprojectFunction(ZprojectFunction.OperationMode.MAX);
+            ZFHelperMethods.iterateOverFrames(inverter.andThen(binarizeFromThresholdFunction).andThen(zprojectFunction), inputFile, startFrame, doPreview ? startFrame + 10 : endFrame, statusService);
             Mat resultMat = zprojectFunction.getResultMat();
 
             imwrite(tempOutputFile.getAbsolutePath(), resultMat);
@@ -145,31 +138,14 @@ public class ZProjectOpenCV extends DynamicCommand implements Interactive {
             return;
         }
 
-        String suffix = "_";
-
-        switch (mode) {
-            case "Darkest (Min)":
-                suffix += "darkest";
-                break;
-            case "Brightest (Max)":
-                suffix += "brightest";
-                break;
-            case "Average":
-                suffix += "avg";
-                break;
-            case "Sum":
-                suffix += "sum";
-                break;
-        }
-
         String parentDir = inputFile.getParent();
         String baseName = inputFile.getName().replaceFirst("[.][^.]+$", "");
-        File testFile = new File(parentDir, baseName + suffix + ".tif");
+        File testFile = new File(parentDir, baseName + "_binaryHeatmap" + ".tif");
 
         int count = 2;
         while (testFile.exists()) {
             // naming the file with a sequential number to avoid overwriting
-            testFile = new File(parentDir, baseName + suffix + "_" + +count + ".tif");
+            testFile = new File(parentDir, baseName + "_binaryHeatmap_" + count + ".tif");
             count++;
         }
         outputFile = testFile;

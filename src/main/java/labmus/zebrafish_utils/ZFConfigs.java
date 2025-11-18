@@ -24,10 +24,14 @@ public abstract class ZFConfigs {
     public static final String performanceTest = toolsPath + "Performance Test";
     public static final String invertPath = toolsPath + "Invert Video";
 
-    public static final String heatmapImagesPath = processingPath + "Generate Heatmap Images";
-    public static final String heatmapVideoPath = processingPath + "Generate Heatmap Video";
-    public static final String embryosTrackingPath = processingPath + "Embryos Tracking";
-    public static final String adultsTrackingPath = processingPath + "Adults Tracking";
+    private static final String heatmapsPath = processingPath + "Heatmaps>";
+    public static final String heatmapSumImagesPath = heatmapsPath + "Sum Heatmap Images";
+    public static final String heatmapSumVideoPath = heatmapsPath + "Sum Heatmap Video";
+    public static final String heatmapBinaryImagePath = heatmapsPath + "Binary Heatmap Images";
+
+    private static final String trackingPath = processingPath + "Tracking>";
+    public static final String embryosTrackingPath = trackingPath + "Embryos Tracking";
+    public static final String adultsTrackingPath = trackingPath + "Adults Tracking";
 
     private static final String embryosPath = analysisPath + "Embryos Analysis>";
     public static final String roisPath = embryosPath + "Create ROIs";

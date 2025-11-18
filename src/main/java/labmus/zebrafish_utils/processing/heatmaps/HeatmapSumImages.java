@@ -1,4 +1,4 @@
-package labmus.zebrafish_utils.processing;
+package labmus.zebrafish_utils.processing.heatmaps;
 
 import ij.IJ;
 import ij.ImagePlus;
@@ -32,8 +32,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @SuppressWarnings({"FieldCanBeLocal"})
-@Plugin(type = Command.class, menuPath = ZFConfigs.heatmapImagesPath)
-public class HeatmapImages extends DynamicCommand implements Interactive {
+@Plugin(type = Command.class, menuPath = ZFConfigs.heatmapSumImagesPath)
+public class HeatmapSumImages extends DynamicCommand implements Interactive {
 
     static {
         // this runs on a Menu click

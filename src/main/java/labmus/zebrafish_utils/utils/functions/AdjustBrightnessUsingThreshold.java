@@ -1,25 +1,20 @@
 package labmus.zebrafish_utils.utils.functions;
 
-import ij.IJ;
-import ij.gui.Roi;
 import ij.process.AutoThresholder;
-import labmus.zebrafish_utils.ZFHelperMethods;
 import org.bytedeco.javacpp.DoublePointer;
-import org.bytedeco.javacpp.FloatPointer;
 import org.bytedeco.javacpp.indexer.FloatIndexer;
 import org.bytedeco.opencv.global.opencv_core;
+import org.bytedeco.opencv.global.opencv_imgproc;
 import org.bytedeco.opencv.opencv_core.Mat;
 
 import java.util.function.Function;
-import org.bytedeco.opencv.global.opencv_imgproc;
-import org.bytedeco.opencv.opencv_core.MatVector;
 
-public class ThresholdBrightnessFunction implements Function<Mat, Mat> {
+public class AdjustBrightnessUsingThreshold implements Function<Mat, Mat> {
 
     private final double factor;
     private final Mat mask;
 
-    public ThresholdBrightnessFunction(double factor, Mat mask) {
+    public AdjustBrightnessUsingThreshold(double factor, Mat mask) {
         this.factor = factor;
         this.mask = mask;
     }

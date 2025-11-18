@@ -18,5 +18,6 @@
 
 -> change apply brightness function to use openCV one
 
+-> heatmap video não obedece startframe?
 
 

@@ -13,7 +13,7 @@ import org.bytedeco.opencv.opencv_core.Mat;
 import java.awt.image.BufferedImage;
 import java.util.function.Function;
 
-import static labmus.zebrafish_utils.processing.HeatmapImages.defaultLut;
+import static labmus.zebrafish_utils.processing.heatmaps.HeatmapSumImages.defaultLut;
 import static org.bytedeco.opencv.global.opencv_imgproc.*;
 
 public class BrightnessLUTFunction implements Function<Mat, Mat> {

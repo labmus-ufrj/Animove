@@ -105,11 +105,11 @@ public class ImageCalculator extends DynamicCommand implements Interactive {
         generate(false);
     }
 
-    private void generate(boolean doPreview){
+    private void generate(boolean doPreview) {
         if (!checkFiles()) {
             return;
         }
-        if (previewImagePlus != null){
+        if (previewImagePlus != null) {
             previewImagePlus.close();
         }
         Executors.newSingleThreadExecutor().submit(() -> this.executeProcessing(doPreview));
@@ -192,7 +192,7 @@ public class ImageCalculator extends DynamicCommand implements Interactive {
 
         int count = 2;
         while (testFile.exists()) {
-            testFile = new File(parentDir, baseName + "_" + this.operation.toLowerCase() + count + "." + format.toLowerCase());
+            testFile = new File(parentDir, baseName + "_" + this.operation.toLowerCase() + "_" + count + "." + format.toLowerCase());
             count++;
         }
         outputFile = testFile;

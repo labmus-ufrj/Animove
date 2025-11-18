@@ -1,15 +1,14 @@
-package labmus.zebrafish_utils.processing;
+package labmus.zebrafish_utils.processing.tracking;
 
 import ij.IJ;
 import ij.ImagePlus;
+import ij.gui.Roi;
+import ij.plugin.frame.RoiManager;
 import io.scif.services.DatasetIOService;
 import labmus.zebrafish_utils.ZFConfigs;
 import labmus.zebrafish_utils.ZFHelperMethods;
 import labmus.zebrafish_utils.utils.SimpleRecorder;
-import labmus.zebrafish_utils.utils.functions.ImageCalculatorFunction;
-import labmus.zebrafish_utils.utils.functions.SimpleRecorderFunction;
-import labmus.zebrafish_utils.utils.functions.SubtractBackgroundFunction;
-import labmus.zebrafish_utils.utils.functions.ZprojectFunction;
+import labmus.zebrafish_utils.utils.functions.*;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.opencv.opencv_core.Mat;
@@ -27,17 +26,14 @@ import org.scijava.widget.Button;
 import org.scijava.widget.FileWidget;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@SuppressWarnings({"FieldCanBeLocal"})
-@Plugin(type = Command.class, menuPath = ZFConfigs.embryosTrackingPath)
-public class EmbryosTrackingProcessing extends DynamicCommand implements Interactive {
-
+@Plugin(type = Command.class, menuPath = ZFConfigs.adultsTrackingPath)
+public class AdultsTrackingProcessing extends DynamicCommand implements Interactive {
     static {
         // this runs on a Menu click
         // reduces loading time for FFmpegFrameGrabber and for OpenCV
@@ -82,6 +78,7 @@ public class EmbryosTrackingProcessing extends DynamicCommand implements Interac
     private DatasetIOService datasetIOService;
 
     private ImagePlus previewImagePlus = null;
+    private Roi lastRoi = null;
 
     @Override
     public void run() {
@@ -97,10 +94,25 @@ public class EmbryosTrackingProcessing extends DynamicCommand implements Interac
     }
 
     private void generate(boolean doPreview) {
-        if (!checkFiles()){
+        if (!checkFiles()) {
             return;
         }
-        if (previewImagePlus != null){
+        Roi singleRoi;
+        if (previewImagePlus != null) {
+            singleRoi = previewImagePlus.getRoi();
+        } else {
+            RoiManager rm = RoiManager.getInstance();
+            singleRoi = (rm != null && rm.getSelectedIndex() != -1) ? rm.getRoi(rm.getSelectedIndex()) : null;
+        }
+
+        lastRoi = singleRoi == null ? lastRoi : singleRoi;
+        // Validate ROI exists
+        if (lastRoi == null) {
+            uiService.showDialog("Create a ROI enclosing your target area",
+                    ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
+            return;
+        }
+        if (previewImagePlus != null) {
             previewImagePlus.close();
         }
         Executors.newSingleThreadExecutor().submit(() -> this.executeProcessing(doPreview));
@@ -110,45 +122,30 @@ public class EmbryosTrackingProcessing extends DynamicCommand implements Interac
         try {
             File tempOutputFile = ZFHelperMethods.createPluginTempFile(this.format.toLowerCase());
 
-            ZprojectFunction zprojectFunctionAvg = new ZprojectFunction(ZprojectFunction.OperationMode.AVG);
-            ZFHelperMethods.iterateOverFrames(ZFHelperMethods.InvertFunction
-                    .andThen(zprojectFunctionAvg), inputFile, startFrame, (doPreview ? startFrame + 10 : endFrame) * 5, statusService); // todo: 5 times is a guess
-            Mat avgMat = zprojectFunctionAvg.getResultMat();
-
-            ImageCalculatorFunction imageCalculatorFunction = new ImageCalculatorFunction(ImageCalculatorFunction.OperationMode.ADD, avgMat);
-
-            Function<Mat, Mat> bcFunction = (mat) -> {
-                mat.convertTo(mat, -1, 1, 30); // todo: maybe either calculate beta automatically or let the user choose...
-                return mat;
-            };
-
-            // todo: add some blur, median or gaussian
-
             double fps;
+            int w;
+            int h;
             try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile)) {
                 grabber.start();
                 fps = grabber.getFrameRate();
+                w = grabber.getImageWidth();
+                h = grabber.getImageHeight();
             }
             SimpleRecorderFunction recorderFunction = new SimpleRecorderFunction(
-                    new SimpleRecorder(tempOutputFile, avgMat, fps), uiService);
+                    new SimpleRecorder(tempOutputFile, w, h, fps), uiService);
 
-            Function<Mat, Mat> processFunction = imageCalculatorFunction
-                    .andThen(bcFunction)
-                    .andThen(ZFHelperMethods.InvertFunction)
-                    .andThen(recorderFunction);
+            Mat mask = ZFHelperMethods.getMaskMatFromRoi(w, h, lastRoi);
+
+            Function<Mat, Mat> processFunction = ZFHelperMethods.InvertFunction
+                    .andThen(new SubtractBackgroundFunction(25) // todo: hardcoded value
+                            .andThen(new AdjustBrightnessUsingThreshold(0.7, mask))
+                            .andThen(recorderFunction));
 
             ZFHelperMethods.iterateOverFrames(processFunction, inputFile, startFrame, doPreview ? startFrame + 10 : endFrame, statusService);
             recorderFunction.close();
+            mask.close();
 
-            if (openResultInstead || doPreview) {
-                statusService.showStatus("Opening result in ImageJ...");
-                recorderFunction.getRecorder().openResultinIJ(uiService, datasetIOService);
-
-            } else {
-                Files.copy(tempOutputFile.toPath(), outputFile.toPath());
-                uiService.showDialog("Video saved successfully!",
-                        ZFConfigs.pluginName, DialogPrompt.MessageType.INFORMATION_MESSAGE);
-            }
+            recorderFunction.getRecorder().openResultinIJ(uiService, datasetIOService);
 
         } catch (Exception e) {
             log.error(e);
@@ -167,12 +164,12 @@ public class EmbryosTrackingProcessing extends DynamicCommand implements Interac
         }
         String parentDir = inputFile.getParent();
         String baseName = inputFile.getName().replaceFirst("[.][^.]+$", "");
-        File testFile = new File(parentDir, baseName + "_embryosTracking" + "." + format.toLowerCase());
+        File testFile = new File(parentDir, baseName + "_adultsTracking" + "." + format.toLowerCase());
 
         int count = 2;
         while (testFile.exists()) {
             // naming the file with a sequential number to avoid overwriting
-            testFile = new File(parentDir, baseName + "_embryosTracking_" + count + "." + format.toLowerCase());
+            testFile = new File(parentDir, baseName + "_adultsTracking_" + count + "." + format.toLowerCase());
             count++;
         }
         outputFile = testFile;
@@ -219,7 +216,7 @@ public class EmbryosTrackingProcessing extends DynamicCommand implements Interac
                 uiService.showDialog("Invalid output file", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
                 return false;
             }
-        } else if (outputFile.exists()){
+        } else if (outputFile.exists()) {
             uiService.showDialog("Output file already exists", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
             return false;
         }
@@ -243,6 +240,9 @@ public class EmbryosTrackingProcessing extends DynamicCommand implements Interac
                 }
                 previewImagePlus = ZFHelperMethods.getFirstFrame(inputFile);
                 previewImagePlus.setTitle("First frame");
+                if (lastRoi != null) {
+                    previewImagePlus.setRoi(lastRoi);
+                }
                 uiService.show(previewImagePlus);
             } catch (Exception e) {
                 log.error(e);
