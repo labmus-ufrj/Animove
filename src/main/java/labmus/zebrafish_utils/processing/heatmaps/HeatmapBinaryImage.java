@@ -3,8 +3,8 @@ package labmus.zebrafish_utils.processing.heatmaps;
 import ij.ImagePlus;
 import labmus.zebrafish_utils.ZFConfigs;
 import labmus.zebrafish_utils.ZFHelperMethods;
-import labmus.zebrafish_utils.utils.functions.BinarizeFromThresholdFunction;
-import labmus.zebrafish_utils.utils.functions.ZprojectFunction;
+import labmus.zebrafish_utils.utils.SimpleRecorder;
+import labmus.zebrafish_utils.utils.functions.*;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.scijava.app.StatusService;
@@ -47,9 +47,6 @@ public class HeatmapBinaryImage extends DynamicCommand implements Interactive {
 
     @Parameter(label = "Output Image", style = "save", persist = false, required = false)
     private File outputFile;
-
-    @Parameter(label = "Invert before operation", persist = false)
-    private boolean invertVideo = false;
 
     @Parameter(label = "Don't save, open in ImageJ instead", persist = false)
     private boolean openResultInstead = false;
@@ -104,10 +101,12 @@ public class HeatmapBinaryImage extends DynamicCommand implements Interactive {
                     outputFile.getName().substring(outputFile.getName().lastIndexOf(".") + 1));
             // whatever the user chooses if imwrite supports it
 
-            Function<Mat, Mat> inverter = invertVideo ? ZFHelperMethods.InvertFunction : Function.identity();
-            BinarizeFromThresholdFunction binarizeFromThresholdFunction = new BinarizeFromThresholdFunction();
-            ZprojectFunction zprojectFunction = new ZprojectFunction(ZprojectFunction.OperationMode.MAX);
-            ZFHelperMethods.iterateOverFrames(inverter.andThen(binarizeFromThresholdFunction).andThen(zprojectFunction), inputFile, startFrame, doPreview ? startFrame + 10 : endFrame, statusService);
+            ZprojectFunction zprojectFunction = new ZprojectFunction(ZprojectFunction.OperationMode.MIN);
+
+            Function<Mat, Mat> processFunction = new BinarizeFromThresholdFunction(false)
+                    .andThen(zprojectFunction);
+
+            ZFHelperMethods.iterateOverFrames(processFunction, inputFile, startFrame, doPreview ? startFrame + 9 : endFrame, statusService);
             Mat resultMat = zprojectFunction.getResultMat();
 
             imwrite(tempOutputFile.getAbsolutePath(), resultMat);

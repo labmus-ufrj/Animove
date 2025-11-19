@@ -7,7 +7,7 @@ public abstract class ZFConfigs {
 
     public static final String ffmpeg = Loader.load(org.bytedeco.ffmpeg.ffmpeg.class);
 
-    private static final String prePath = "ZF Utils>";
+    private static final String prePath = "Animove" + ">"; // sadly cant use pluginName here
 
     private static final String toolsPath = prePath + "Tools>";
     private static final String processingPath = prePath + "Processing>"; // processing / generation / some other word
@@ -27,7 +27,7 @@ public abstract class ZFConfigs {
     private static final String heatmapsPath = processingPath + "Heatmaps>";
     public static final String heatmapSumImagesPath = heatmapsPath + "Sum Heatmap Images";
     public static final String heatmapSumVideoPath = heatmapsPath + "Sum Heatmap Video";
-    public static final String heatmapBinaryImagePath = heatmapsPath + "Binary Heatmap Images";
+    public static final String heatmapBinaryImagePath = heatmapsPath + "Binary Heatmap Image";
 
     private static final String trackingPath = processingPath + "Tracking>";
     public static final String embryosTrackingPath = trackingPath + "Embryos Tracking";

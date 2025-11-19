@@ -178,10 +178,14 @@ public class ZFHelperMethods {
 
                     if (currentFrame.isNull()) continue;
 
+//                    long initTime = System.currentTimeMillis();
+
                     matFunction.andThen((mat) -> {
                         mat.close();
                         return null;
                     }).apply(currentFrame);
+
+//                    IJ.log("Frame " + i + " processed in " + (System.currentTimeMillis() - initTime) + " ms");
 
                     currentFrame.close();
                     currentFrameColor.close();

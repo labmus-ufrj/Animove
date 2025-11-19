@@ -1,5 +1,5 @@
-site_name: "ZF Utils"
-site_description: "A zero-cost, easy-to-use and high-resolution system to evaluate swimming performance in zebrafish adults and embryos"
+site_name: "Animove"
+site_description: "A low-cost, easy-to-use and high-resolution system to evaluate swimming performance in zebrafish adults and embryos"
 site_author: "LabMus - UFRJ"
 repo_url: https://github.com/labmus-ufrj/tracking-plugin/
 repo_name: labmus-ufrj/tracking-plugin
@@ -31,10 +31,13 @@ nav:
       - 'Performance Test': 'tools/performance-test.md'
       - 'Invert Video': 'tools/invert-video.md'
   - 'Processing':
-      - 'Generate Heatmap Images': 'processing/heatmap-images.md'
-      - 'Generate Heatmap Video': 'processing/heatmap-video.md'
-      - 'Embryos Tracking': 'processing/embryos-tracking.md'
-      - 'Adults Tracking': 'processing/adults-tracking.md'
+      - 'Heatmaps':
+          - 'Sum Heatmap Images': 'processing/heatmap-images.md'
+          - 'Sum Heatmap Video': 'processing/heatmap-video.md'
+          - 'Binary Heatmap Image': 'processing/heatmap-binary.md'
+      - 'Tracking':
+          - 'Embryos Tracking': 'processing/embryos-tracking.md'
+          - 'Adults Tracking': 'processing/adults-tracking.md'
   - 'Analysis':
       - 'Extract Tracking Data': 'analysis/tracking-data.md'
       - 'Calculate Score Gradient': 'analysis/score-gradient.md'

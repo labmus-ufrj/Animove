@@ -18,10 +18,10 @@
         <relativePath/>
     </parent>
 
-    <name>ZebraFish_Utils.jar</name>
     <groupId>labmus-ufrj.plugins</groupId>
-    <artifactId>ZebraFish_Utils</artifactId>
-    <version>0.0.1</version>
+    <artifactId>Animove</artifactId>
+    <name>${project.artifactId}.jar</name>
+    <version>0.0.2</version>
 
     <description>
         <!--		TODO: write description-->
@@ -280,7 +280,7 @@
                             <goal>populate-app</goal>
                         </goals>
                         <configuration>
-                            <appSubdirectory>jars/</appSubdirectory>
+                            <appSubdirectory>plugins/</appSubdirectory>
                             <ignoreDependencies>true</ignoreDependencies>
                             <deleteOtherVersionsPolicy>older</deleteOtherVersionsPolicy>
                         </configuration>

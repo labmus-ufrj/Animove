@@ -1,4 +1,4 @@
-# Generate Heatmap Images
+# Sum Heatmap Images
 
 <!--
 info: 

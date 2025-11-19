@@ -136,7 +136,7 @@ public class HeatmapSumVideo extends DynamicCommand implements Interactive {
             File tempOutputFile = ZFHelperMethods.createPluginTempFile(this.format.toLowerCase());
 
             ZprojectFunction zprojectFunctionAvg = new ZprojectFunction(ZprojectFunction.OperationMode.AVG);
-            ZFHelperMethods.iterateOverFrames(ZFHelperMethods.InvertFunction.andThen(zprojectFunctionAvg), inputFile, startFrame, doPreview ? startFrame + 10 : endFrame, statusService);
+            ZFHelperMethods.iterateOverFrames(ZFHelperMethods.InvertFunction.andThen(zprojectFunctionAvg), inputFile, startFrame, doPreview ? startFrame + 9 : endFrame, statusService);
             Mat avgMat = zprojectFunctionAvg.getResultMat();
 
             Function<Mat, Mat> subtractFunction = new ImageCalculatorFunction(ImageCalculatorFunction.OperationMode.ADD, avgMat);

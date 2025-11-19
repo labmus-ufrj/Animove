@@ -1,4 +1,4 @@
-# Generate Heatmap Video
+# Sum Heatmap Video
 
 <!--
 info:

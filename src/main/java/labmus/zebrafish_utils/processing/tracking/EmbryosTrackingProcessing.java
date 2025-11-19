@@ -111,7 +111,7 @@ public class EmbryosTrackingProcessing extends DynamicCommand implements Interac
 
             ZprojectFunction zprojectFunctionAvg = new ZprojectFunction(ZprojectFunction.OperationMode.AVG);
             ZFHelperMethods.iterateOverFrames(ZFHelperMethods.InvertFunction
-                    .andThen(zprojectFunctionAvg), inputFile, startFrame, (doPreview ? startFrame + 10 : endFrame) * 5, statusService); // todo: 5 times is a guess
+                    .andThen(zprojectFunctionAvg), inputFile, startFrame, (doPreview ? startFrame + 9 : endFrame) * 5, statusService); // todo: 5 times is a guess
             Mat avgMat = zprojectFunctionAvg.getResultMat();
 
             ImageCalculatorFunction imageCalculatorFunction = new ImageCalculatorFunction(ImageCalculatorFunction.OperationMode.ADD, avgMat);
@@ -136,7 +136,7 @@ public class EmbryosTrackingProcessing extends DynamicCommand implements Interac
                     .andThen(ZFHelperMethods.InvertFunction)
                     .andThen(recorderFunction);
 
-            ZFHelperMethods.iterateOverFrames(processFunction, inputFile, startFrame, doPreview ? startFrame + 10 : endFrame, statusService);
+            ZFHelperMethods.iterateOverFrames(processFunction, inputFile, startFrame, doPreview ? startFrame + 9 : endFrame, statusService);
             recorderFunction.close();
 
             if (openResultInstead || doPreview) {
