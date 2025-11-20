@@ -1,7 +1,7 @@
 # Calculate Score Gradient
 
 ## XML File
-A XML file output from Trackmate that contains spots data. Ideally, use the full XML output or the tracks XML export. Those options allow for separate tracks as outputs, while the simple spots XML will average out all the spots in the video as a single track.
+Output of trackmate's "Export tracks to XML file" export action.
 
 ## Source Video
 The source video used for tracking. Ideally not the processed one, so you can set the limits better.

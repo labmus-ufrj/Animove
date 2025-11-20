@@ -100,6 +100,9 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
 
     private void process() {
         List<ArrayList<Float>> data = iterateOverXML(false);
+        if (data == null) {
+            return;
+        }
         ResultsTable rt = new ResultsTable();
         rt.setNaNEmptyCells(true); // prism reads 0.00 as zeros and requires manual fixing
         // NaN just gets deleted when pasting
@@ -111,7 +114,7 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
             ArrayList<Float> columnData = data.get(colIndex);
 
             // Define a name for the column header.
-            String columnHeader = "Track-" + (colIndex + 1);
+            String columnHeader = "Track " + (colIndex + 1);
 
             // Iterate through the values in the current column.
             for (int rowIndex = 0; rowIndex < columnData.size(); rowIndex++) {
@@ -125,13 +128,13 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
     }
 
     private List<ArrayList<Float>> iterateOverXML(boolean setMinMax) {
+        if (!checkFiles()) {
+            return null;
+        }
         ArrayList<HashMap<Integer, Float>> trackScores = new ArrayList<>(); // the easy way not the right way
         try {
-            if (!xmlFile.exists()) {
-                throw new Exception("Input file does not exist.");
-            }
-            if (videoFrame == null) {
-                throw new Exception("No available video frame.");
+            if (videoFrame == null){
+                throw new Exception("No available video frame, click \"Open Frame\" first.");
             }
 
             Document doc = getXML();
@@ -246,12 +249,11 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
     }
 
     private void displayImage() {
+        if (!checkFiles()) {
+            return;
+        }
         KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow().setAlwaysOnTop(true);
         try {
-            if (!videoFile.exists()) {
-                throw new Exception("Input file does not exist.");
-            }
-
             if (videoFrame != null && videoFrame.getWindow() != null) {
                 videoFrame.close();
             }
@@ -381,5 +383,16 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
 
     private void stop() {
         state = STATE.NONE;
+    }
+
+    private boolean checkFiles() {
+        if (xmlFile == null || !xmlFile.exists()) {
+            uiService.showDialog("Invalid XML file", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
+            return false;
+        }
+        if (!videoFile.exists()) {
+            uiService.showDialog("Input video does not exist", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
+        }
+        return true;
     }
 }
