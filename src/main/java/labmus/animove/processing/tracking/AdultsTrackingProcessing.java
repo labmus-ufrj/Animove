@@ -141,7 +141,7 @@ public class AdultsTrackingProcessing extends DynamicCommand implements Interact
                             .andThen(new AdjustBrightnessUsingThreshold(0.7, mask))
                             .andThen(recorderFunction));
 
-            ZFHelperMethods.iterateOverFrames(processFunction, inputFile, startFrame, doPreview ? startFrame + 9 : endFrame, statusService);
+            ZFHelperMethods.iterateOverFrames(processFunction, inputFile, startFrame, doPreview ? this.startFrame + 10 : this.endFrame, statusService);
             recorderFunction.close();
             mask.close();
 

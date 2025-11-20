@@ -114,7 +114,7 @@ public class ZProjectOpenCV extends DynamicCommand implements Interactive {
 
             Function<Mat, Mat> inverter = invertVideo ? ZFHelperMethods.InvertFunction : Function.identity();
             ZprojectFunction zprojectFunction = new ZprojectFunction(ZprojectFunction.OperationMode.fromText(mode));
-            ZFHelperMethods.iterateOverFrames(inverter.andThen(zprojectFunction), inputFile, startFrame, doPreview ? startFrame + 9 : endFrame, statusService);
+            ZFHelperMethods.iterateOverFrames(inverter.andThen(zprojectFunction), inputFile, startFrame, doPreview ? this.startFrame + 10 : this.endFrame, statusService);
             Mat resultMat = zprojectFunction.getResultMat();
 
             imwrite(tempOutputFile.getAbsolutePath(), resultMat);

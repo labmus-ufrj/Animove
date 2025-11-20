@@ -25,6 +25,7 @@ import javax.imageio.spi.IIORegistry;
 import javax.imageio.stream.ImageOutputStream;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -268,9 +269,21 @@ public class SimpleRecorder implements AutoCloseable {
         if (this.format == Format.MP4) {
             return;
         }
-        Dataset dataset = datasetIOService.open(outputFile.getAbsolutePath(), this.config);
-        uiService.show(dataset);
-//        return dataset; // could be an ImagePlus just to ImageDisplay.wrap(dataset)
+        int maxRetries = 5;
+        for (int i = 0; i < maxRetries; i++) {
+            try {
+                Dataset dataset = datasetIOService.open(outputFile.getAbsolutePath(), this.config);
+                uiService.show(dataset);
+                break;
+            } catch (Exception e) {
+                IJ.log(e.getMessage());
+                if (i == maxRetries - 1) {
+                    throw e;
+                } else {
+                    Thread.sleep(1000);
+                }
+            }
+        }
     }
 
     @Override
@@ -283,7 +296,7 @@ public class SimpleRecorder implements AutoCloseable {
             case MP4:
             case AVI:
                 this.recorder.flush();
-                this.recorder.stop();
+                this.recorder.stop(); // I know this does the same thing. but testing showed it is necessary to do this explicitly
                 this.recorder.close();
                 break;
             case TIFF:

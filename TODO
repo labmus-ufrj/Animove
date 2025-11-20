@@ -14,7 +14,3 @@
 -> provide more test samples, ready to be tested ones, to be linked in each tool/feature
 
 -> change apply brightness function to use openCV one
-
--> heatmap video não obedece startframe?
-
-

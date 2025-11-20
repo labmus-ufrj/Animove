@@ -146,9 +146,6 @@ public class ZFHelperMethods {
             Frame jcvFrame;
             Mat currentFrame;
             for (int i = actualStartFrame; i < actualEndFrame; i++) {
-                IJ.log("Processing frame " + i + " of " + actualEndFrame);
-                IJ.log("grabber frame " + grabber.getFrameNumber() + " of " + actualEndFrame);
-
                 jcvFrame = grabber.grabImage();
                 if (jcvFrame == null || jcvFrame.image == null) {
                     throw new Exception("Read terminated prematurely at frame " + i); // we were NOT done!!
