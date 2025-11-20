@@ -1,10 +1,9 @@
 -> FFmpeg plugin repeats the first frame of videos converted to AVI (probably to all of them), doing it from blank->end
 
--> Use... or suggest the usage of... that excel export plugin
-
 -> Write documentation
-    -> inform about converting to grayscale everywhere? where it belongs
-    -> image calc: images and videos might be in different resolutions, bit depths, channel count, etc. lets document that.
+    -> Suggest the usage of that excel export plugin  https://imagej.net/plugins/excel-functions
+    -> inform about the auto-converting to grayscale feature in guide section
+    -> image calc: images and videos might be in different resolutions, bit depths, channel count, etc. That can generate errors. Only use images generated from Zproject plugin. lets document that.
 
 -> Quantify Heatmap
 -> Extract Frequency Data

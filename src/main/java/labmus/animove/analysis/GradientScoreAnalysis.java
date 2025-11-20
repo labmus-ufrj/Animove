@@ -37,6 +37,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @SuppressWarnings({"FieldCanBeLocal"})
 @Plugin(type = Command.class, menuPath = ZFConfigs.scorePath)
@@ -124,7 +125,7 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
             }
         }
 
-        rt.show("Scores from " + xmlFile.getName().split("\\.")[0]);
+        rt.show("Scores from " + xmlFile.getName() + " and " + videoFile.getName());
     }
 
     private List<ArrayList<Float>> iterateOverXML(boolean setMinMax) {
@@ -133,75 +134,17 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
         }
         ArrayList<HashMap<Integer, Float>> trackScores = new ArrayList<>(); // the easy way not the right way
         try {
-            if (videoFrame == null){
+            if (videoFrame == null) {
                 throw new Exception("No available video frame, click \"Open Frame\" first.");
             }
 
             Document doc = getXML();
-            if (doc.getElementsByTagName("Tracks").getLength() < 1) {
+            if (doc.getElementsByTagName("Tracks").getLength() > 0) {
+                fromTracksXML(setMinMax, doc, trackScores);
+            } else if (doc.getElementsByTagName("Model").getLength() > 0) {
+                fromFullXML(setMinMax, doc, trackScores);
+            } else {
                 throw new Exception("Wrong XML file.");
-            }
-
-            Node tracks = doc.getElementsByTagName("Tracks").item(0);
-            Calibration cal = videoFrame.getCalibration();
-
-            String xmlUnit = tracks.getAttributes().getNamedItem("spaceUnits").getNodeValue();
-            if (!Objects.equals(cal.getXUnit(), xmlUnit)) {
-                throw new Exception("Calibrate the image frame to match the XML file's space units: " + xmlUnit);
-            }
-            float calMin = (float) cal.getX(min); // min * cal.pixelWidth
-            float calMax = (float) cal.getX(max);
-
-            // Get a list of all <particle> elements
-            NodeList particleList = doc.getElementsByTagName("particle");
-
-            float localMin = videoFrame.getWidth();
-            float localMax = 0;
-
-            // Iterate over each <particle> element
-            for (int i = 0; i < particleList.getLength(); i++) {
-                HashMap<Integer, Float> scores = new HashMap<>();
-//                ArrayList<Float> scores = new ArrayList<>();
-                Node particleNode = particleList.item(i);
-
-                if (particleNode.getNodeType() == Node.ELEMENT_NODE) {
-                    Element particleElement = (Element) particleNode;
-
-                    // Get all <detection> elements within the current particle
-                    NodeList detectionList = particleElement.getElementsByTagName("detection");
-
-                    // Iterate over each <detection> element
-                    for (int j = 0; j < detectionList.getLength(); j++) {
-                        Node detectionNode = detectionList.item(j);
-
-                        if (detectionNode.getNodeType() == Node.ELEMENT_NODE) {
-                            Element detectionElement = (Element) detectionNode;
-
-                            // Get the value of the "x" attribute
-                            String xValue = detectionElement.getAttribute("x");
-                            float x = Float.parseFloat(xValue);
-                            if (x < localMin) {
-                                localMin = x;
-                            }
-                            if (x > localMax) {
-                                localMax = x;
-                            }
-                            float score = getScore(x, calMin, calMax);
-                            scores.put(Integer.parseInt(detectionElement.getAttribute("t")), score);
-
-                        }
-                    }
-                }
-                trackScores.add(scores);
-            }
-
-            if (setMinMax) {
-                log.info("localMin = " + localMin + " localMax = " + localMax);
-                log.info(cal.pixelWidth);
-                this.max = (int) (localMin / cal.pixelWidth);
-                this.min = (int) (localMax / cal.pixelWidth);
-                log.info("min = " + min + " max = " + max);
-                drawOverlay();
             }
 
         } catch (Exception e) {
@@ -213,6 +156,170 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
 
         return fixMissingSpots(trackScores);
 
+    }
+
+    private static class SpotData {
+        public final float score;
+        public final float x;
+        public final int frame;
+
+        SpotData(Float score, Float x, String frame) {
+            this.score = score;
+            this.x = x;
+            this.frame = Integer.parseInt(frame);
+        }
+    }
+
+    private void fromFullXML(boolean setMinMax, Document doc, ArrayList<HashMap<Integer, Float>> trackScores) throws Exception {
+        /*
+            data is stored as Spots:
+            <Spot ID="176402" FRAME="0" POSITION_X="465.7599892443151" ... />
+
+            and in Edges within Tracks:
+            <Track ...>
+                <Edge SPOT_SOURCE_ID="177087" SPOT_TARGET_ID="177083" ... />
+            </Track>
+         */
+        Node tracks = doc.getElementsByTagName("Model").item(0);
+        Calibration cal = videoFrame.getCalibration();
+
+        String xmlUnit = tracks.getAttributes().getNamedItem("spatialunits").getNodeValue();
+        if (!Objects.equals(cal.getXUnit(), xmlUnit)) {
+            throw new Exception("Calibrate the image frame to match the XML file's space units: " + xmlUnit);
+        }
+        float calMin = (float) cal.getX(min); // min * cal.pixelWidth
+        float calMax = (float) cal.getX(max);
+
+        float localMin = videoFrame.getWidth();
+        float localMax = 0;
+
+        // mapping ID to spot
+        HashMap<Integer, SpotData> spotMap = new HashMap<>();
+        NodeList xmlSpotList = doc.getElementsByTagName("Spot");
+        for (int i = 0; i < xmlSpotList.getLength(); i++) {
+            Node spot = xmlSpotList.item(i);
+            if (spot.getNodeType() == Node.ELEMENT_NODE) {
+                float x = Float.parseFloat(spot.getAttributes().getNamedItem("POSITION_X").getNodeValue());
+                float score = getScore(x, calMin, calMax);
+                spotMap.put(Integer.parseInt(spot.getAttributes().getNamedItem("ID").getNodeValue()),
+                        new SpotData(score, x, spot.getAttributes().getNamedItem("FRAME").getNodeValue()));
+            }
+        }
+
+        NodeList trackList = doc.getElementsByTagName("Track");
+        for (int i = 0; i < trackList.getLength(); i++) {
+            HashMap<Integer, Float> scores = new HashMap<>();
+            Node trackNode = trackList.item(i);
+            if (trackNode.getNodeType() == Node.ELEMENT_NODE) {
+                Element trackElement = (Element) trackNode;
+
+                NodeList edgeList = trackElement.getElementsByTagName("Edge");
+                for (int j = 0; j < edgeList.getLength(); j++) {
+                    Node edgeNode = edgeList.item(j);
+
+                    if (edgeNode.getNodeType() == Node.ELEMENT_NODE) {
+                        Element edgeElement = (Element) edgeNode;
+
+                        for (String s : Arrays.asList("SPOT_SOURCE_ID", "SPOT_TARGET_ID")) {
+                            String attribute = edgeElement.getAttribute(s);
+                            Integer spotId = Integer.parseInt(attribute);
+
+                            SpotData spot = spotMap.get(spotId);
+                            scores.put(spot.frame, spot.score);
+
+                            // this is here so that only filtered spots get used,
+                            // usually spots that are not in tracks have random undesirable positions,
+                            // that threw these min and max values everywhere.
+                            if (spot.x < localMin) {
+                                localMin = spot.x;
+                            }
+                            if (spot.x > localMax) {
+                                localMax = spot.x;
+                            }
+                        }
+                    }
+
+                }
+            }
+            trackScores.add(scores);
+        }
+
+        if (setMinMax) {
+            setMinMax(localMin, localMax, cal);
+        }
+
+    }
+
+    private void fromTracksXML(boolean setMinMax, Document doc, ArrayList<HashMap<Integer, Float>> trackScores) throws Exception {
+         /*
+            data is stored as detections within particles:
+            <particle ... >
+                <detection t="0" x="377.10679301985425" ... />
+            </particle>
+         */
+        Node tracks = doc.getElementsByTagName("Tracks").item(0);
+        Calibration cal = videoFrame.getCalibration();
+
+        String xmlUnit = tracks.getAttributes().getNamedItem("spaceUnits").getNodeValue();
+        if (!Objects.equals(cal.getXUnit(), xmlUnit)) {
+            throw new Exception("Calibrate the image frame to match the XML file's space units: " + xmlUnit);
+        }
+        float calMin = (float) cal.getX(min); // min * cal.pixelWidth
+        float calMax = (float) cal.getX(max);
+
+        // Get a list of all <particle> elements
+        NodeList particleList = doc.getElementsByTagName("particle");
+
+        float localMin = videoFrame.getWidth();
+        float localMax = 0;
+
+        // Iterate over each <particle> element (iterate over each track)
+        for (int i = 0; i < particleList.getLength(); i++) {
+            HashMap<Integer, Float> scores = new HashMap<>();
+            Node particleNode = particleList.item(i);
+
+            if (particleNode.getNodeType() == Node.ELEMENT_NODE) {
+                Element particleElement = (Element) particleNode;
+
+                // Get all <detection> elements within the current particle
+                NodeList detectionList = particleElement.getElementsByTagName("detection");
+
+                // Iterate over each <detection> element
+                for (int j = 0; j < detectionList.getLength(); j++) {
+                    Node detectionNode = detectionList.item(j);
+
+                    if (detectionNode.getNodeType() == Node.ELEMENT_NODE) {
+                        Element detectionElement = (Element) detectionNode;
+
+                        // Get the value of the "x" attribute
+                        String xValue = detectionElement.getAttribute("x");
+                        float x = Float.parseFloat(xValue);
+                        if (x < localMin) {
+                            localMin = x;
+                        }
+                        if (x > localMax) {
+                            localMax = x;
+                        }
+                        float score = getScore(x, calMin, calMax);
+                        scores.put(Integer.parseInt(detectionElement.getAttribute("t")), score);
+
+                    }
+                }
+            }
+            trackScores.add(scores);
+        }
+        if (setMinMax) {
+            setMinMax(localMin, localMax, cal);
+        }
+    }
+
+    private void setMinMax(float localMin, float localMax, Calibration cal) {
+        log.info("localMin = " + localMin + " localMax = " + localMax);
+        log.info(cal.pixelWidth);
+        this.max = (int) (localMin / cal.pixelWidth);
+        this.min = (int) (localMax / cal.pixelWidth);
+        log.info("min = " + min + " max = " + max);
+        drawOverlay();
     }
 
     private List<ArrayList<Float>> fixMissingSpots(ArrayList<HashMap<Integer, Float>> trackScores) {

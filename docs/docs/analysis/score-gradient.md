@@ -1,7 +1,13 @@
 # Calculate Score Gradient
 
 ## XML File
-Output of trackmate's "Export tracks to XML file" export action.
+Two possible files can be used here:
+1. Trackamate's whole save file
+    * Ideal option overall.
+    * Mandatory if you only have spots and no tracks.
+    * **If there are any tracks, all spots outside them will get filtered out.** 
+2. Output of trackmate's `Export tracks to XML file` export action.
+    * Only spots in tracks get saved in this file, so only them will be considered.
 
 ## Source Video
 The source video used for tracking. Ideally not the processed one, so you can set the limits better.
