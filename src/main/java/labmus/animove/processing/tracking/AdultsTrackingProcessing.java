@@ -26,6 +26,7 @@ import org.scijava.widget.Button;
 import org.scijava.widget.FileWidget;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
@@ -145,7 +146,15 @@ public class AdultsTrackingProcessing extends DynamicCommand implements Interact
             recorderFunction.close();
             mask.close();
 
-            recorderFunction.getRecorder().openResultinIJ(uiService, datasetIOService);
+            if (openResultInstead || doPreview) {
+                statusService.showStatus("Opening result in ImageJ...");
+                recorderFunction.getRecorder().openResultinIJ(uiService, datasetIOService);
+                IJ.getImage().setRoi(lastRoi);
+            } else {
+                Files.copy(tempOutputFile.toPath(), outputFile.toPath());
+                uiService.showDialog("Video saved successfully!",
+                        ZFConfigs.pluginName, DialogPrompt.MessageType.INFORMATION_MESSAGE);
+            }
 
         } catch (Exception e) {
             log.error(e);
