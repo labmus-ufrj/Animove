@@ -180,11 +180,10 @@ public class HeatmapSumImages extends DynamicCommand implements Interactive {
                 BrightnessLUTFunction brightnessLUTFunction = new BrightnessLUTFunction(this.lastRoi, this.lut);
                 brightnessLUTFunction.apply(sumMat);
 
-                ImagePlus imp = new ImagePlus("", brightnessLUTFunction.getLastBi());
+                ImagePlus imp = new ImagePlus(interval, brightnessLUTFunction.getLastBi());
                 brightnessLUTFunction.close();
 
                 if (openResultInstead || doPreview) {
-                    imp.setTitle(interval);
                     imp.show();
                 } else {
                     IJ.save(imp, outputDir.toPath().resolve(interval + ".tif").toString());

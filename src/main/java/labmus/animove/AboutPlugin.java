@@ -25,8 +25,8 @@ public class AboutPlugin implements Command {
         statusService.showStatus("Loading...");
         final String version = AppInfo.getProperty("app.version");
         final String repoUrl = AppInfo.getProperty("app.url");
-        final String wikiUrl = "https://tracking-plugin.vercel.app/";
-        final String paperUrl = "https://doi.org/your-paper-doi";
+        final String wikiUrl = "https://tracking-plugin.vercel.app/"; // todo: add github pages wiki
+        final String paperUrl = "https://doi.org/paper-doi"; // todo: add paper doi
         final String descriptionText = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus pretium molestie semper. Sed a leo eleifend, sollicitudin dui ut, tristique turpis. Integer nec varius metus, in posuere mauris. Integer suscipit ligula leo, id pellentesque nibh vulputate sit amet. Aenean condimentum, quam a faucibus consequat, felis elit fermentum lacus, non blandit tellus diam ac lacus. Quisque efficitur ullamcorper tortor, nec vestibulum nisl tincidunt eu. Integer augue leo, molestie ac felis at, viverra feugiat risus.";
         final String authorsText = "Developed by: Murilo Nespolo Spineli, Paloma de Carvalho Vieira,\n Claudia Mermelstein and Manoel Luis Costa";
 
@@ -65,7 +65,7 @@ public class AboutPlugin implements Command {
         buttonPanel.setOpaque(false);
 
         JButton githubButton = new JButton("GitHub");
-        JButton wikiButton = new JButton("Wiki");
+        JButton wikiButton = new JButton("Docs");
         JButton paperButton = new JButton("Paper");
 
         ActionListener openLink = e -> {

@@ -103,7 +103,7 @@ public class HeatmapSumVideo extends DynamicCommand implements Interactive {
     }
 
     private void generate(boolean doPreview) {
-        if (!checkFiles()){
+        if (!checkFiles()) {
             return;
         }
 
@@ -160,10 +160,12 @@ public class HeatmapSumVideo extends DynamicCommand implements Interactive {
                     .andThen(ZFHelperMethods.InvertFunction)
                     .andThen(zprojectFunctionSum)
                     .andThen(brightnessLUTFunction)
-                    .andThen(simpleRecorderFunction), this.inputFile, this.startFrame, doPreview ? this.startFrame + 10 : this.endFrame, this.statusService);
+                    .andThen(simpleRecorderFunction), this.inputFile, this.startFrame, doPreview ? this.startFrame + 9 : this.endFrame, this.statusService);
 
             brightnessLUTFunction.close();
             simpleRecorderFunction.close();
+
+            Thread.sleep(1000);
 
             if (openResultInstead || doPreview) {
                 statusService.showStatus("Opening result in ImageJ...");
@@ -267,7 +269,7 @@ public class HeatmapSumVideo extends DynamicCommand implements Interactive {
                 uiService.showDialog("Invalid output file", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
                 return false;
             }
-        } else if (outputFile.exists()){
+        } else if (outputFile.exists()) {
             uiService.showDialog("Output file already exists", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
             return false;
         }

@@ -6,6 +6,7 @@ public abstract class ZFConfigs {
     public static final String pluginName = AppInfo.getProperty("app.artifactId");
 
     public static final String ffmpeg = Loader.load(org.bytedeco.ffmpeg.ffmpeg.class);
+    public static final String ffprobe = Loader.load(org.bytedeco.ffmpeg.ffprobe.class);
 
     private static final String prePath = "Animove" + ">"; // sadly can't use pluginName here
 

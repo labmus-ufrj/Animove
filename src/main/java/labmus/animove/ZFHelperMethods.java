@@ -56,6 +56,7 @@ public class ZFHelperMethods {
         // this runs on a Menu click
         // reduces loading time for FFmpegFrameGrabber
         Executors.newSingleThreadExecutor().submit(() -> ZFConfigs.ffmpeg);
+//        Executors.newSingleThreadExecutor().submit(() -> ZFConfigs.ffprobe);
     }
 
     public static final Function<Mat, Mat> InvertFunction = (mat) -> {
@@ -121,21 +122,16 @@ public class ZFHelperMethods {
 
     public static void iterateOverFrames(Function<Mat, Mat> matFunction,
                                          File inputFile, int startFrame, int endFrame, StatusService statusService) throws Exception {
+
         try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile)) {
-
-            int actualStartFrame = Math.max(0, startFrame - 1);
-            grabber.setFrameNumber(actualStartFrame);
-
             grabber.start();
 
-            int totalFrames = grabber.getLengthInFrames() - 1; // frame numbers are 0-indexed.
-            /*
-             this is NOT precise
-             see https://javadoc.io/static/org.bytedeco/javacv/1.4.4/org/bytedeco/javacv/FFmpegFrameGrabber.html#getLengthInVideoFrames--
-             that's why we are increasing the precision when its set for the entire video.
-             */
-            final boolean wholeVideo = (endFrame <= 0);
-            int actualEndFrame = (wholeVideo || endFrame > totalFrames) ? totalFrames : endFrame;
+            int actualStartFrame = Math.max(0, startFrame - 2);
+            grabber.setFrameNumber(actualStartFrame);
+
+            int totalFrames = getExactFrameCount(inputFile) - 1; // frame numbers are 0-indexed.
+
+            int actualEndFrame = (endFrame <= 0 || endFrame > totalFrames) ? totalFrames : endFrame - 1;
             if (actualStartFrame >= actualEndFrame) {
                 throw new Exception("Initial frame must be before end frame.");
             }
@@ -149,12 +145,12 @@ public class ZFHelperMethods {
             // for secret and random memory things
             Frame jcvFrame;
             Mat currentFrame;
-            for (int i = actualStartFrame; i < actualEndFrame || wholeVideo; i++) {
+            for (int i = actualStartFrame; i < actualEndFrame; i++) {
+                IJ.log("Processing frame " + i + " of " + actualEndFrame);
+                IJ.log("grabber frame " + grabber.getFrameNumber() + " of " + actualEndFrame);
+
                 jcvFrame = grabber.grabImage();
                 if (jcvFrame == null || jcvFrame.image == null) {
-                    if (wholeVideo) {
-                        break; // we are done!!
-                    }
                     throw new Exception("Read terminated prematurely at frame " + i); // we were NOT done!!
                 }
 
@@ -189,10 +185,6 @@ public class ZFHelperMethods {
                         statusService.showProgress(i + 1, framesToProcess);
                     }
                 }
-//                if (framesToProcess > 1000 && i % Math.max((framesToProcess / 10), 1000) == 0) {
-//                    IJ.log("gccccc");
-//                    System.gc();
-//                }
             }
             System.gc();
 
@@ -200,6 +192,33 @@ public class ZFHelperMethods {
         if (statusService != null) {
             statusService.showStatus("Done!");
         }
+    }
+
+    public static int getExactFrameCount(File file) throws IOException, InterruptedException {
+        // -v error: hide logs
+        // -count_frames: actually count them by decoding
+        // -select_streams v:0: video stream only
+        // -show_entries: print only the number of frames
+        ProcessBuilder pb = new ProcessBuilder(
+                ZFConfigs.ffprobe,
+                "-v", "error",
+                "-count_frames",
+                "-select_streams", "v:0",
+                "-show_entries", "stream=nb_read_frames",
+                "-of", "default=nokey=1:noprint_wrappers=1",
+                file.getAbsolutePath()
+        );
+        pb.redirectErrorStream(true); // process may crash without this
+
+        Process process = pb.start();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            String line = reader.readLine();
+            if (line != null && !line.isEmpty()) {
+                return Integer.parseInt(line.trim());
+            }
+        }
+        process.waitFor();
+        return -1;
     }
 
     public static File createPluginTempFile(String extension) throws IOException {

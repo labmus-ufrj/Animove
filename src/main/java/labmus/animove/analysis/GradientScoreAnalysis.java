@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
 
 @SuppressWarnings({"FieldCanBeLocal"})
 @Plugin(type = Command.class, menuPath = ZFConfigs.scorePath)
-public class ScoreAnalysis implements Command, Interactive, MouseListener, MouseMotionListener {
+public class GradientScoreAnalysis implements Command, Interactive, MouseListener, MouseMotionListener {
 
     static {
         // this runs on a Menu click

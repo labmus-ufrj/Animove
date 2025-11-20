@@ -1,5 +1,6 @@
 package labmus.animove.utils;
 
+import ij.IJ;
 import io.scif.config.SCIFIOConfig;
 import io.scif.img.ImageRegion;
 import io.scif.img.Range;
@@ -282,6 +283,7 @@ public class SimpleRecorder implements AutoCloseable {
             case MP4:
             case AVI:
                 this.recorder.flush();
+                this.recorder.stop();
                 this.recorder.close();
                 break;
             case TIFF:
