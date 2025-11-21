@@ -1,7 +1,9 @@
 package labmus.animove;
 
+import ij.IJ;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
+import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
@@ -20,6 +22,9 @@ public class AboutPlugin implements Command {
     @Parameter
     private StatusService statusService;
 
+    @Parameter
+    private LogService log;
+
     @Override
     public void run() {
         statusService.showStatus("Loading...");
@@ -30,88 +35,89 @@ public class AboutPlugin implements Command {
         final String descriptionText = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus pretium molestie semper. Sed a leo eleifend, sollicitudin dui ut, tristique turpis. Integer nec varius metus, in posuere mauris. Integer suscipit ligula leo, id pellentesque nibh vulputate sit amet. Aenean condimentum, quam a faucibus consequat, felis elit fermentum lacus, non blandit tellus diam ac lacus. Quisque efficitur ullamcorper tortor, nec vestibulum nisl tincidunt eu. Integer augue leo, molestie ac felis at, viverra feugiat risus.";
         final String authorsText = "Developed by: Murilo Nespolo Spineli, Paloma de Carvalho Vieira,\n Claudia Mermelstein and Manoel Luis Costa";
 
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        SwingUtilities.invokeLater(() -> {
+            JPanel panel = new JPanel();
+            panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+            panel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
 
-        JLabel nameLabel = new JLabel(ZFConfigs.pluginName);
-        nameLabel.setFont(new Font("Segoe UI", Font.BOLD, 22));
-        nameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            JLabel nameLabel = new JLabel(ZFConfigs.pluginName);
+            nameLabel.setFont(new Font("Segoe UI", Font.BOLD, 22));
+            nameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel versionLabel = new JLabel("Version " + version);
-        versionLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-        versionLabel.setForeground(Color.DARK_GRAY);
-        versionLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            JLabel versionLabel = new JLabel("Version " + version);
+            versionLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+            versionLabel.setForeground(Color.DARK_GRAY);
+            versionLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JTextPane descPane = new JTextPane();
-        descPane.setText(descriptionText);
-        descPane.setEditable(false);
-        descPane.setOpaque(false); // Transparent background
-        descPane.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        descPane.setAlignmentX(Component.CENTER_ALIGNMENT);
+            JTextPane descPane = new JTextPane();
+            descPane.setText(descriptionText);
+            descPane.setEditable(false);
+            descPane.setOpaque(false); // Transparent background
+            descPane.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            descPane.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        StyledDocument doc = descPane.getStyledDocument();
-        SimpleAttributeSet center = new SimpleAttributeSet();
-        StyleConstants.setAlignment(center, StyleConstants.ALIGN_JUSTIFIED);
-        doc.setParagraphAttributes(0, doc.getLength(), center, false);
+            StyledDocument doc = descPane.getStyledDocument();
+            SimpleAttributeSet center = new SimpleAttributeSet();
+            StyleConstants.setAlignment(center, StyleConstants.ALIGN_JUSTIFIED);
+            doc.setParagraphAttributes(0, doc.getLength(), center, false);
 
-        int targetWidth = 350;
-        descPane.setSize(new Dimension(targetWidth, Short.MAX_VALUE));
-        Dimension preferredSize = descPane.getPreferredSize();
-        descPane.setPreferredSize(new Dimension(targetWidth, preferredSize.height));
+            int targetWidth = 350;
+            descPane.setSize(new Dimension(targetWidth, Short.MAX_VALUE));
+            Dimension preferredSize = descPane.getPreferredSize();
+            descPane.setPreferredSize(new Dimension(targetWidth, preferredSize.height));
 
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
-        buttonPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        buttonPanel.setOpaque(false);
+            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+            buttonPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            buttonPanel.setOpaque(false);
 
-        JButton githubButton = new JButton("GitHub");
-        JButton wikiButton = new JButton("Docs");
-        JButton paperButton = new JButton("Paper");
+            JButton githubButton = new JButton("GitHub");
+            JButton wikiButton = new JButton("Docs");
+            JButton paperButton = new JButton("Paper");
 
-        ActionListener openLink = e -> {
-            String targetUrl = "";
-            Object source = e.getSource();
+            ActionListener openLink = e -> {
+                String targetUrl = "";
+                Object source = e.getSource();
 
-            if (source == githubButton) targetUrl = repoUrl;
-            else if (source == wikiButton) targetUrl = wikiUrl;
-            else if (source == paperButton) targetUrl = paperUrl;
+                if (source == githubButton) targetUrl = repoUrl;
+                else if (source == wikiButton) targetUrl = wikiUrl;
+                else if (source == paperButton) targetUrl = paperUrl;
 
-            if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                try {
-                    Desktop.getDesktop().browse(new URI(targetUrl));
-                } catch (Exception ex) {
-                    ex.printStackTrace();
+                if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                    try {
+                        Desktop.getDesktop().browse(new URI(targetUrl));
+                    } catch (Exception ex) {
+                        log.error(e);
+                    }
                 }
-            }
-        };
+            };
 
-        githubButton.addActionListener(openLink);
-        wikiButton.addActionListener(openLink);
-        paperButton.addActionListener(openLink);
+            githubButton.addActionListener(openLink);
+            wikiButton.addActionListener(openLink);
+            paperButton.addActionListener(openLink);
 
-        buttonPanel.add(githubButton);
-        buttonPanel.add(wikiButton);
-        buttonPanel.add(paperButton);
+            buttonPanel.add(githubButton);
+            buttonPanel.add(wikiButton);
+            buttonPanel.add(paperButton);
 
 //        using HTML for multi - line centering
-        String htmlFooter = "<html><div style='text-align: center;'>" + authorsText.replace("\n", "<br>") + "</div></html>";
+            String htmlFooter = "<html><div style='text-align: center;'>" + authorsText.replace("\n", "<br>") + "</div></html>";
 
-        JLabel footerLabel = new JLabel(htmlFooter);
-        footerLabel.setFont(new Font("Segoe UI", Font.ITALIC, 12));
-        footerLabel.setForeground(Color.GRAY);
-        footerLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            JLabel footerLabel = new JLabel(htmlFooter);
+            footerLabel.setFont(new Font("Segoe UI", Font.ITALIC, 12));
+            footerLabel.setForeground(Color.GRAY);
+            footerLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        panel.add(nameLabel);
-        panel.add(Box.createVerticalStrut(5));
-        panel.add(versionLabel);
-        panel.add(Box.createVerticalStrut(15));
-        panel.add(descPane);
-        panel.add(Box.createVerticalStrut(20));
-        panel.add(buttonPanel);
-        panel.add(Box.createVerticalStrut(15));
-        panel.add(footerLabel);
+            panel.add(nameLabel);
+            panel.add(Box.createVerticalStrut(5));
+            panel.add(versionLabel);
+            panel.add(Box.createVerticalStrut(15));
+            panel.add(descPane);
+            panel.add(Box.createVerticalStrut(20));
+            panel.add(buttonPanel);
+            panel.add(Box.createVerticalStrut(15));
+            panel.add(footerLabel);
 
-        SwingUtilities.invokeLater(() -> {
+
             JOptionPane optionPane = new JOptionPane(panel, JOptionPane.PLAIN_MESSAGE);
             JDialog dialog = optionPane.createDialog("About " + ZFConfigs.pluginName);
             Icon infoIcon = UIManager.getIcon("OptionPane.informationIcon");

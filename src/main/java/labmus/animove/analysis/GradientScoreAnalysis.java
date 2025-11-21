@@ -60,6 +60,9 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
     @Parameter(label = "Fix Missing Spots", persist = false)
     private boolean fixSpots = true;
 
+    @Parameter(label = "Display Plots", persist = false)
+    private boolean displayPlots = true;
+
     @Parameter(label = "Open Frame", callback = "displayImage")
     private Button btn;
 

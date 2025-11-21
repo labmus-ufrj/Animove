@@ -104,6 +104,12 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.knowm.xchart</groupId>
+            <artifactId>xchart</artifactId>
+            <version>3.5.4</version> <!-- Fiji uses this version... -->
+        </dependency>
+
+        <dependency>
             <groupId>net.imagej</groupId>
             <artifactId>ij</artifactId>
         </dependency>

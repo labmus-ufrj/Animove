@@ -8,6 +8,8 @@ import ij.measure.ResultsTable;
 import ij.plugin.frame.RoiManager;
 import labmus.animove.ZFConfigs;
 import labmus.animove.ZFHelperMethods;
+import org.knowm.xchart.*;
+import org.knowm.xchart.style.Styler;
 import org.scijava.command.Command;
 import org.scijava.command.Interactive;
 import org.scijava.log.LogService;
@@ -26,9 +28,11 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
@@ -49,6 +53,9 @@ public class SectorScoreAnalysis implements Command, Interactive {
 
     @Parameter(label = "Fix Missing Spots", persist = false)
     private boolean fixSpots = true;
+
+    @Parameter(label = "Display Plots", persist = false)
+    private boolean displayPlots = true;
 
     @Parameter(label = "Open Frame", callback = "openFrame")
     private Button btn;
@@ -75,7 +82,7 @@ public class SectorScoreAnalysis implements Command, Interactive {
 
     @Override
     public void run() {
-        IJ.setTool("rectangle"); // zoom and others get in the way
+        IJ.setTool("rectangle"); // to create ROIs
     }
 
     private void process() {
@@ -93,6 +100,20 @@ public class SectorScoreAnalysis implements Command, Interactive {
         if (data == null) {
             return;
         }
+
+        String name = "Scores from " + xmlFile.getName() + " and " + videoFile.getName();
+
+        PieChart chart =
+                new PieChartBuilder().theme(Styler.ChartTheme.GGPlot2).title(name).build();
+
+        // Customize Chart
+        chart.getStyler().setLegendPosition(Styler.LegendPosition.OutsideS);
+        chart.getStyler().setLegendLayout(Styler.LegendLayout.Horizontal);
+
+        chart.getStyler().setChartTitleFont(new Font(Font.SANS_SERIF, Font.BOLD, 24));
+        chart.getStyler().setLegendFont(new Font(Font.SANS_SERIF, Font.PLAIN, 18));
+        chart.getStyler().setAnnotationsFont(new Font(Font.SANS_SERIF, Font.BOLD, 18));
+
         ResultsTable rt = new ResultsTable();
         rt.setNaNEmptyCells(true); // prism reads 0.00 as zeros and requires manual fixing
         // NaN just gets deleted when pasting
@@ -111,6 +132,7 @@ public class SectorScoreAnalysis implements Command, Interactive {
             globalCount += count;
             rt.setValue("ROI Name", i, roi.getName());
             rt.setValue("Count", i, count);
+            chart.addSeries(roi.getName(), count);
         }
 
         int lastRowIndex = roiManager.getCount();
@@ -121,8 +143,13 @@ public class SectorScoreAnalysis implements Command, Interactive {
                 .reduce(Integer::sum).get(); // there'll always be spots. hopefully.
 
         rt.setValue("Count", lastRowIndex, spotsCount - globalCount);
+        chart.addSeries("Outside All ROIs", spotsCount - globalCount);
 
-        rt.show("Scores from " + xmlFile.getName() + " and " + videoFile.getName());
+        if (this.displayPlots){
+            new ImagePlus("Plot", BitmapEncoder.getBufferedImage(chart)).show();
+        }
+
+        rt.show(name);
     }
 
     private List<ArrayList<PointData>> iterateOverXML() {
@@ -221,12 +248,14 @@ public class SectorScoreAnalysis implements Command, Interactive {
         }
 
         // if no tracks were found, use all spots
-        // todo: test this behaviour
+        int randId = 0; // making sure to count all spots and not override them by placing them in the same frame and same track.
         if (trackScores.isEmpty()) {
+            this.fixSpots = false; // this won't work in this case. see docs for info
             HashMap<Integer, PointData> scores = new HashMap<>();
-            spotMap.forEach((spotId, spot) -> {
-                scores.put(spot.frame, new PointData(spot.x, spot.y, cal.pixelWidth));
-            });
+            for (SpotData spot : spotMap.values()) {
+                scores.put(randId, new PointData(spot.x, spot.y, cal.pixelWidth));
+                randId++;
+            }
             trackScores.add(scores);
         }
     }
@@ -279,7 +308,7 @@ public class SectorScoreAnalysis implements Command, Interactive {
     }
 
     private List<ArrayList<PointData>> fixMissingSpots(ArrayList<HashMap<Integer, PointData>> trackScores) {
-        if (fixSpots) {
+        if (this.fixSpots) {
             int biggestTime = trackScores.stream().mapToInt(hashmap ->
                     hashmap.keySet().stream().max(Comparator.naturalOrder()).get()).max().getAsInt(); // using this on a spotless track will crash it. dont do it ig
             for (HashMap<Integer, PointData> hashmap : trackScores) {
