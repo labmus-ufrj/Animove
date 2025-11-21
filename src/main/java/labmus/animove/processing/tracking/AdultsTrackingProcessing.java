@@ -83,7 +83,7 @@ public class AdultsTrackingProcessing extends DynamicCommand implements Interact
 
     @Override
     public void run() {
-//        IJ.run("Console");
+        IJ.run("Console");
     }
 
     private void generatePreview() {

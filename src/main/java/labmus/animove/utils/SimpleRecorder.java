@@ -276,6 +276,7 @@ public class SimpleRecorder implements AutoCloseable {
                 uiService.show(dataset);
                 break;
             } catch (Exception e) {
+                IJ.log(e.getMessage());
                 if (i == maxRetries - 1) {
                     throw e;
                 } else {

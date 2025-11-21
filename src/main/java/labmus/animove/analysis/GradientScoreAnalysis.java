@@ -247,11 +247,25 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
         }
 
         // if no tracks were found, use all spots
-        // todo: test this behaviour
         if (trackScores.isEmpty()) {
-            HashMap<Integer, Float> scores = new HashMap<>();
-            spotMap.forEach((spotId, spot) -> {
-                scores.put(spot.frame, spot.score);
+            // we must average the scores in each frame
+            final HashMap<Integer, List<Float>> allScores = new HashMap<>();
+            for (SpotData spot : spotMap.values()) {
+                if (spot.x < localMin) {
+                    localMin = spot.x;
+                }
+                if (spot.x > localMax) {
+                    localMax = spot.x;
+                }
+                if (!allScores.containsKey(spot.frame)) {
+                    allScores.put(spot.frame, new ArrayList<>());
+                }
+                allScores.get(spot.frame).add(spot.score);
+            }
+            final HashMap<Integer, Float> scores = new HashMap<>();
+            allScores.keySet().forEach(frame -> {
+                Float sum = allScores.get(frame).stream().reduce(Float::sum).get(); // if we are here, there is at least one score in the list
+                scores.put(frame, sum / allScores.get(frame).size());
             });
             trackScores.add(scores);
         }
