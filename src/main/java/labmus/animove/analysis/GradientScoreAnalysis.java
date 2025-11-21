@@ -19,8 +19,9 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.category.BoxAndWhiskerRenderer;
 import org.jfree.data.statistics.BoxAndWhiskerCategoryDataset;
 import org.jfree.data.statistics.DefaultBoxAndWhiskerCategoryDataset;
-import org.knowm.xchart.*;
-import org.knowm.xchart.style.Styler;
+import org.knowm.xchart.BitmapEncoder;
+import org.knowm.xchart.DialChart;
+import org.knowm.xchart.DialChartBuilder;
 import org.scijava.command.Command;
 import org.scijava.command.Interactive;
 import org.scijava.log.LogService;
@@ -114,20 +115,6 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
 
     private void loadFromXML() {
         iterateOverXML(true);
-    }
-
-    private BoxChart getBoxChart(String name) {
-        BoxChart chart =
-                new BoxChartBuilder()
-                        .title(name)
-                        .width(1600).height(1200)
-                        .theme(Styler.ChartTheme.GGPlot2)
-                        .build();
-
-        chart.getStyler().setLegendVisible(false);
-        chart.getStyler().setChartTitleFont(new Font(Font.SANS_SERIF, Font.BOLD, 48));
-        chart.getStyler().setAxisTickLabelsFont(new Font(Font.SANS_SERIF, Font.BOLD, 36));
-        return chart;
     }
 
     private JFreeChart getHorizontalBoxChart(String name, BoxAndWhiskerCategoryDataset dataset) {
