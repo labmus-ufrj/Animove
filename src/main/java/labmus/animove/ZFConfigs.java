@@ -39,7 +39,7 @@ public abstract class ZFConfigs {
     public static final String analyzeEmbryos = embryosPath + "Quantify Heatmap";
     public static final String analyzeFrequencyEmbryos = embryosPath + "Extract Frequency Data";
 
-    public static final String scorePath = analysisPath + "Calculate Score Gradient";
+    public static final String scoreGradientPath = analysisPath + "Calculate Score Gradient";
     public static final String scoreSectorPath = analysisPath + "Calculate Score Sectors";
 
     public static final String trackingDataPath = analysisPath + "Extract Tracking Data";

@@ -18,7 +18,10 @@ import org.scijava.ui.DialogPrompt;
 import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 import org.scijava.widget.FileWidget;
-import org.w3c.dom.*;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -37,10 +40,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @SuppressWarnings({"FieldCanBeLocal"})
-@Plugin(type = Command.class, menuPath = ZFConfigs.scorePath)
+@Plugin(type = Command.class, menuPath = ZFConfigs.scoreGradientPath)
 public class GradientScoreAnalysis implements Command, Interactive, MouseListener, MouseMotionListener {
 
     static {
@@ -244,6 +246,16 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
             trackScores.add(scores);
         }
 
+        // if no tracks were found, use all spots
+        // todo: test this behaviour
+        if (trackScores.isEmpty()) {
+            HashMap<Integer, Float> scores = new HashMap<>();
+            spotMap.forEach((spotId, spot) -> {
+                scores.put(spot.frame, spot.score);
+            });
+            trackScores.add(scores);
+        }
+
         if (setMinMax) {
             setMinMax(localMin, localMax, cal);
         }
@@ -292,8 +304,7 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
                         Element detectionElement = (Element) detectionNode;
 
                         // Get the value of the "x" attribute
-                        String xValue = detectionElement.getAttribute("x");
-                        float x = Float.parseFloat(xValue);
+                        float x = Float.parseFloat(detectionElement.getAttribute("x"));
                         if (x < localMin) {
                             localMin = x;
                         }
@@ -359,7 +370,7 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
         if (!checkFiles()) {
             return;
         }
-        KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow().setAlwaysOnTop(true);
+//        KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow().setAlwaysOnTop(true);
         try {
             if (videoFrame != null && videoFrame.getWindow() != null) {
                 videoFrame.close();
@@ -388,7 +399,7 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
         } catch (Exception e) {
             log.error(e);
             uiService.showDialog(e.getLocalizedMessage(),
-                    "Error", DialogPrompt.MessageType.ERROR_MESSAGE);
+                    ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
             videoFrame = null;
         }
     }
@@ -440,21 +451,21 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
             overlay.remove(i);
         }
 
-        addRoi(min, Color.RED);
-        addRoi(max, Color.BLUE);
+        drawLine(min, Color.RED);
+        drawLine(max, Color.BLUE);
 
         videoFrame.draw();
     }
 
-    private void addRoi(int value, Color awtColor) {
+    private void drawLine(int xCoordinate, Color awtColor) {
         GeneralPath path = new GeneralPath();
-        path.moveTo(value, 0f);
-        path.lineTo(value, videoFrame.getHeight());
+        path.moveTo(xCoordinate, 0f);
+        path.lineTo(xCoordinate, videoFrame.getHeight());
 
         Roi roi = new ShapeRoi(path);
         roi.setStrokeColor(awtColor);
         roi.setStroke(new BasicStroke(5));
-        roi.setName(String.valueOf(value));
+        roi.setName(String.valueOf(xCoordinate));
         videoFrame.getOverlay().add(roi);
     }
 

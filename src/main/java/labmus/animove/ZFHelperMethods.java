@@ -153,7 +153,6 @@ public class ZFHelperMethods {
 
                 // No one knows why, and it took a few days to figure out why, but
                 // you NEED a new converter every frame here. Dw about it, it doesn't leak.
-                // todo: test without a new one every frame
                 try (OpenCVFrameConverter.ToMat cnv = new OpenCVFrameConverter.ToMat()) {
                     Mat currentFrameColor = cnv.convert(jcvFrame);
 
