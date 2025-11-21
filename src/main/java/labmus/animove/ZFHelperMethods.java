@@ -14,8 +14,13 @@ import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.opencv_core.Mat;
+import org.knowm.xchart.BitmapEncoder;
+import org.knowm.xchart.DialChart;
+import org.knowm.xchart.DialChartBuilder;
+import org.knowm.xchart.style.Styler;
 import org.scijava.app.StatusService;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;

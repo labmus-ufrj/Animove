@@ -7,8 +7,20 @@ import ij.gui.Roi;
 import ij.gui.ShapeRoi;
 import ij.measure.Calibration;
 import ij.measure.ResultsTable;
+import ij.plugin.ImagesToStack;
 import labmus.animove.ZFConfigs;
 import labmus.animove.ZFHelperMethods;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.CategoryAxis;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.renderer.category.BoxAndWhiskerRenderer;
+import org.jfree.data.statistics.BoxAndWhiskerCategoryDataset;
+import org.jfree.data.statistics.DefaultBoxAndWhiskerCategoryDataset;
+import org.knowm.xchart.*;
+import org.knowm.xchart.style.Styler;
 import org.scijava.command.Command;
 import org.scijava.command.Interactive;
 import org.scijava.log.LogService;
@@ -61,7 +73,7 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
     private boolean fixSpots = true;
 
     @Parameter(label = "Display Plots", persist = false)
-    private boolean displayPlots = true;
+    private boolean displayPlots = false;
 
     @Parameter(label = "Open Frame", callback = "displayImage")
     private Button btn;
@@ -87,7 +99,7 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
     private UIService uiService;
 
     enum STATE {
-        CHANGE_MAX, CHANGE_MIN, NONE;
+        CHANGE_MAX, CHANGE_MIN, NONE
     }
 
     private ImagePlus videoFrame = null;
@@ -104,11 +116,119 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
         iterateOverXML(true);
     }
 
+    private BoxChart getBoxChart(String name) {
+        BoxChart chart =
+                new BoxChartBuilder()
+                        .title(name)
+                        .width(1600).height(1200)
+                        .theme(Styler.ChartTheme.GGPlot2)
+                        .build();
+
+        chart.getStyler().setLegendVisible(false);
+        chart.getStyler().setChartTitleFont(new Font(Font.SANS_SERIF, Font.BOLD, 48));
+        chart.getStyler().setAxisTickLabelsFont(new Font(Font.SANS_SERIF, Font.BOLD, 36));
+        return chart;
+    }
+
+    private JFreeChart getHorizontalBoxChart(String name, BoxAndWhiskerCategoryDataset dataset) {
+        JFreeChart chart = ChartFactory.createBoxAndWhiskerChart(name, "", "", dataset, false);
+
+        chart.getTitle().setFont(new Font(Font.SANS_SERIF, Font.BOLD, 48));
+
+        CategoryPlot plot = (CategoryPlot) chart.getPlot();
+        plot.setOrientation(PlotOrientation.HORIZONTAL);
+
+
+        CategoryAxis domainAxis = plot.getDomainAxis();
+        domainAxis.setTickLabelFont(new Font(Font.SANS_SERIF, Font.BOLD, 36));
+
+        NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
+        rangeAxis.setTickLabelFont(new Font(Font.SANS_SERIF, Font.BOLD, 36));
+
+        domainAxis.setCategoryMargin(0.1);
+        domainAxis.setLabelFont(new Font(Font.SANS_SERIF, Font.PLAIN, 30));
+        rangeAxis.setLabelFont(new Font(Font.SANS_SERIF, Font.PLAIN, 30));
+
+        BoxAndWhiskerRenderer renderer = new BoxAndWhiskerRenderer() {
+            // Define your colors here
+            Paint[] colors = {new Color(255, 80, 80), new Color(80, 80, 255), new Color(80, 255, 80)};
+
+            @Override
+            public Paint getItemPaint(int row, int column) {
+                // Use column index to pick color, cycling if we have more columns than colors
+                return colors[column % colors.length];
+            }
+        };
+
+        renderer.setDefaultOutlinePaint(Color.BLACK);
+        renderer.setUseOutlinePaintForWhiskers(true);
+        renderer.setItemMargin(0);
+        renderer.setMaximumBarWidth(0.2);
+        renderer.setWhiskerWidth(0.8);
+        renderer.setMedianVisible(true);
+        renderer.setMeanVisible(false);
+
+        plot.setRenderer(renderer);
+        return chart;
+    }
+
+    private DialChart getDialChart(String title) {
+        DialChart chart =
+                new DialChartBuilder()
+                        .width(1600).height(1200)
+                        .title(title)
+                        .build();
+
+        chart.getStyler().setChartTitleFont(new Font(Font.SANS_SERIF, Font.BOLD, 48));
+
+        chart.getStyler().setDonutThickness(.33);
+        chart.getStyler().setCircular(true);
+
+        chart.getStyler().setLabelVisible(false);
+        chart.getStyler().setLegendVisible(false);
+        chart.getStyler().setArcAngle(180);
+
+        chart.getStyler().setDonutThickness(.33);
+        chart.getStyler().setCircular(true);
+
+        // arrow
+        chart.getStyler().setArrowArcAngle(40);
+        chart.getStyler().setArrowArcPercentage(.1);
+        chart.getStyler().setArrowLengthPercentage(.5);
+        chart.getStyler().setArrowColor(Color.decode("#01148c"));
+
+        chart.getStyler().setLowerFrom(0);
+        chart.getStyler().setLowerTo(.2);
+        chart.getStyler().setLowerColor(Color.decode("#D43521"));
+        chart.getStyler().setMiddleFrom(.2);
+        chart.getStyler().setMiddleTo(.8);
+        chart.getStyler().setMiddleColor(Color.LIGHT_GRAY);
+        chart.getStyler().setUpperFrom(.8);
+        chart.getStyler().setUpperTo(1);
+        chart.getStyler().setUpperColor(Color.decode("#9CC300"));
+
+        chart.getStyler().setAxisTickLabelsVisible(true);
+        chart.getStyler().setAxisTicksMarksVisible(true);
+        chart.getStyler().setAxisTickMarksColor(Color.DARK_GRAY);
+        chart.getStyler().setAxisTickMarksStroke(new BasicStroke(2.0f));
+        chart.getStyler().setAxisTitleVisible(false);
+        chart.getStyler().setAxisTitleFont(new Font(Font.SANS_SERIF, Font.BOLD, 40));
+        chart.getStyler().setAxisTitlePadding(60);
+        chart.getStyler().setAxisTickValues(new double[]{0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1});
+        chart.getStyler().setAxisTickLabels(new String[]{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"});
+        return chart;
+    }
+
     private void process() {
         List<ArrayList<Float>> data = iterateOverXML(false);
         if (data == null) {
             return;
         }
+        String name = "Scores from " + xmlFile.getName() + " and " + videoFile.getName();
+
+        DefaultBoxAndWhiskerCategoryDataset dataset = new DefaultBoxAndWhiskerCategoryDataset();
+        ArrayList<DialChart> dialCharts = new ArrayList<>();
+
         ResultsTable rt = new ResultsTable();
         rt.setNaNEmptyCells(true); // prism reads 0.00 as zeros and requires manual fixing
         // NaN just gets deleted when pasting
@@ -122,15 +242,61 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
             // Define a name for the column header.
             String columnHeader = "Track " + (colIndex + 1);
 
+            ArrayList<Float> values = new ArrayList<>();
             // Iterate through the values in the current column.
             for (int rowIndex = 0; rowIndex < columnData.size(); rowIndex++) {
                 float value = columnData.get(rowIndex);
-
                 rt.setValue(columnHeader, rowIndex, value);
+                values.add(value);
             }
+            dataset.add(values, "All series", columnHeader);
+            DialChart dialChart = getDialChart(columnHeader);
+            dialChart.addSeries("Score", calculateMedian(values) * 0.1);
+            dialCharts.add(dialChart);
         }
 
-        rt.show("Scores from " + xmlFile.getName() + " and " + videoFile.getName());
+        if (this.displayPlots) {
+            new ImagePlus("Plot", getHorizontalBoxChart(name, dataset).createBufferedImage(1600, 1200)).show();
+
+            ImagePlus stack = ImagesToStack.run(
+                    dialCharts.stream()
+                            .map(chart -> new ImagePlus("Plot", BitmapEncoder.getBufferedImage(chart))).toArray(ImagePlus[]::new)
+            );
+            stack.show();
+
+        }
+
+        rt.show(name);
+    }
+
+    public static float calculateMedian(List<Float> list) {
+        if (list == null || list.isEmpty()) {
+            throw new IllegalArgumentException("List cannot be null or empty.");
+        }
+
+        // 1. Sort the list
+        // Collections.sort() modifies the list in place, so we create a copy first.
+        List<Float> sortedList = new ArrayList<>(list);
+        Collections.sort(sortedList); // Sorts the list in ascending order
+
+        int n = sortedList.size();
+
+        // 2. Find the middle element(s)
+        if (n % 2 != 0) {
+            // Case 1: Odd length
+            int middleIndex = n / 2;
+            return sortedList.get(middleIndex);
+        } else {
+            // Case 2: Even length
+            int midIndex1 = n / 2 - 1;
+            int midIndex2 = n / 2;
+
+            float val1 = sortedList.get(midIndex1);
+            float val2 = sortedList.get(midIndex2);
+
+            // Calculate the average (mean) of the two middle values
+            return (val1 + val2) / 2.0f;
+        }
     }
 
     private List<ArrayList<Float>> iterateOverXML(boolean setMinMax) {

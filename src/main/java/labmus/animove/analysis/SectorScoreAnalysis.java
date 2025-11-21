@@ -9,6 +9,7 @@ import ij.plugin.frame.RoiManager;
 import labmus.animove.ZFConfigs;
 import labmus.animove.ZFHelperMethods;
 import org.knowm.xchart.*;
+import org.knowm.xchart.style.PieStyler;
 import org.knowm.xchart.style.Styler;
 import org.scijava.command.Command;
 import org.scijava.command.Interactive;
@@ -55,7 +56,7 @@ public class SectorScoreAnalysis implements Command, Interactive {
     private boolean fixSpots = true;
 
     @Parameter(label = "Display Plots", persist = false)
-    private boolean displayPlots = true;
+    private boolean displayPlots = false;
 
     @Parameter(label = "Open Frame", callback = "openFrame")
     private Button btn;
@@ -85,6 +86,24 @@ public class SectorScoreAnalysis implements Command, Interactive {
         IJ.setTool("rectangle"); // to create ROIs
     }
 
+    private PieChart getPieChart(String name) {
+        PieChart chart =
+                new PieChartBuilder()
+                        .width(1600).height(1200)
+                        .theme(Styler.ChartTheme.GGPlot2)
+                        .title(name)
+                        .build();
+
+        // Customize Chart
+        chart.getStyler().setLabelType(PieStyler.LabelType.Percentage);
+        chart.getStyler().setLabelsFont(new Font(Font.SANS_SERIF, Font.BOLD, 36));
+        chart.getStyler().setLegendPosition(Styler.LegendPosition.OutsideS);
+        chart.getStyler().setLegendLayout(Styler.LegendLayout.Horizontal);
+        chart.getStyler().setChartTitleFont(new Font(Font.SANS_SERIF, Font.BOLD, 48));
+        chart.getStyler().setLegendFont(new Font(Font.SANS_SERIF, Font.PLAIN, 36));
+        return chart;
+    }
+
     private void process() {
         RoiManager roiManager = RoiManager.getInstance();
         if (roiManager == null) {
@@ -103,16 +122,7 @@ public class SectorScoreAnalysis implements Command, Interactive {
 
         String name = "Scores from " + xmlFile.getName() + " and " + videoFile.getName();
 
-        PieChart chart =
-                new PieChartBuilder().theme(Styler.ChartTheme.GGPlot2).title(name).build();
-
-        // Customize Chart
-        chart.getStyler().setLegendPosition(Styler.LegendPosition.OutsideS);
-        chart.getStyler().setLegendLayout(Styler.LegendLayout.Horizontal);
-
-        chart.getStyler().setChartTitleFont(new Font(Font.SANS_SERIF, Font.BOLD, 24));
-        chart.getStyler().setLegendFont(new Font(Font.SANS_SERIF, Font.PLAIN, 18));
-        chart.getStyler().setAnnotationsFont(new Font(Font.SANS_SERIF, Font.BOLD, 18));
+        PieChart pieChart = getPieChart(name);
 
         ResultsTable rt = new ResultsTable();
         rt.setNaNEmptyCells(true); // prism reads 0.00 as zeros and requires manual fixing
@@ -132,21 +142,21 @@ public class SectorScoreAnalysis implements Command, Interactive {
             globalCount += count;
             rt.setValue("ROI Name", i, roi.getName());
             rt.setValue("Count", i, count);
-            chart.addSeries(roi.getName(), count);
+            pieChart.addSeries(roi.getName(), count);
         }
 
         int lastRowIndex = roiManager.getCount();
         rt.setValue("ROI Name", lastRowIndex, "Outside All ROIs");
 
-        Integer spotsCount = data.stream()
+        int spotsCount = data.stream()
                 .map(ArrayList::size)
                 .reduce(Integer::sum).get(); // there'll always be spots. hopefully.
 
         rt.setValue("Count", lastRowIndex, spotsCount - globalCount);
-        chart.addSeries("Outside All ROIs", spotsCount - globalCount);
+        pieChart.addSeries("Outside All ROIs", spotsCount - globalCount);
 
         if (this.displayPlots){
-            new ImagePlus("Plot", BitmapEncoder.getBufferedImage(chart)).show();
+            new ImagePlus("Plot", BitmapEncoder.getBufferedImage(pieChart)).show();
         }
 
         rt.show(name);
