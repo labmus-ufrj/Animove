@@ -4,22 +4,17 @@ import ij.ImagePlus;
 import ij.gui.Roi;
 import ij.measure.ResultsTable;
 import ij.plugin.frame.RoiManager;
-import io.scif.services.DatasetIOService;
 import labmus.animove.ZFConfigs;
 import labmus.animove.ZFHelperMethods;
-import labmus.animove.utils.functions.BinarizeFromThresholdFunction;
-import labmus.animove.utils.functions.ImageCalculatorFunction;
-import labmus.animove.utils.functions.ShowEveryFrameFunction;
-import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.global.opencv_imgcodecs;
-import org.bytedeco.opencv.global.opencv_imgproc;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.bytedeco.opencv.opencv_core.Scalar;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.chart.labels.StandardCategoryItemLabelGenerator;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
@@ -27,12 +22,8 @@ import org.jfree.chart.renderer.category.BarRenderer;
 import org.jfree.chart.renderer.category.StandardBarPainter;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.category.DefaultCategoryDataset;
-import org.knowm.xchart.BitmapEncoder;
-import org.knowm.xchart.PieChart;
-import org.scijava.app.StatusService;
 import org.scijava.command.Command;
 import org.scijava.command.Interactive;
-import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.ui.DialogPrompt;
@@ -61,23 +52,14 @@ public class QuantifyHeatmap implements Command, Interactive {
     @Parameter(label = "Input Binary Heatmap Image", style = "file", persist = false, required = false)
     private File heatmapFile;
 
-    @Parameter(label = "Input Average Image", style = "file", persist = false, required = false)
-    private File avgFile;
-
     @Parameter(label = "Display Plots", persist = false)
     private boolean displayPlots = false;
 
     @Parameter(label = "Process", callback = "process")
-    private Button btn1;
+    private Button btn2;
 
     @Parameter
     private UIService uiService;
-    @Parameter
-    private StatusService statusService;
-    @Parameter
-    private LogService log;
-    @Parameter
-    private DatasetIOService datasetIOService;
 
     @Override
     public void run() {
@@ -99,14 +81,7 @@ public class QuantifyHeatmap implements Command, Interactive {
             return;
         }
 
-        Mat hetmapMat = imread(heatmapFile.getAbsolutePath(), opencv_imgcodecs.IMREAD_GRAYSCALE);
-        Mat avgMat = imread(avgFile.getAbsolutePath(), opencv_imgcodecs.IMREAD_GRAYSCALE);
-
-        Mat result = new BinarizeFromThresholdFunction(false)
-                .andThen(ZFHelperMethods.InvertFunction)
-                .andThen(new ImageCalculatorFunction(ImageCalculatorFunction.OperationMode.ADD, hetmapMat))
-//                .andThen(new ShowEveryFrameFunction())
-                .apply(avgMat);
+        Mat heatmapMat = imread(heatmapFile.getAbsolutePath(), opencv_imgcodecs.IMREAD_GRAYSCALE);
 
         String name = "Quantified from " + heatmapFile.getName();
 
@@ -117,12 +92,12 @@ public class QuantifyHeatmap implements Command, Interactive {
         try (Mat tempCompare = new Mat();
              Mat tempIntersection = new Mat();
              Scalar scalarBlack = new Scalar(0);
-             Mat matBlack = new Mat(hetmapMat.rows(), hetmapMat.cols(), hetmapMat.type(), scalarBlack)) {
+             Mat matBlack = new Mat(heatmapMat.rows(), heatmapMat.cols(), heatmapMat.type(), scalarBlack)) {
 
             for (int i = 0; i < roiManager.getCount(); i++) {
                 Roi roi = roiManager.getRoi(i);
-                try (Mat maskMat = ZFHelperMethods.getMaskMatFromRoi(result.arrayWidth(), result.arrayHeight(), roi)) {
-                    opencv_core.compare(hetmapMat, matBlack, tempCompare, CMP_EQ);
+                try (Mat maskMat = ZFHelperMethods.getMaskMatFromRoi(heatmapMat.arrayWidth(), heatmapMat.arrayHeight(), roi)) {
+                    opencv_core.compare(heatmapMat, matBlack, tempCompare, CMP_EQ);
                     opencv_core.bitwise_and(tempCompare, maskMat, tempIntersection);
 
                     int roiPixelCount = opencv_core.countNonZero(maskMat); // or roi.getContainedPoints().length
@@ -142,12 +117,10 @@ public class QuantifyHeatmap implements Command, Interactive {
 
         rt.show(name);
 
-        result.close();
-        hetmapMat.close();
-        avgMat.close();
+        heatmapMat.close();
     }
 
-    private JFreeChart getBarChart(String title, DefaultCategoryDataset dataset){
+    private JFreeChart getBarChart(String title, DefaultCategoryDataset dataset) {
         JFreeChart chart = ChartFactory.createBarChart(title, "", "Area Percentage (%)", dataset, PlotOrientation.VERTICAL, false, true, false);
 
         chart.setBackgroundPaint(Color.WHITE);
@@ -177,6 +150,7 @@ public class QuantifyHeatmap implements Command, Interactive {
 
         NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
         rangeAxis.setRange(0.0, 100.0);
+        rangeAxis.setTickUnit(new NumberTickUnit(10.0));
         rangeAxis.setLabelFont(axisLabelFont);
         rangeAxis.setTickLabelFont(tickLabelFont);
 
@@ -198,10 +172,6 @@ public class QuantifyHeatmap implements Command, Interactive {
     private boolean checkFiles() {
         if (heatmapFile == null || !heatmapFile.exists() || !heatmapFile.isFile()) {
             uiService.showDialog("Invalid input heatmap image", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
-            return false;
-        }
-        if (avgFile == null || !avgFile.exists() || !avgFile.isFile()) {
-            uiService.showDialog("Invalid input average image", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
             return false;
         }
         return true;

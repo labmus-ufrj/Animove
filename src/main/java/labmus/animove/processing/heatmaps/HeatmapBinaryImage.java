@@ -106,10 +106,22 @@ public class HeatmapBinaryImage extends DynamicCommand implements Interactive {
                     .andThen(zprojectFunction);
 
             ZFHelperMethods.iterateOverFrames(processFunction, inputFile, startFrame, doPreview ? this.startFrame + 10 : this.endFrame, statusService);
-            Mat resultMat = zprojectFunction.getResultMat();
+            Mat heatmapMat = zprojectFunction.getResultMat();
+
+            ZprojectFunction zprojectFunctionAvg = new ZprojectFunction(ZprojectFunction.OperationMode.AVG);
+            ZFHelperMethods.iterateOverFrames(zprojectFunctionAvg, inputFile, startFrame, doPreview ? this.startFrame + 10 : this.endFrame, statusService);
+            Mat avgMat = zprojectFunctionAvg.getResultMat();
+
+            Mat resultMat = new BinarizeFromThresholdFunction(false)
+                    .andThen(ZFHelperMethods.InvertFunction)
+                    .andThen(new ImageCalculatorFunction(ImageCalculatorFunction.OperationMode.ADD, heatmapMat))
+//                .andThen(new ShowEveryFrameFunction())
+                    .apply(avgMat);
 
             imwrite(tempOutputFile.getAbsolutePath(), resultMat);
             resultMat.close();
+            heatmapMat.close();
+            avgMat.close();
 
             if (openResultInstead || doPreview) {
                 statusService.showStatus("Opening result in ImageJ...");
