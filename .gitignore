@@ -3,5 +3,8 @@
 /.settings/
 /target/*
 !/target/*.jar
+/target/original*
+/target/*sources.jar
+/target/*shaded.jar
 /.idea/
 /docs/site/

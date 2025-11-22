@@ -134,9 +134,11 @@ public class ZFHelperMethods {
             int actualStartFrame = Math.max(0, startFrame - 2);
             grabber.setFrameNumber(actualStartFrame);
 
-            int totalFrames = getExactFrameCount(inputFile) - 1; // frame numbers are 0-indexed.
+//            int totalFrames = getExactFrameCount(inputFile) - 1; // frame numbers are 0-indexed.
+            int totalFrames = grabber.getLengthInFrames() - 1; // frame numbers are 0-indexed.
 
-            int actualEndFrame = (endFrame <= 0 || endFrame > totalFrames) ? totalFrames : endFrame - 1;
+            boolean processUntilEnd = endFrame <= 0 || endFrame > totalFrames;
+            int actualEndFrame = (processUntilEnd) ? totalFrames : endFrame - 1;
             if (actualStartFrame >= actualEndFrame) {
                 throw new Exception("Initial frame must be before end frame.");
             }
@@ -150,10 +152,19 @@ public class ZFHelperMethods {
             // for secret and random memory things
             Frame jcvFrame;
             Mat currentFrame;
-            for (int i = actualStartFrame; i < actualEndFrame; i++) {
+            for (int i = actualStartFrame; (i < actualEndFrame) || processUntilEnd; i++) {
                 jcvFrame = grabber.grabImage();
                 if (jcvFrame == null || jcvFrame.image == null) {
+                    if (processUntilEnd){
+                        break;
+                    }
                     throw new Exception("Read terminated prematurely at frame " + i); // we were NOT done!!
+                }
+
+                if (i >= actualEndFrame) { // processUntilEnd = true
+                    processUntilEnd = false; // just process one more frame
+                    // we assume the file header/metadata didn't lie about the length
+                    // the imprecision here comes from the grabber.getLengthInFrames() method, that is imprecise
                 }
 
                 // No one knows why, and it took a few days to figure out why, but
@@ -195,6 +206,14 @@ public class ZFHelperMethods {
         }
     }
 
+    /**
+     * Adds a lot of overhead. Reading each frame can take a lot of time,
+     * and creating a new process may be slow as well.
+     * This is good if you are looking for extreme precision:
+     * avoids off-by-one errors completely, even in malformed files with wrong metadata
+     * <p>
+     * But this is not the general case. We usually just created the files we are reading from.
+     */
     public static int getExactFrameCount(File file) throws IOException, InterruptedException {
         // -v error: hide logs
         // -count_frames: actually count them by decoding
@@ -209,7 +228,7 @@ public class ZFHelperMethods {
                 "-of", "default=nokey=1:noprint_wrappers=1",
                 file.getAbsolutePath()
         );
-        pb.redirectErrorStream(true); // process may crash without this
+        pb.redirectErrorStream(true); // the process may crash without this
 
         Process process = pb.start();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {

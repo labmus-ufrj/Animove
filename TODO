@@ -13,6 +13,3 @@
     -> https://drive.google.com/drive/folders/1qrz53eYvl06PCNzTaGLvaBCJtKP0Ubd8?usp=drive_link
 
 -> change apply brightness function to use openCV one
-
--> decide between precision using ffprobe or one off errors using grabber.getLengthInFrames()
-    -> one-off errors seem actually very acceptable, roll them back
