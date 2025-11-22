@@ -125,6 +125,11 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
         CategoryPlot plot = (CategoryPlot) chart.getPlot();
         plot.setOrientation(PlotOrientation.HORIZONTAL);
 
+        plot.setRangeGridlineStroke(new BasicStroke(
+                1.5f,
+                BasicStroke.CAP_ROUND,
+                BasicStroke.JOIN_ROUND
+        ));
 
         CategoryAxis domainAxis = plot.getDomainAxis();
         domainAxis.setTickLabelFont(new Font(Font.SANS_SERIF, Font.BOLD, 36));
