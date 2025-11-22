@@ -17,6 +17,7 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.category.BoxAndWhiskerRenderer;
+import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.statistics.BoxAndWhiskerCategoryDataset;
 import org.jfree.data.statistics.DefaultBoxAndWhiskerCategoryDataset;
 import org.knowm.xchart.BitmapEncoder;
@@ -121,15 +122,19 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
         JFreeChart chart = ChartFactory.createBoxAndWhiskerChart(name, "", "", dataset, false);
 
         chart.getTitle().setFont(new Font(Font.SANS_SERIF, Font.BOLD, 48));
+        chart.setPadding(new RectangleInsets(20.0, 20.0, 20.0, 20.0));
 
         CategoryPlot plot = (CategoryPlot) chart.getPlot();
         plot.setOrientation(PlotOrientation.HORIZONTAL);
 
         plot.setRangeGridlineStroke(new BasicStroke(
-                1.5f,
+                0.5f,
                 BasicStroke.CAP_ROUND,
                 BasicStroke.JOIN_ROUND
         ));
+
+        plot.setBackgroundPaint(Color.decode("#f0f0f0"));
+        plot.setRangeGridlinePaint(Color.GRAY);
 
         CategoryAxis domainAxis = plot.getDomainAxis();
         domainAxis.setTickLabelFont(new Font(Font.SANS_SERIF, Font.BOLD, 36));
@@ -204,7 +209,7 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
         chart.getStyler().setAxisTickMarksColor(Color.DARK_GRAY);
         chart.getStyler().setAxisTickMarksStroke(new BasicStroke(2.0f));
         chart.getStyler().setAxisTitleVisible(false);
-        chart.getStyler().setAxisTitleFont(new Font(Font.SANS_SERIF, Font.BOLD, 40));
+        chart.getStyler().setAxisTitleFont(new Font(Font.SANS_SERIF, Font.BOLD, 42));
         chart.getStyler().setAxisTitlePadding(60);
         chart.getStyler().setAxisTickValues(new double[]{0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1});
         chart.getStyler().setAxisTickLabels(new String[]{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"});

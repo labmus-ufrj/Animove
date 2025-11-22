@@ -17,6 +17,16 @@ import org.bytedeco.opencv.global.opencv_imgcodecs;
 import org.bytedeco.opencv.global.opencv_imgproc;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.bytedeco.opencv.opencv_core.Scalar;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.labels.StandardCategoryItemLabelGenerator;
+import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.renderer.category.BarRenderer;
+import org.jfree.chart.renderer.category.StandardBarPainter;
+import org.jfree.chart.ui.RectangleInsets;
+import org.jfree.data.category.DefaultCategoryDataset;
 import org.knowm.xchart.BitmapEncoder;
 import org.knowm.xchart.PieChart;
 import org.scijava.app.StatusService;
@@ -29,7 +39,9 @@ import org.scijava.ui.DialogPrompt;
 import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 
+import java.awt.*;
 import java.io.File;
+import java.text.DecimalFormat;
 import java.util.concurrent.Executors;
 
 import static org.bytedeco.opencv.global.opencv_core.CMP_EQ;
@@ -93,11 +105,12 @@ public class QuantifyHeatmap implements Command, Interactive {
         Mat result = new BinarizeFromThresholdFunction(false)
                 .andThen(ZFHelperMethods.InvertFunction)
                 .andThen(new ImageCalculatorFunction(ImageCalculatorFunction.OperationMode.ADD, hetmapMat))
-                .andThen(new ShowEveryFrameFunction())
+//                .andThen(new ShowEveryFrameFunction())
                 .apply(avgMat);
 
-        String name = "Quantified from " + heatmapFile.getName() + " and " + avgFile.getName();
-//        PieChart pieChart = getPieChart(name);
+        String name = "Quantified from " + heatmapFile.getName();
+
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
         ResultsTable rt = new ResultsTable();
         rt.setNaNEmptyCells(true); // prism reads 0.00 as zeros and requires manual fixing
 
@@ -118,13 +131,13 @@ public class QuantifyHeatmap implements Command, Interactive {
 
                     rt.setValue("ROI Name", i, roi.getName());
                     rt.setValue("Count", i, String.format("%.2f", index * 100));
-//                    pieChart.addSeries(roi.getName(), count);
+                    dataset.addValue(index * 100, "", roi.getName());
                 }
             }
         }
 
         if (this.displayPlots) {
-//            new ImagePlus("Plot", BitmapEncoder.getBufferedImage(pieChart)).show();
+            new ImagePlus("Plot", getBarChart(name, dataset).createBufferedImage(1600, 1200)).show();
         }
 
         rt.show(name);
@@ -132,6 +145,54 @@ public class QuantifyHeatmap implements Command, Interactive {
         result.close();
         hetmapMat.close();
         avgMat.close();
+    }
+
+    private JFreeChart getBarChart(String title, DefaultCategoryDataset dataset){
+        JFreeChart chart = ChartFactory.createBarChart(title, "", "Area Percentage (%)", dataset, PlotOrientation.VERTICAL, false, true, false);
+
+        chart.setBackgroundPaint(Color.WHITE);
+
+        chart.getTitle().setFont(new Font("SansSerif", Font.BOLD, 48));
+        chart.setPadding(new RectangleInsets(20.0, 20.0, 20.0, 20.0));
+
+        CategoryPlot plot = chart.getCategoryPlot();
+
+        plot.setRangeGridlineStroke(new BasicStroke(
+                0.5f,
+                BasicStroke.CAP_ROUND,
+                BasicStroke.JOIN_ROUND
+        ));
+
+        plot.setBackgroundPaint(Color.decode("#f0f0f0"));
+        plot.setRangeGridlinePaint(Color.GRAY);
+        plot.setOutlineVisible(false);
+
+        Font axisLabelFont = new Font("SansSerif", Font.BOLD, 36);
+        Font tickLabelFont = new Font("SansSerif", Font.PLAIN, 36);
+
+        plot.getDomainAxis().setLabelFont(axisLabelFont);
+        plot.getDomainAxis().setTickLabelFont(tickLabelFont);
+        plot.getDomainAxis().setLowerMargin(0.02);
+        plot.getDomainAxis().setUpperMargin(0.02);
+
+        NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
+        rangeAxis.setRange(0.0, 100.0);
+        rangeAxis.setLabelFont(axisLabelFont);
+        rangeAxis.setTickLabelFont(tickLabelFont);
+
+        BarRenderer renderer = (BarRenderer) plot.getRenderer();
+        renderer.setDefaultItemLabelsVisible(true);
+        renderer.setDefaultItemLabelGenerator(
+                new StandardCategoryItemLabelGenerator("{2}%", new DecimalFormat("0.#"))
+        );
+
+        renderer.setDefaultItemLabelFont(new Font("SansSerif", Font.BOLD, 36));
+        renderer.setDefaultItemLabelPaint(Color.BLACK);
+
+        renderer.setBarPainter(new StandardBarPainter());
+        renderer.setSeriesPaint(0, Color.decode("#4F81BD")); // Nice blue color
+        renderer.setShadowVisible(false);
+        return chart;
     }
 
     private boolean checkFiles() {
