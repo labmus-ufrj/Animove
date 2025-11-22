@@ -9,6 +9,7 @@ import labmus.animove.utils.functions.ImageCalculatorFunction;
 import labmus.animove.utils.functions.SimpleRecorderFunction;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.OpenCVFrameConverter;
+import org.bytedeco.opencv.global.opencv_imgcodecs;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.scijava.app.StatusService;
 import org.scijava.command.Command;
@@ -118,16 +119,9 @@ public class ImageCalculator extends DynamicCommand implements Interactive {
         try {
             File tempOutputFile = ZFHelperMethods.createPluginTempFile(this.format.toLowerCase());
 
-            Mat image = imread(imageFile.getAbsolutePath());
-            Mat grayImage;
-            if (image.channels() > 1) {
-                grayImage = new Mat();
-                cvtColor(image, grayImage, COLOR_BGR2GRAY);
-            } else {
-                grayImage = image;
-            }
+            Mat grayImage = imread(imageFile.getAbsolutePath(), opencv_imgcodecs.IMREAD_GRAYSCALE);
 
-            if (image.empty()) {
+            if (grayImage.empty()) {
                 throw new Exception("Failed to load the selected image.");
             }
 
@@ -137,7 +131,7 @@ public class ImageCalculator extends DynamicCommand implements Interactive {
                 grabber.start();
                 fps = grabber.getFrameRate();
             }
-            SimpleRecorderFunction simpleRecorderFunction = new SimpleRecorderFunction(new SimpleRecorder(tempOutputFile, image, fps), uiService);
+            SimpleRecorderFunction simpleRecorderFunction = new SimpleRecorderFunction(new SimpleRecorder(tempOutputFile, grayImage, fps), uiService);
             ImageCalculatorFunction imageCalculatorFunction = new ImageCalculatorFunction(ImageCalculatorFunction.OperationMode.fromText(this.operation), grayImage);
 
             ZFHelperMethods.iterateOverFrames(inverter
@@ -153,6 +147,7 @@ public class ImageCalculator extends DynamicCommand implements Interactive {
                 uiService.showDialog("Video saved successfully!",
                         ZFConfigs.pluginName, DialogPrompt.MessageType.INFORMATION_MESSAGE);
             }
+            grayImage.close();
 
         } catch (Exception e) {
             log.error(e);
