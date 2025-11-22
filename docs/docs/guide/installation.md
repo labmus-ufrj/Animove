@@ -26,7 +26,7 @@ The plugin updates via the Update Manager built into Fiji. A search for updates 
     - Find where you have Fiji installed on your computer. This is often in your `Documents` or `Program Files` folder.
 
 3.  **Copy the `.jar` File:**
-    - Copy the `.jar` file you downloaded into the `plugins` folder inside your Fiji installation directory (`Fiji.app/jars/`).
+    - Copy the `.jar` file you downloaded into the `plugins` folder inside your Fiji installation directory (`Fiji.app/plugins/`).
 
     - The final file path should look something like this:
         - `C:\Users\YourUserName\Documents\Fiji.app\plugins\ZebraFish_Utils-0.0.1.jar`
