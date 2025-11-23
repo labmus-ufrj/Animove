@@ -106,7 +106,7 @@ public class InvertOpenCV extends DynamicCommand implements Interactive {
             SimpleRecorderFunction simpleRecorderFunction = new SimpleRecorderFunction(new SimpleRecorder(tempOutputFile, w, h, fps), uiService);
 
             ZFHelperMethods.iterateOverFrames(ZFHelperMethods.InvertFunction
-                    .andThen(simpleRecorderFunction), inputFile, this.startFrame, doPreview ? this.startFrame + 10 : this.endFrame, this.statusService);
+                    .andThen(simpleRecorderFunction), inputFile, this.startFrame, doPreview ? this.startFrame + 9 : this.endFrame, this.statusService);
 
             if (openResultInstead || doPreview) {
                 statusService.showStatus("Opening result in ImageJ...");

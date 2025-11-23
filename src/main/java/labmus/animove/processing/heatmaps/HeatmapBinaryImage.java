@@ -105,11 +105,11 @@ public class HeatmapBinaryImage extends DynamicCommand implements Interactive {
             Function<Mat, Mat> processFunction = new BinarizeFromThresholdFunction(false)
                     .andThen(zprojectFunction);
 
-            ZFHelperMethods.iterateOverFrames(processFunction, inputFile, startFrame, doPreview ? this.startFrame + 10 : this.endFrame, statusService);
+            ZFHelperMethods.iterateOverFrames(processFunction, inputFile, startFrame, doPreview ? this.startFrame + 9 : this.endFrame, statusService);
             Mat heatmapMat = zprojectFunction.getResultMat();
 
             ZprojectFunction zprojectFunctionAvg = new ZprojectFunction(ZprojectFunction.OperationMode.AVG);
-            ZFHelperMethods.iterateOverFrames(zprojectFunctionAvg, inputFile, startFrame, doPreview ? this.startFrame + 10 : this.endFrame, statusService);
+            ZFHelperMethods.iterateOverFrames(zprojectFunctionAvg, inputFile, startFrame, doPreview ? this.startFrame + 9 : this.endFrame, statusService);
             Mat avgMat = zprojectFunctionAvg.getResultMat();
 
             Mat resultMat = new BinarizeFromThresholdFunction(false)

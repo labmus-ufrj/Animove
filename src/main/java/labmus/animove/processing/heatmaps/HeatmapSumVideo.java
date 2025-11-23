@@ -136,7 +136,7 @@ public class HeatmapSumVideo extends DynamicCommand implements Interactive {
             File tempOutputFile = ZFHelperMethods.createPluginTempFile(this.format.toLowerCase());
 
             ZprojectFunction zprojectFunctionAvg = new ZprojectFunction(ZprojectFunction.OperationMode.AVG);
-            ZFHelperMethods.iterateOverFrames(ZFHelperMethods.InvertFunction.andThen(zprojectFunctionAvg), inputFile, startFrame, doPreview ? this.startFrame + 10 : this.endFrame, statusService);
+            ZFHelperMethods.iterateOverFrames(ZFHelperMethods.InvertFunction.andThen(zprojectFunctionAvg), inputFile, startFrame, doPreview ? this.startFrame + 9 : this.endFrame, statusService);
             Mat avgMat = zprojectFunctionAvg.getResultMat();
 
             Function<Mat, Mat> subtractFunction = new ImageCalculatorFunction(ImageCalculatorFunction.OperationMode.ADD, avgMat);
@@ -160,7 +160,7 @@ public class HeatmapSumVideo extends DynamicCommand implements Interactive {
                     .andThen(ZFHelperMethods.InvertFunction)
                     .andThen(zprojectFunctionSum)
                     .andThen(brightnessLUTFunction)
-                    .andThen(simpleRecorderFunction), this.inputFile, this.startFrame, doPreview ? this.startFrame + 10 : this.endFrame, this.statusService);
+                    .andThen(simpleRecorderFunction), this.inputFile, this.startFrame, doPreview ? this.startFrame + 9 : this.endFrame, this.statusService);
 
             brightnessLUTFunction.close();
             simpleRecorderFunction.close();

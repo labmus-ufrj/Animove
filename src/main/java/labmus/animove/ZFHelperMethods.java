@@ -155,19 +155,19 @@ public class ZFHelperMethods {
                 statusService.showStatus("Processing frames... ");
             }
 
-            IJ.log("Actual start frame: " + actualStartFrame);
-            IJ.log("Actual end frame: " + actualEndFrame);
-            IJ.log("processUntilEnd: " + processUntilEnd);
-            IJ.log("totalFrames: " + totalFrames);
+//            IJ.log("Actual start frame: " + actualStartFrame);
+//            IJ.log("Actual end frame: " + actualEndFrame);
+//            IJ.log("processUntilEnd: " + processUntilEnd);
+//            IJ.log("totalFrames: " + totalFrames);
 
-            int count = 0;
+//            int count = 0;
             // it's better to declare these two here
             // for secret and random memory things
             Frame jcvFrame;
             Mat currentFrame;
             for (int i = actualStartFrame; (i < actualEndFrame) || processUntilEnd; i++) {
                 jcvFrame = grabber.grabImage();
-                IJ.log("i: " + i + " - grabber: " + grabber.getFrameNumber());
+//                IJ.log("i: " + i + " - grabber: " + grabber.getFrameNumber());
                 if (jcvFrame == null || jcvFrame.image == null) {
                     if (processUntilEnd) {
                         break;
@@ -194,7 +194,9 @@ public class ZFHelperMethods {
                         currentFrame = currentFrameColor;
                     }
 
-                    if (currentFrame.isNull()) continue;
+                    if (currentFrame.isNull()){
+                        throw new Exception("Error processing frame " + i); // we were NOT done!!
+                    }
 
 //                    long initTime = System.currentTimeMillis();
 
@@ -210,10 +212,10 @@ public class ZFHelperMethods {
                     if (statusService != null) {
                         statusService.showProgress(i + 1, framesToProcess);
                     }
-                    count++;
+//                    count++;
                 }
             }
-            IJ.log("count:  " + count);
+//            IJ.log("count:  " + count);
             System.gc();
 
         }

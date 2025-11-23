@@ -161,7 +161,7 @@ public class HeatmapSumImages extends DynamicCommand implements Interactive {
                 }
 
                 int startFrame = Integer.parseInt(a[0]);
-                int endFrame = doPreview ? startFrame + 10 : Integer.parseInt(a[1]);
+                int endFrame = doPreview ? startFrame + 9 : Integer.parseInt(a[1]);
                 interval = a[0] + "-" + a[1]; // making sure displayed data is right
 
                 ZprojectFunction zprojectFunctionAvg = new ZprojectFunction(ZprojectFunction.OperationMode.AVG);

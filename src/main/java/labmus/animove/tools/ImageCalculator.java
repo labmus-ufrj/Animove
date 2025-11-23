@@ -136,7 +136,7 @@ public class ImageCalculator extends DynamicCommand implements Interactive {
 
             ZFHelperMethods.iterateOverFrames(inverter
                     .andThen(imageCalculatorFunction)
-                    .andThen(simpleRecorderFunction), inputVideoFile, this.startFrame, doPreview ? this.startFrame + 10 : this.endFrame, this.statusService);
+                    .andThen(simpleRecorderFunction), inputVideoFile, this.startFrame, doPreview ? this.startFrame + 9 : this.endFrame, this.statusService);
             simpleRecorderFunction.close();
 
             if (openResultInstead || doPreview) {
