@@ -144,7 +144,7 @@ public class EmbryosTrackingProcessing extends DynamicCommand implements Interac
                 recorderFunction.getRecorder().openResultinIJ(uiService, datasetIOService, false);
 
             } else {
-                Files.copy(tempOutputFile.toPath(), outputFile.toPath());
+                Files.move(tempOutputFile.toPath(), outputFile.toPath());
                 uiService.showDialog("Video saved successfully!",
                         ZFConfigs.pluginName, DialogPrompt.MessageType.INFORMATION_MESSAGE);
             }

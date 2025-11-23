@@ -144,7 +144,7 @@ public class ImageCalculator extends DynamicCommand implements Interactive {
                 statusService.showStatus("Opening result in ImageJ...");
                 simpleRecorderFunction.getRecorder().openResultinIJ(uiService, datasetIOService, false);
             } else {
-                Files.copy(tempOutputFile.toPath(), outputFile.toPath());
+                Files.move(tempOutputFile.toPath(), outputFile.toPath());
                 uiService.showDialog("Video saved successfully!",
                         ZFConfigs.pluginName, DialogPrompt.MessageType.INFORMATION_MESSAGE);
             }
