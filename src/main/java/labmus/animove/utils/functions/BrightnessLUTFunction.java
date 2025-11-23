@@ -67,7 +67,15 @@ public class BrightnessLUTFunction implements Function<Mat, Mat> {
             }
             matRGB.close();
 
-            return matBGR;
+            if (!lut.contains(defaultLut)) {
+                return matBGR;
+            } else {
+                Mat matGrey = new Mat();
+                cvtColor(matBGR, matGrey, COLOR_BGR2GRAY);
+                matBGR.close();
+                return matGrey;
+            }
+
         }
     }
 

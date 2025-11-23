@@ -36,6 +36,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static labmus.animove.processing.heatmaps.HeatmapSumImages.defaultLut;
+
 @SuppressWarnings({"FieldCanBeLocal"})
 @Plugin(type = Command.class, menuPath = ZFConfigs.heatmapSumVideoPath)
 public class HeatmapSumVideo extends DynamicCommand implements Interactive {
@@ -167,7 +169,7 @@ public class HeatmapSumVideo extends DynamicCommand implements Interactive {
 
             if (openResultInstead || doPreview) {
                 statusService.showStatus("Opening result in ImageJ...");
-                simpleRecorderFunction.getRecorder().openResultinIJ(uiService, datasetIOService);
+                simpleRecorderFunction.getRecorder().openResultinIJ(uiService, datasetIOService, !lut.contains(defaultLut));
             } else {
                 Files.copy(tempOutputFile.toPath(), outputFile.toPath());
                 uiService.showDialog("Video saved successfully!",

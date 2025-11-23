@@ -148,7 +148,7 @@ public class AdultsTrackingProcessing extends DynamicCommand implements Interact
 
             if (openResultInstead || doPreview) {
                 statusService.showStatus("Opening result in ImageJ...");
-                recorderFunction.getRecorder().openResultinIJ(uiService, datasetIOService);
+                recorderFunction.getRecorder().openResultinIJ(uiService, datasetIOService, false);
                 IJ.getImage().setRoi(lastRoi);
             } else {
                 Files.copy(tempOutputFile.toPath(), outputFile.toPath());

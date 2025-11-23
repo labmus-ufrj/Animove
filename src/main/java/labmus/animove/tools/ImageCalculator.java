@@ -137,11 +137,12 @@ public class ImageCalculator extends DynamicCommand implements Interactive {
             ZFHelperMethods.iterateOverFrames(inverter
                     .andThen(imageCalculatorFunction)
                     .andThen(simpleRecorderFunction), inputVideoFile, this.startFrame, doPreview ? this.startFrame + 9 : this.endFrame, this.statusService);
+
             simpleRecorderFunction.close();
 
             if (openResultInstead || doPreview) {
                 statusService.showStatus("Opening result in ImageJ...");
-                simpleRecorderFunction.getRecorder().openResultinIJ(uiService, datasetIOService);
+                simpleRecorderFunction.getRecorder().openResultinIJ(uiService, datasetIOService, false);
             } else {
                 Files.copy(tempOutputFile.toPath(), outputFile.toPath());
                 uiService.showDialog("Video saved successfully!",

@@ -1,11 +1,14 @@
 package labmus.animove.utils;
 
 import ij.IJ;
+import ij.ImagePlus;
+import ij.plugin.AVI_Reader;
 import io.scif.config.SCIFIOConfig;
 import io.scif.img.ImageRegion;
 import io.scif.img.Range;
 import io.scif.media.imageioimpl.plugins.tiff.TIFFImageWriterSpi;
 import io.scif.services.DatasetIOService;
+import labmus.animove.ZFConfigs;
 import net.imagej.Dataset;
 import net.imagej.axis.Axes;
 import net.imagej.axis.AxisType;
@@ -15,6 +18,7 @@ import org.bytedeco.javacv.*;
 import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.bytedeco.opencv.opencv_core.Scalar;
+import org.scijava.ui.DialogPrompt;
 import org.scijava.ui.UIService;
 
 import javax.imageio.IIOImage;
@@ -46,7 +50,6 @@ public class SimpleRecorder implements AutoCloseable {
     }
 
     private FFmpegFrameRecorder recorder;
-    private SCIFIOConfig config = null;
 
     private ImageOutputStream ios;
     private ImageWriter writer;
@@ -161,20 +164,6 @@ public class SimpleRecorder implements AutoCloseable {
         this.recorder.start();
     }
 
-    private SCIFIOConfig setupConfig(boolean openAllChannels) {
-        SCIFIOConfig config = new SCIFIOConfig();
-        config.enableBufferedReading(true); // this is the virtual stack setting
-        if (!openAllChannels) {
-            // avi will have 3 channels (YUV) due to pixel format. all with the same data. only need to open one.
-            Map<AxisType, Range> regionMap = new HashMap<>();
-            regionMap.put(Axes.CHANNEL, new Range(0L));
-            config.imgOpenerSetRegion(new ImageRegion(regionMap));
-        } else {
-            config.imgOpenerSetImgModes(SCIFIOConfig.ImgMode.PLANAR);
-        }
-        return config;
-    }
-
     public void recordMat(Mat frameMat) throws Exception {
         try (OpenCVFrameConverter.ToMat converter = new OpenCVFrameConverter.ToMat()) {
             recordMat(frameMat, converter);
@@ -191,9 +180,6 @@ public class SimpleRecorder implements AutoCloseable {
      * @throws Exception If anything goes wrong, read the message
      */
     public void recordMat(Mat frameMat, OpenCVFrameConverter.ToMat matConverter) throws Exception {
-        if (this.config == null) {
-            this.config = setupConfig(frameMat.channels() > 1);
-        }
         Mat tempFrame;
         if (frameMat.elemSize1() == 1) { // if it's already 8-bit
             tempFrame = frameMat;
@@ -265,26 +251,39 @@ public class SimpleRecorder implements AutoCloseable {
      * @param datasetIOService get it from @Parameter
      * @throws Exception mainly IOException
      */
-    public void openResultinIJ(UIService uiService, DatasetIOService datasetIOService) throws Exception {
+    public void openResultinIJ(UIService uiService, DatasetIOService datasetIOService, boolean openAllChannels) throws Exception {
         this.close();
-        if (this.format == Format.MP4) {
-            return;
-        }
-        int maxRetries = 5;
-        for (int i = 0; i < maxRetries; i++) {
-            try {
-                Dataset dataset = datasetIOService.open(outputFile.getAbsolutePath(), this.config);
+        switch (this.format) {
+            case MP4:
+                uiService.showDialog("Can't open MP4 files in ImageJ.", ZFConfigs.pluginName, DialogPrompt.MessageType.WARNING_MESSAGE);
+                break;
+            case TIFF:
+                SCIFIOConfig config = new SCIFIOConfig();
+                config.enableBufferedReading(true); // this is the virtual stack setting
+                config.imgOpenerSetImgModes(SCIFIOConfig.ImgMode.CELL);
+                if (!openAllChannels) {
+                    // tiff will have 3 channels all with the same data. only need to open one.
+                    Map<AxisType, Range> regionMap = new HashMap<>();
+                    regionMap.put(Axes.CHANNEL, new Range(0L));
+                    config.imgOpenerSetRegion(new ImageRegion(regionMap));
+
+                } else {
+                    config.imgOpenerSetImgModes(SCIFIOConfig.ImgMode.CELL, SCIFIOConfig.ImgMode.PLANAR);
+                }
+                Dataset dataset = datasetIOService.open(outputFile.getAbsolutePath(), config);
                 uiService.show(dataset);
                 break;
-            } catch (Exception e) {
-                IJ.log(e.getMessage());
-                if (i == maxRetries - 1) {
-                    throw e;
-                } else {
-                    Thread.sleep(1000);
+            case AVI:
+                String opt = "virtual";
+                if (!openAllChannels) {
+                    opt += "convert";
                 }
-            }
+                AVI_Reader.open(outputFile.getAbsolutePath(), opt).show();
+                // For some reason, datasetIOService.open() would throw an EOFException
+                // when reading some AVI files. This seemingly random behavior made me use the legacy option instead
+                break;
         }
+
     }
 
     @Override

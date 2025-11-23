@@ -141,7 +141,7 @@ public class EmbryosTrackingProcessing extends DynamicCommand implements Interac
 
             if (openResultInstead || doPreview) {
                 statusService.showStatus("Opening result in ImageJ...");
-                recorderFunction.getRecorder().openResultinIJ(uiService, datasetIOService);
+                recorderFunction.getRecorder().openResultinIJ(uiService, datasetIOService, false);
 
             } else {
                 Files.copy(tempOutputFile.toPath(), outputFile.toPath());
