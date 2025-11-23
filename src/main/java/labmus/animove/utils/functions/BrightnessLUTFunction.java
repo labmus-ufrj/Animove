@@ -18,7 +18,6 @@ import static org.bytedeco.opencv.global.opencv_imgproc.*;
 
 public class BrightnessLUTFunction implements Function<Mat, Mat> {
 
-    private final Java2DFrameConverter biConverter = new Java2DFrameConverter();
     private final Roi roi;
     private final String lut;
     private BufferedImage lastBi;
@@ -40,39 +39,39 @@ public class BrightnessLUTFunction implements Function<Mat, Mat> {
                 opencv_core.CV_16UC1,
                 null);
         sumMat.close();
-        try (OpenCVFrameConverter.ToMat matConverter = new OpenCVFrameConverter.ToMat()) {
-            try (Frame frame = matConverter.convert(mat)) {
-                ImagePlus imp = new ImagePlus("LUT", biConverter.convert(frame));
-                imp.setRoi(roi); // todo: this can be replaced by convertTo like ThresholdBrightnessFunction... or just a normalize
-                ZFHelperMethods.autoAdjustBrightnessStack(imp, true);
-                imp.deleteRoi();
-                if (!lut.contains(defaultLut)) {
+        try (OpenCVFrameConverter.ToMat matConverter = new OpenCVFrameConverter.ToMat();
+             Java2DFrameConverter biConverter = new Java2DFrameConverter();
+             Frame frame = matConverter.convert(mat)) {
+
+            ImagePlus imp = new ImagePlus("LUT", biConverter.convert(frame));
+            imp.setRoi(roi); // todo: this can be replaced by convertTo like ThresholdBrightnessFunction... or just a normalize
+            ZFHelperMethods.autoAdjustBrightnessStack(imp, true);
+            imp.deleteRoi();
+            if (!lut.contains(defaultLut)) {
 //                    yes, there 's a way to apply LUT using opencv_core.LUT();
 //                    but there 's no clear path to convert imageJ LUT' s to a valid openCV LUT.
-                    IJ.run(imp, this.lut, "");
-                }
-                ImagePlus impLUT = imp.flatten();
-
-                this.lastBi = impLUT.getBufferedImage();
-
-                // imp.getBufferedImage() returns a RGBA image, and openCV uses a BGR mat
-                Mat matRGB = matConverter.convert(biConverter.getFrame(this.lastBi, 1.0, true));
-                Mat matBGR = new Mat();
-
-                if (matRGB.channels() == 4) {
-                    cvtColor(matRGB, matBGR, COLOR_BGRA2BGR);
-                } else {
-                    matBGR = matRGB.clone();
-                }
-                matRGB.close();
-
-                return matBGR;
+                IJ.run(imp, this.lut, "");
             }
+            ImagePlus impLUT = imp.flatten();
+
+            this.lastBi = impLUT.getBufferedImage();
+
+            // imp.getBufferedImage() returns a RGBA image, and openCV uses a BGR mat
+            Mat matRGB = matConverter.convert(biConverter.getFrame(this.lastBi, 1.0, true));
+            Mat matBGR = new Mat();
+
+            if (matRGB.channels() == 4) {
+                cvtColor(matRGB, matBGR, COLOR_BGRA2BGR);
+            } else {
+                matBGR = matRGB.clone();
+            }
+            matRGB.close();
+
+            return matBGR;
         }
     }
 
     public void close() {
-        this.biConverter.close();
         this.lastBi.flush();
         this.lastBi = null;
     }

@@ -21,7 +21,7 @@ public abstract class ZFConfigs {
     public static final String imgCalcPath = toolsPath + "Image Calculator";
     public static final String checkDepsPath = toolsPath + "Check Dependencies";
 //    public static final String helperPath = toolsPath + "Helper";
-    public static final String saveStackPath = toolsPath + "Save Stack as video";
+    public static final String frameExtractorPath = toolsPath + "Frame Extractor";
     public static final String performanceTest = toolsPath + "Performance Test";
     public static final String invertPath = toolsPath + "Invert Video";
 

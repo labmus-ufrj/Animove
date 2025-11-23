@@ -51,7 +51,7 @@ public class SimpleRecorder implements AutoCloseable {
     private ImageOutputStream ios;
     private ImageWriter writer;
     private ImageWriteParam params;
-    private Java2DFrameConverter biConverter;
+    private Java2DFrameConverter biConverter; // todo: don't we need a new one every frame??
 
     private final File outputFile;
 
@@ -104,6 +104,7 @@ public class SimpleRecorder implements AutoCloseable {
         switch (this.format) {
             case MP4:
                 this.recorder = new FFmpegFrameRecorder(outputFile, 0, 0, 0);
+                this.recorder.setCloseOutputStream(true);
                 // mp4 only supports even numbers as resolution. to avoid cropping out a row of pixels, we will be adding one.
                 // mp4 should only be used to create exports, not during processing steps.
                 // chroma subsampling and this row can mess with everything

@@ -244,7 +244,7 @@ public class FFmpegPlugin implements Command, Interactive {
             return false;
         }
         if (isPosview && multiCrop) {
-            uiService.showDialog("Can't create posview in Multi-Crop mode.",
+            uiService.showDialog("Can't create preview in Multi-Crop mode.",
                     "Multi-Crop Error", DialogPrompt.MessageType.ERROR_MESSAGE);
             return false;
         }
@@ -379,10 +379,18 @@ public class FFmpegPlugin implements Command, Interactive {
         commandList.add("\"" + inputFile.getAbsolutePath() + "\"");
 
         commandList.add("-pix_fmt");
-        // maximizing compatibility with players. bgr24 works but breaks avi (VLC works, but it's an exception)
-        commandList.add("yuv420p");
-        commandList.add("-color_range");
-        commandList.add("pc");
+        if (outputCodec.equals("mjpeg")) {
+            // for some unknown reason color_range setting does not work as expected. using the deprecated one instead.
+            commandList.add("yuvj420p");
+            commandList.add("-strict");
+            commandList.add("unofficial");
+        } else {
+            // maximizing compatibility with players. bgr24 works but breaks avi (VLC works, but it's an exception)
+            commandList.add("yuv420p");
+            commandList.add("-color_range");
+            commandList.add("pc");
+        }
+
 
         // Set codec and quality for normal video processing
         if (!isPosview) {

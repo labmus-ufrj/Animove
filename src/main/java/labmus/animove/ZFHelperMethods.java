@@ -14,13 +14,8 @@ import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.opencv_core.Mat;
-import org.knowm.xchart.BitmapEncoder;
-import org.knowm.xchart.DialChart;
-import org.knowm.xchart.DialChartBuilder;
-import org.knowm.xchart.style.Styler;
 import org.scijava.app.StatusService;
 
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
@@ -131,14 +126,26 @@ public class ZFHelperMethods {
         try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile)) {
             grabber.start();
 
-            int actualStartFrame = Math.max(0, startFrame - 2);
-            grabber.setFrameNumber(actualStartFrame);
-
 //            int totalFrames = getExactFrameCount(inputFile) - 1; // frame numbers are 0-indexed.
             int totalFrames = grabber.getLengthInFrames() - 1; // frame numbers are 0-indexed.
 
             boolean processUntilEnd = endFrame <= 0 || endFrame > totalFrames;
             int actualEndFrame = (processUntilEnd) ? totalFrames : endFrame - 1;
+
+            int actualStartFrame = Math.max(0, startFrame - 2);
+
+            if (startFrame == 1) {
+                // grabber.setFrameNumber() will mess the frame count. just leave as-is for the first frame.
+                if (!processUntilEnd){
+                    actualEndFrame++;
+                }
+            } else if (startFrame == 2) {
+                grabber.setFrameNumber(0);
+            } else {
+                grabber.setFrameNumber(actualStartFrame);
+            }
+
+
             if (actualStartFrame >= actualEndFrame) {
                 throw new Exception("Initial frame must be before end frame.");
             }
@@ -148,14 +155,21 @@ public class ZFHelperMethods {
                 statusService.showStatus("Processing frames... ");
             }
 
+            IJ.log("Actual start frame: " + actualStartFrame);
+            IJ.log("Actual end frame: " + actualEndFrame);
+            IJ.log("processUntilEnd: " + processUntilEnd);
+            IJ.log("totalFrames: " + totalFrames);
+
+            int count = 0;
             // it's better to declare these two here
             // for secret and random memory things
             Frame jcvFrame;
             Mat currentFrame;
             for (int i = actualStartFrame; (i < actualEndFrame) || processUntilEnd; i++) {
                 jcvFrame = grabber.grabImage();
+                IJ.log("i: " + i + " - grabber: " + grabber.getFrameNumber());
                 if (jcvFrame == null || jcvFrame.image == null) {
-                    if (processUntilEnd){
+                    if (processUntilEnd) {
                         break;
                     }
                     throw new Exception("Read terminated prematurely at frame " + i); // we were NOT done!!
@@ -196,8 +210,10 @@ public class ZFHelperMethods {
                     if (statusService != null) {
                         statusService.showProgress(i + 1, framesToProcess);
                     }
+                    count++;
                 }
             }
+            IJ.log("count:  " + count);
             System.gc();
 
         }

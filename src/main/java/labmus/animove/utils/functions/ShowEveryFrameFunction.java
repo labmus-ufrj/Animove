@@ -10,14 +10,12 @@ import java.util.function.Function;
 
 public class ShowEveryFrameFunction implements Function<Mat, Mat> {
 
-    private final Java2DFrameConverter biConverter = new Java2DFrameConverter();
-
     @Override
     public Mat apply(Mat mat) {
-        try (OpenCVFrameConverter.ToMat matConverter = new OpenCVFrameConverter.ToMat()) {
-            try (Frame frame = matConverter.convert(mat)) {
-                new ImagePlus("Mat", biConverter.convert(frame)).show();
-            }
+        try (OpenCVFrameConverter.ToMat matConverter = new OpenCVFrameConverter.ToMat();
+             Java2DFrameConverter biConverter = new Java2DFrameConverter();
+             Frame frame = matConverter.convert(mat)) {
+            new ImagePlus(String.valueOf(System.currentTimeMillis()), biConverter.convert(frame)).show();
         }
         return mat;
     }
