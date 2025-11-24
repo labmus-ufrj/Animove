@@ -10,9 +10,9 @@ public abstract class ZFConfigs {
 
     private static final String prePath = "Animove" + ">"; // sadly can't use pluginName here
 
-    private static final String toolsPath = prePath + "Tools>";
-    private static final String processingPath = prePath + "Processing>"; // processing / generation / some other word
-    private static final String analysisPath = prePath + "Analysis>";
+    private static final String toolsPath = prePath + "1 - Tools>";
+    private static final String processingPath = prePath + "2 - Processing>"; // processing / generation / some other word
+    private static final String analysisPath = prePath + "3 - Analysis>";
 
     public static final String aboutPath = prePath + "About";
 
