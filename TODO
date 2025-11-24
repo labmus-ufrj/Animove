@@ -9,11 +9,19 @@
 
 -> Extract Frequency Data
 -> Extract Tracking Data
+-> Thigmotaxis
 
 -> Save ROI to ROI Manager
     -> heatmap sum image
     -> heatmap sum video
     -> adults tracking
+
+-> gradient scroe analysis
+    -> fix axis interval being random, should be exaclty 1
+    -> write median value below track 1 in box plot and in title in dial
+    -> make montage of track score dials
+
+-> quantify heatmap binary should be a separate thing, to be used with tanks recorded sideways
 
 -> provide more test samples, ready to be tested ones, to be linked in each tool/feature
     -> https://drive.google.com/drive/folders/1qrz53eYvl06PCNzTaGLvaBCJtKP0Ubd8?usp=drive_link
