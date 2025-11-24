@@ -1,4 +1,4 @@
-# ZebraFish Utils
+# Animove
 
 ## Goals
 
