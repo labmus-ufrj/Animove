@@ -5,6 +5,8 @@
     -> inform about the auto-converting to grayscale feature in guide section
     -> image calc: images and videos might be in different resolutions, bit depths, channel count, etc. That can generate errors. Only use images generated from Zproject plugin. lets document that.
 
+-> write about text
+
 -> Extract Frequency Data
 -> Extract Tracking Data
 
