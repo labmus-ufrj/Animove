@@ -17,7 +17,6 @@
     -> adults tracking
 
 -> gradient scroe analysis
-    -> fix axis interval being random, should be exaclty 1
     -> write median value below track 1 in box plot and in title in dial
     -> make montage of track score dials
 

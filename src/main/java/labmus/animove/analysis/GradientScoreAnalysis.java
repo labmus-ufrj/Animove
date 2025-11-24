@@ -14,6 +14,7 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.CategoryAxis;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.category.BoxAndWhiskerRenderer;
@@ -141,6 +142,8 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
 
         NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
         rangeAxis.setTickLabelFont(new Font(Font.SANS_SERIF, Font.BOLD, 36));
+        rangeAxis.setRange(0.0, 10.0);
+        rangeAxis.setTickUnit(new NumberTickUnit(1.0));
 
         domainAxis.setCategoryMargin(0.1);
         domainAxis.setLabelFont(new Font(Font.SANS_SERIF, Font.PLAIN, 30));

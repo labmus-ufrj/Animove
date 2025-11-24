@@ -33,6 +33,8 @@ import org.scijava.widget.Button;
 import java.awt.*;
 import java.io.File;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
 import java.util.concurrent.Executors;
 
 import static org.bytedeco.opencv.global.opencv_core.CMP_EQ;
@@ -157,7 +159,7 @@ public class QuantifyHeatmap implements Command, Interactive {
         BarRenderer renderer = (BarRenderer) plot.getRenderer();
         renderer.setDefaultItemLabelsVisible(true);
         renderer.setDefaultItemLabelGenerator(
-                new StandardCategoryItemLabelGenerator("{2}%", new DecimalFormat("0.#"))
+                new StandardCategoryItemLabelGenerator("{2}%", new DecimalFormat("0.#", new DecimalFormatSymbols(Locale.US)))
         );
 
         renderer.setDefaultItemLabelFont(new Font("SansSerif", Font.BOLD, 36));
