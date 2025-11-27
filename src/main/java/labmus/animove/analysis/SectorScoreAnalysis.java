@@ -8,9 +8,16 @@ import ij.measure.ResultsTable;
 import ij.plugin.frame.RoiManager;
 import labmus.animove.ZFConfigs;
 import labmus.animove.ZFHelperMethods;
-import org.knowm.xchart.*;
-import org.knowm.xchart.style.PieStyler;
-import org.knowm.xchart.style.Styler;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.block.BlockBorder;
+import org.jfree.chart.labels.StandardPieSectionLabelGenerator;
+import org.jfree.chart.plot.PiePlot;
+import org.jfree.chart.title.LegendTitle;
+import org.jfree.chart.title.TextTitle;
+import org.jfree.chart.ui.RectangleEdge;
+import org.jfree.chart.ui.RectangleInsets;
+import org.jfree.data.general.DefaultPieDataset;
 import org.scijava.command.Command;
 import org.scijava.command.Interactive;
 import org.scijava.log.LogService;
@@ -30,8 +37,11 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.awt.*;
+import java.awt.geom.Ellipse2D;
 import java.io.File;
 import java.io.IOException;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -86,21 +96,50 @@ public class SectorScoreAnalysis implements Command, Interactive {
         IJ.setTool("rectangle"); // to create ROIs
     }
 
-    private PieChart getPieChart(String name) {
-        PieChart chart =
-                new PieChartBuilder()
-                        .width(1600).height(1200)
-                        .theme(Styler.ChartTheme.GGPlot2)
-                        .title(name)
-                        .build();
+    private JFreeChart getPieChart(DefaultPieDataset dataset, String name) {
+        JFreeChart chart = ChartFactory.createPieChart(
+                name,
+                dataset,
+                true,
+                true,
+                false
+        );
 
-        // Customize Chart
-        chart.getStyler().setLabelType(PieStyler.LabelType.Percentage);
-        chart.getStyler().setLabelsFont(new Font(Font.SANS_SERIF, Font.BOLD, 36));
-        chart.getStyler().setLegendPosition(Styler.LegendPosition.OutsideS);
-        chart.getStyler().setLegendLayout(Styler.LegendLayout.Horizontal);
-        chart.getStyler().setChartTitleFont(new Font(Font.SANS_SERIF, Font.BOLD, 48));
-        chart.getStyler().setLegendFont(new Font(Font.SANS_SERIF, Font.PLAIN, 36));
+        chart.setBackgroundPaint(Color.WHITE);
+        chart.getTitle().setFont(new Font("SansSerif", Font.BOLD, 48));
+        chart.setPadding(new RectangleInsets(20.0, 20.0, 20.0, 20.0));
+
+        TextTitle title = chart.getTitle();
+        title.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 48));
+        title.setPaint(Color.BLACK);
+
+        PiePlot plot = (PiePlot) chart.getPlot();
+        plot.setBackgroundPaint(Color.WHITE);
+        plot.setOutlineVisible(false);
+        plot.setShadowPaint(null);
+
+        plot.setLabelGenerator(null);
+
+        plot.setSimpleLabels(true);
+
+        plot.setLabelFont(new Font(Font.SANS_SERIF, Font.BOLD, 42));
+        plot.setLabelPaint(Color.WHITE);
+
+        plot.setLabelGenerator(new StandardPieSectionLabelGenerator(
+                "{2}", new DecimalFormat("0"), new DecimalFormat("0.0%", new DecimalFormatSymbols(Locale.US))
+        ));
+        plot.setLabelBackgroundPaint(null);
+        plot.setLabelOutlinePaint(null);
+        plot.setLabelShadowPaint(null);
+
+        plot.setLegendItemShape(new Ellipse2D.Double(0, 0, 25, 25));
+
+        LegendTitle legend = chart.getLegend();
+        legend.setPosition(RectangleEdge.BOTTOM);
+        legend.setItemFont(new Font(Font.SANS_SERIF, Font.PLAIN, 36));
+        legend.setFrame(BlockBorder.NONE);
+        legend.setItemLabelPadding(new RectangleInsets(0, 10, 0, 40));
+
         return chart;
     }
 
@@ -122,7 +161,7 @@ public class SectorScoreAnalysis implements Command, Interactive {
 
         String name = "Scores from " + xmlFile.getName() + " and " + videoFile.getName();
 
-        PieChart pieChart = getPieChart(name);
+        DefaultPieDataset dataset = new DefaultPieDataset();
 
         ResultsTable rt = new ResultsTable();
         rt.setNaNEmptyCells(true); // prism reads 0.00 as zeros and requires manual fixing
@@ -142,7 +181,7 @@ public class SectorScoreAnalysis implements Command, Interactive {
             globalCount += count;
             rt.setValue("ROI Name", i, roi.getName());
             rt.setValue("Count", i, count);
-            pieChart.addSeries(roi.getName(), count);
+            dataset.setValue(roi.getName(), count);
         }
 
         int lastRowIndex = roiManager.getCount();
@@ -153,10 +192,10 @@ public class SectorScoreAnalysis implements Command, Interactive {
                 .reduce(Integer::sum).get(); // there'll always be spots. hopefully.
 
         rt.setValue("Count", lastRowIndex, spotsCount - globalCount);
-        pieChart.addSeries("Outside All ROIs", spotsCount - globalCount);
+        dataset.setValue("Outside All ROIs", spotsCount - globalCount);
 
-        if (this.displayPlots){
-            new ImagePlus("Plot", BitmapEncoder.getBufferedImage(pieChart)).show();
+        if (this.displayPlots) {
+            new ImagePlus("Plot", getPieChart(dataset, name).createBufferedImage(1600, 1200)).show();
         }
 
         rt.show(name);

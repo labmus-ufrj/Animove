@@ -17,7 +17,3 @@
 -> change apply brightness function to use openCV one
 
 -> change 'Tools' name?
-
--> reuse first ROI from ROI manager 
-
--> Fix graphs using '.' instead of ','
