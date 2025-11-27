@@ -9,7 +9,7 @@ Uses OpenCV and FFmpeg to invert each frame, allowing faster operation without t
 Any videos supported by ffmpeg. This includes most video formats in existence. Notably, one exclusion: AVI videos saved from ImageJ with compression set to "None" (codec rawvideo) will not work.
 
 ## Output Formats
-The user can choose between AVI, TIfF or MP4.
+The user can choose between AVI, TIFF or MP4.
 
 ## Don't save, open in ImageJ instead
 Files won't be saved to the specified Output Folder. Instead, they'll be opened in ImageJ.
