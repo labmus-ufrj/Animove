@@ -119,12 +119,18 @@ public class HeatmapSumImages extends DynamicCommand implements Interactive {
             return;
         }
 
+        RoiManager rm = RoiManager.getInstance();
+        if (rm == null) {
+            rm = new RoiManager();
+        }
         Roi singleRoi;
-        if (previewImagePlus != null) {
+        if (previewImagePlus != null && previewImagePlus.getRoi() != null) {
             singleRoi = previewImagePlus.getRoi();
+            singleRoi.setName(ZFConfigs.pluginName);
+            rm.addRoi(singleRoi);
         } else {
-            RoiManager rm = RoiManager.getInstance();
-            singleRoi = (rm != null && rm.getSelectedIndex() != -1) ? rm.getRoi(rm.getSelectedIndex()) : null;
+            int roiIndex = rm.getSelectedIndex() != -1 ? rm.getSelectedIndex() : 0;
+            singleRoi = rm.getRoi(roiIndex);
         }
 
         lastRoi = singleRoi == null ? lastRoi : singleRoi;

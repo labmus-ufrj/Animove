@@ -107,7 +107,7 @@ public class QuantifyHeatmap implements Command, Interactive {
                     double index = (double) blackPixelCount / roiPixelCount;
 
                     rt.setValue("ROI Name", i, roi.getName());
-                    rt.setValue("Count", i, String.format("%.2f", index * 100));
+                    rt.setValue("Area %", i, String.format("%.2f", index * 100));
                     dataset.addValue(index * 100, "", roi.getName());
                 }
             }

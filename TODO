@@ -5,16 +5,9 @@
     -> inform about the auto-converting to grayscale feature in guide section
     -> image calc: images and videos might be in different resolutions, bit depths, channel count, etc. That can generate errors. Only use images generated from Zproject plugin. lets document that.
 
-<< sugestion for about text: "This Plug-In imports, process and analyse video files for movement and position. It was developed in December 2025 to study embryo and adult zebrafish physical performance and behaviour. Please report any question to manoelluiscosta@ufrj.br."
-
 -> Extract Frequency Data
 -> Extract Tracking Data
 -> Thigmotaxis
-
--> Save ROI to ROI Manager
-    -> heatmap sum image
-    -> heatmap sum video
-    -> adults tracking
 
 -> gradient scroe analysis
     -> write median value below track 1 in box plot and in title in dial

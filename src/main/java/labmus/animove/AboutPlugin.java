@@ -30,9 +30,9 @@ public class AboutPlugin implements Command {
         statusService.showStatus("Loading...");
         final String version = AppInfo.getProperty("app.version");
         final String repoUrl = AppInfo.getProperty("app.url");
-        final String wikiUrl = "https://tracking-plugin.vercel.app/"; // todo: add github pages wiki
+        final String wikiUrl = "https://labmus-ufrj.github.io/Animove/";
         final String paperUrl = "https://doi.org/paper-doi"; // todo: add paper doi
-        final String descriptionText = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus pretium molestie semper. Sed a leo eleifend, sollicitudin dui ut, tristique turpis. Integer nec varius metus, in posuere mauris. Integer suscipit ligula leo, id pellentesque nibh vulputate sit amet. Aenean condimentum, quam a faucibus consequat, felis elit fermentum lacus, non blandit tellus diam ac lacus. Quisque efficitur ullamcorper tortor, nec vestibulum nisl tincidunt eu. Integer augue leo, molestie ac felis at, viverra feugiat risus.";
+        final String descriptionText = "This Plug-In imports, process and analyse video files for movement and position. It was developed in December 2025 to study embryo and adult zebrafish physical performance and behaviour. Please report any question to manoelluiscosta@ufrj.br.";
         final String authorsText = "Developed by: Murilo Nespolo Spineli, Paloma de Carvalho Vieira,\n Claudia Mermelstein and Manoel Luis Costa";
 
         SwingUtilities.invokeLater(() -> {
