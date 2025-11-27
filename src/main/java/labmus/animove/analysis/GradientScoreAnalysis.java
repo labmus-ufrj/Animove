@@ -19,7 +19,7 @@ import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.category.BoxAndWhiskerRenderer;
 import org.jfree.chart.ui.RectangleInsets;
-import org.jfree.data.statistics.BoxAndWhiskerCategoryDataset;
+import org.jfree.data.statistics.BoxAndWhiskerItem;
 import org.jfree.data.statistics.DefaultBoxAndWhiskerCategoryDataset;
 import org.knowm.xchart.BitmapEncoder;
 import org.knowm.xchart.DialChart;
@@ -119,8 +119,26 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
         iterateOverXML(true);
     }
 
-    private JFreeChart getHorizontalBoxChart(String name, BoxAndWhiskerCategoryDataset dataset) {
-        JFreeChart chart = ChartFactory.createBoxAndWhiskerChart(name, "", "", dataset, false);
+    private JFreeChart getHorizontalBoxChart(String name, DefaultBoxAndWhiskerCategoryDataset sourceDataset) {
+        DefaultBoxAndWhiskerCategoryDataset taggedDataset = new DefaultBoxAndWhiskerCategoryDataset();
+
+        for (int r = 0; r < sourceDataset.getRowCount(); r++) {
+            for (int c = 0; c < sourceDataset.getColumnCount(); c++) {
+
+                BoxAndWhiskerItem item = sourceDataset.getItem(r, c);
+                Comparable rowKey = sourceDataset.getRowKey(r);
+                Comparable colKey = sourceDataset.getColumnKey(c);
+
+                Number median = item.getMedian();
+                double medianVal = (median != null) ? median.doubleValue() : 0.0;
+
+                String newKey = colKey.toString() + "\n" + String.format(Locale.US, "%.2f", medianVal);
+
+                taggedDataset.add(item, rowKey, newKey);
+            }
+        }
+
+        JFreeChart chart = ChartFactory.createBoxAndWhiskerChart(name, "", "", taggedDataset, false);
 
         chart.getTitle().setFont(new Font(Font.SANS_SERIF, Font.BOLD, 48));
         chart.setPadding(new RectangleInsets(20.0, 20.0, 20.0, 20.0));
@@ -139,6 +157,7 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
 
         CategoryAxis domainAxis = plot.getDomainAxis();
         domainAxis.setTickLabelFont(new Font(Font.SANS_SERIF, Font.BOLD, 36));
+        domainAxis.setMaximumCategoryLabelLines(3);
 
         NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
         rangeAxis.setTickLabelFont(new Font(Font.SANS_SERIF, Font.BOLD, 36));
