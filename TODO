@@ -9,9 +9,6 @@
 -> Extract Tracking Data
 -> Thigmotaxis
 
--> gradient scroe analysis
-    -> make montage of track score dials
-
 -> quantify heatmap binary should be a separate thing, to be used with tanks recorded sideways
 
 -> provide more test samples, ready to be tested ones, to be linked in each tool/feature

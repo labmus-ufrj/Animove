@@ -269,8 +269,9 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
                 values.add(value);
             }
             dataset.add(values, "All series", columnHeader);
-            DialChart dialChart = getDialChart(columnHeader);
-            dialChart.addSeries("Score", calculateMedian(values) * 0.1);
+            float median = calculateMedian(values);
+            DialChart dialChart = getDialChart(columnHeader + " - " + String.format(Locale.US, "%.2f", median));
+            dialChart.addSeries("Score", median * 0.1);
             dialCharts.add(dialChart);
         }
 
@@ -281,7 +282,7 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
                     dialCharts.stream()
                             .map(chart -> new ImagePlus("Plot", BitmapEncoder.getBufferedImage(chart))).toArray(ImagePlus[]::new)
             );
-            stack.show();
+            IJ.run(stack, "Make Montage...", "columns=" + stack.getNSlices() + " rows=1 scale=1");
 
         }
 
