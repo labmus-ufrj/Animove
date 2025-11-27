@@ -18,4 +18,5 @@ Files won't be saved to the specified Output Folder. Instead, they'll be opened 
 Select the frame number to start and end of the processing. Inclusive. Can be visualized as opening the video in ImageJ and looking at the slice number.
 To automatically take the last frame of the video type 0 in the 'End frame' option.
 
+## Preview
 The plugin shows a preview of the function, using the first 10 frames.
