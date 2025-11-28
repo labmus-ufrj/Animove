@@ -63,11 +63,11 @@ public class ImageCalculator extends DynamicCommand implements Interactive {
     @Parameter(label = "Don't save, open in ImageJ instead", persist = false)
     private boolean openResultInstead = false;
 
-    @Parameter(label = "Operation", callback = "updateOutputName", initializer = "initOperation", persist = false)
-    private String operation = "";
-
     @Parameter(label = "Invert before operation", persist = false)
     private boolean invertVideo = false;
+
+    @Parameter(label = "Operation", callback = "updateOutputName", initializer = "initOperation", persist = false)
+    private String operation = "";
 
     @Parameter(label = "Start Frame", min = "1", persist = false)
     private int startFrame = 1;

@@ -50,17 +50,17 @@ public class ZProjectOpenCV extends DynamicCommand implements Interactive {
     @Parameter(label = "Open Frame", callback = "openFrame")
     private Button btn1;
 
-    @Parameter(label = "Output Image", style = "save", persist = false, required = false)
+    @Parameter(label = "Output File (Image)", style = "save", persist = false, required = false)
     private File outputFile;
 
-    @Parameter(label = "Processing Mode", callback = "updateOutputName", initializer = "initProc", persist = false)
-    private String mode = "";
+    @Parameter(label = "Don't save, open in ImageJ instead", persist = false)
+    private boolean openResultInstead = false;
 
     @Parameter(label = "Invert before operation", persist = false)
     private boolean invertVideo = false;
 
-    @Parameter(label = "Don't save, open in ImageJ instead", persist = false)
-    private boolean openResultInstead = false;
+    @Parameter(label = "Processing Mode", callback = "updateOutputName", initializer = "initProc", persist = false)
+    private String mode = "";
 
     @Parameter(label = "Initial Frame", min = "1", persist = false)
     private int startFrame = 1;

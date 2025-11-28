@@ -34,10 +34,10 @@ public abstract class ZFConfigs {
     public static final String embryosTrackingPath = trackingPath + "Embryos Tracking";
     public static final String adultsTrackingPath = trackingPath + "Adults Tracking";
 
-    private static final String embryosPath = analysisPath + "Embryos Analysis>";
-    public static final String roisPath = embryosPath + "Create ROIs";
-    public static final String quantifyEmbryos = embryosPath + "Quantify Heatmap";
-    public static final String analyzeFrequencyEmbryos = embryosPath + "Extract Frequency Data";
+//    private static final String embryosPath = analysisPath + "Embryos Analysis>";
+    public static final String roisPath = analysisPath + "Create Sequential ROIs";
+    public static final String quantifyEmbryos = analysisPath + "Quantify Binary Heatmap";
+    public static final String analyzeFrequencyEmbryos = analysisPath + "Extract Frequency Data";
 
     public static final String scoreGradientPath = analysisPath + "Calculate Score Gradient";
     public static final String scoreSectorPath = analysisPath + "Calculate Score Sectors";

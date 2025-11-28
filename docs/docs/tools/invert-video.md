@@ -1,22 +1,20 @@
 # Invert Video
 
-Uses OpenCV and FFmpeg to invert each frame, allowing faster operation without the need of load the whole video into memory. Done as a [bitwise NOT](https://docs.opencv.org/4.x/d0/d86/tutorial_py_image_arithmetics.html) operation.
+Uses OpenCV and FFmpeg to invert each frame, allowing faster operation without the need to load the whole video into memory. Done as a [bitwise NOT](https://docs.opencv.org/4.x/d0/d86/tutorial_py_image_arithmetics.html) operation.
 
 ## Interface
- <img width="514" height="360" alt="image" src="https://github.com/user-attachments/assets/e4c31c08-8754-4250-ae16-22bf799f762b" />
+![Interface image](img/gui-invert-video.png){ width="300em" }
 
-## Input Video
-Any videos supported by ffmpeg. This includes most video formats in existence. Notably, one exclusion: AVI videos saved from ImageJ with compression set to "None" (codec rawvideo) will not work.
+--8<-- "input-video.md"
 
-## Output Formats
-The user can choose between AVI, TIFF or MP4.
+--8<-- "open-frame.md"
 
-## Don't save, open in ImageJ instead
-Files won't be saved to the specified Output Folder. Instead, they'll be opened in ImageJ.
+--8<-- "output-file.md"
 
-## Initial and last frame
-Select the frame number to start and end of the processing. Inclusive. Can be visualized as opening the video in ImageJ and looking at the slice number.
-To automatically take the last frame of the video type 0 in the 'End frame' option.
+--8<-- "output-formats.md"
 
-## Preview
-The plugin shows a preview of the function, using the first 10 frames.
+--8<-- "dont-save.md"
+
+--8<-- "start-end-frame.md"
+
+--8<-- "preview.md"

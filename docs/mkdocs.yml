@@ -26,28 +26,31 @@ nav:
       - 'Quick Start': 'guide/quick-start.md'
   - '1 - Tools':
       - 'FFmpeg': 'tools/ffmpeg.md'
-      - 'Z-project': 'tools/z-project.md'
       - 'Image Calculator': 'tools/image-calculator.md'
-      - 'Performance Test': 'tools/performance-test.md'
       - 'Invert Video': 'tools/invert-video.md'
+      - 'Performance Test': 'tools/performance-test.md'
+      - 'Z-project': 'tools/z-project.md'
   - '2 - Processing':
       - 'Heatmaps':
+          - 'Binary Heatmap Image': 'processing/heatmap-binary.md'
           - 'Sum Heatmap Images': 'processing/heatmap-images.md'
           - 'Sum Heatmap Video': 'processing/heatmap-video.md'
-          - 'Binary Heatmap Image': 'processing/heatmap-binary.md'
       - 'Tracking':
-          - 'Embryos Tracking': 'processing/embryos-tracking.md'
           - 'Adults Tracking': 'processing/adults-tracking.md'
+          - 'Embryos Tracking': 'processing/embryos-tracking.md'
   - '3 - Analysis':
-      - 'Extract Tracking Data': 'analysis/tracking-data.md'
       - 'Calculate Score Gradient': 'analysis/score-gradient.md'
       - 'Calculate Score Sectors': 'analysis/score-sectors.md'
-      - 'Embryos':
-          - 'Quantify Heatmap': 'analysis/quantify-heatmap.md'
-          - 'Extract Frequency Data': 'analysis/frequency-data.md'
+      - 'Create Sequential ROIs': 'analysis/create-rois.md'
+      - 'Extract Tracking Data': 'analysis/tracking-data.md'
+      - 'Extract Tracking Frequency Data': 'analysis/frequency-data.md'
+      - 'Quantify Binary Heatmap': 'analysis/quantify-heatmap.md'
 
 markdown_extensions:
   - admonition # "note" or "warning" boxes
   - pymdownx.highlight # code syntax highlighting
   - pymdownx.superfences # code boxes
   - attr_list
+  - pymdownx.snippets:
+      base_path: ["docs/snippets"]
+      check_paths: true # This helps debug by throwing an error if the file isn't found

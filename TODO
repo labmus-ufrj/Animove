@@ -2,14 +2,11 @@
 
 -> Write documentation
     -> Suggest the usage of that excel export plugin  https://imagej.net/plugins/excel-functions
-    -> inform about the auto-converting to grayscale feature in guide section
     -> image calc: images and videos might be in different resolutions, bit depths, channel count, etc. That can generate errors. Only use images generated from Zproject plugin. lets document that.
 
 -> Extract Frequency Data
 -> Extract Tracking Data
 -> Thigmotaxis
-
--> quantify heatmap binary should be a separate thing, to be used with tanks recorded sideways
 
 -> provide more test samples, ready to be tested ones, to be linked in each tool/feature
     -> https://drive.google.com/drive/folders/1qrz53eYvl06PCNzTaGLvaBCJtKP0Ubd8?usp=drive_link
