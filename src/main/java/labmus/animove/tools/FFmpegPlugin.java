@@ -110,6 +110,7 @@ public class FFmpegPlugin implements Command, Interactive {
 
     private ImagePlus previewImagePlus;
     private ImagePlus posviewImagePlus;
+    private Roi lastCropRoi;
 
     /**
      * Runs once when the plugin inits, it's a framework feature.
@@ -175,6 +176,9 @@ public class FFmpegPlugin implements Command, Interactive {
                     }
                     previewImagePlus = ZFHelperMethods.getFirstFrame(inputFile);
                     previewImagePlus.setTitle("First frame");
+                    if (lastCropRoi != null) {
+                        previewImagePlus.setRoi(lastCropRoi);
+                    }
                     uiService.show(previewImagePlus);
                 } catch (Exception e) {
                     log.error(e);
@@ -265,7 +269,7 @@ public class FFmpegPlugin implements Command, Interactive {
     private void executeProcessing(boolean isPosview) {
         try {
             RoiManager roiManager = RoiManager.getInstance();
-            if (roiManager == null) {
+            if (roiManager == null && (multiCrop || useRoiCrop)) { // if we are not using ROI's, dont open the ROIManager
                 roiManager = new RoiManager();
             }
 
@@ -296,14 +300,14 @@ public class FFmpegPlugin implements Command, Interactive {
                     File finalOutputFile = new File(outputDirectory, outputName);
 
                     // Process video for this ROI
-                    processVideo(finalOutputFile, roi, isPosview); // isPosview is always false here
+                    processVideo(finalOutputFile, isPosview); // isPosview is always false here
                 }
             }
             // Handle single ROI mode
             else {
-                Roi singleRoi = null;
                 // Get active ROI if crop option enabled
                 if (useRoiCrop) {
+                    Roi singleRoi;
                     if (previewImagePlus != null && previewImagePlus.getRoi() != null) {
                         singleRoi = previewImagePlus.getRoi();
                         singleRoi.setName(ZFConfigs.pluginName);
@@ -313,17 +317,17 @@ public class FFmpegPlugin implements Command, Interactive {
                         singleRoi = roiManager.getRoi(roiIndex);
                     }
 
+                    lastCropRoi = singleRoi == null ? lastCropRoi : singleRoi;
                     // Validate ROI exists
-                    if (singleRoi == null) {
+                    if (lastCropRoi == null) {
                         uiService.showDialog("The 'Crop using active ROI' option was checked, but no ROI was found.",
                                 "ROI Error", DialogPrompt.MessageType.ERROR_MESSAGE);
                         return;
                     }
-                    log.info("Using active ROI: " + singleRoi.getName());
                 }
 
                 // Process video with single ROI
-                processVideo(outputFile, singleRoi, isPosview);
+                processVideo(outputFile, isPosview);
             }
 
             // Clear status and show completion message
@@ -347,14 +351,14 @@ public class FFmpegPlugin implements Command, Interactive {
      * 2. Posview mode: Creates a single frame with all filters applied for preview
      *
      * @param currentOutputFile The output file where processed video/image will be saved
-     * @param cropRoi           Region of interest for cropping the video (can be null)
      * @param isPosview         If true, generates a single frame posview image
      * @throws Exception If any error occurs during processing
      */
-    private void processVideo(File currentOutputFile, Roi cropRoi, boolean isPosview) throws Exception {
-        if (previewImagePlus != null) {
-            previewImagePlus.close();
-        }
+    private void processVideo(File currentOutputFile, boolean isPosview) throws Exception {
+//        if (previewImagePlus != null) {
+//            previewImagePlus.close();
+//        }
+//        the user may have forgotten to use mark the crop option, we don't want that ROI gone
         // Get video properties from input file
         double fps;
         int totalFramesToProcess;
@@ -415,7 +419,7 @@ public class FFmpegPlugin implements Command, Interactive {
         }
 
         commandList.add("-vf");
-        commandList.add(buildVideoFilter(cropRoi));
+        commandList.add(buildVideoFilter());
 
         // Set number of frames to process
         commandList.add("-vframes");
@@ -519,17 +523,16 @@ public class FFmpegPlugin implements Command, Interactive {
     /**
      * Builds the FFmpeg video filter string by combining various transformations and effects.
      *
-     * @param roi Region of interest to crop the video (can be null for no cropping)
      * @return A string containing the FFmpeg video filter chain
      */
-    private String buildVideoFilter(Roi roi) {
+    private String buildVideoFilter() {
         StringJoiner filterChain = new StringJoiner(",");
         filterChain.add("setpts=N/(" + outputFps + "*TB)");
         if (horizontalFlip) filterChain.add("hflip");
         if (verticalFlip) filterChain.add("vflip");
 
-        if (roi != null) {
-            Rectangle bounds = roi.getBounds();
+        if (lastCropRoi != null) {
+            Rectangle bounds = lastCropRoi.getBounds();
             String cropString = "crop=" + bounds.width + ":" + bounds.height + ":" + bounds.x + ":" + bounds.y;
             log.info("cropString: " + cropString);
             filterChain.add(cropString);

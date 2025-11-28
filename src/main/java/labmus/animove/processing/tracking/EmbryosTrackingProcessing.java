@@ -7,6 +7,7 @@ import labmus.animove.ZFConfigs;
 import labmus.animove.ZFHelperMethods;
 import labmus.animove.utils.SimpleRecorder;
 import labmus.animove.utils.functions.ImageCalculatorFunction;
+import labmus.animove.utils.functions.MedianBlurFunction;
 import labmus.animove.utils.functions.SimpleRecorderFunction;
 import labmus.animove.utils.functions.ZprojectFunction;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
@@ -117,11 +118,11 @@ public class EmbryosTrackingProcessing extends DynamicCommand implements Interac
             ImageCalculatorFunction imageCalculatorFunction = new ImageCalculatorFunction(ImageCalculatorFunction.OperationMode.ADD, avgMat);
 
             Function<Mat, Mat> bcFunction = (mat) -> {
-                mat.convertTo(mat, -1, 1, 30); // todo: maybe either calculate beta automatically or let the user choose...
+                mat.convertTo(mat, -1, 1, 20); // todo: maybe either calculate beta automatically or let the user choose...
                 return mat;
             };
 
-            // todo: add some blur, median or gaussian
+            MedianBlurFunction medianBlurFunction = new MedianBlurFunction(2);
 
             double fps;
             try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile)) {
@@ -134,6 +135,7 @@ public class EmbryosTrackingProcessing extends DynamicCommand implements Interac
             Function<Mat, Mat> processFunction = imageCalculatorFunction
                     .andThen(bcFunction)
                     .andThen(ZFHelperMethods.InvertFunction)
+                    .andThen(medianBlurFunction)
                     .andThen(recorderFunction);
 
             ZFHelperMethods.iterateOverFrames(processFunction, inputFile, startFrame, doPreview ? this.startFrame + 9 : this.endFrame, statusService);
