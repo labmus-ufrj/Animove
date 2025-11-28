@@ -352,6 +352,9 @@ public class FFmpegPlugin implements Command, Interactive {
      * @throws Exception If any error occurs during processing
      */
     private void processVideo(File currentOutputFile, Roi cropRoi, boolean isPosview) throws Exception {
+        if (previewImagePlus != null) {
+            previewImagePlus.close();
+        }
         // Get video properties from input file
         double fps;
         int totalFramesToProcess;

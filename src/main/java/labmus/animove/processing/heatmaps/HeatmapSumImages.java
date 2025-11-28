@@ -145,7 +145,6 @@ public class HeatmapSumImages extends DynamicCommand implements Interactive {
             previewImagePlus.close();
         }
 
-        Roi finalRoi = lastRoi;
         Executors.newSingleThreadExecutor().submit(() -> this.executeProcessing(doPreview));
 
     }
