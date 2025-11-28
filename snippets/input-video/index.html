@@ -12,13 +12,9 @@
         <meta name="author" content="LabMus - UFRJ">
       
       
-        <link rel="canonical" href="https://animove-docs.vercel.app/tools/image-calculator/">
+        <link rel="canonical" href="https://animove-docs.vercel.app/snippets/input-video/">
       
       
-        <link rel="prev" href="../ffmpeg/">
-      
-      
-        <link rel="next" href="../invert-video/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -26,7 +22,7 @@
     
     
       
-        <title>Image Calculator - Animove</title>
+        <title>Input video - Animove</title>
       
     
     
@@ -68,7 +64,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#image-calculator" class="md-skip">
+        <a href="#input-video" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +100,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Image Calculator
+              Input video
             
           </span>
         </div>
@@ -336,20 +332,18 @@
       
   
   
-    
   
   
-  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
         
           
           <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
@@ -365,7 +359,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             1 - Tools
@@ -379,7 +373,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../check-dependencies/" class="md-nav__link">
+      <a href="../../tools/check-dependencies/" class="md-nav__link">
         
   
   
@@ -402,7 +396,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../ffmpeg/" class="md-nav__link">
+      <a href="../../tools/ffmpeg/" class="md-nav__link">
         
   
   
@@ -422,32 +416,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    Image Calculator
-    
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../tools/image-calculator/" class="md-nav__link">
         
   
   
@@ -458,125 +430,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#interface" class="md-nav__link">
-    <span class="md-ellipsis">
-      Interface
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#input-video" class="md-nav__link">
-    <span class="md-ellipsis">
-      Input Video
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#open-frame" class="md-nav__link">
-    <span class="md-ellipsis">
-      Open Frame
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#input-image" class="md-nav__link">
-    <span class="md-ellipsis">
-      Input Image
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#output-file" class="md-nav__link">
-    <span class="md-ellipsis">
-      Output File
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#output-formats" class="md-nav__link">
-    <span class="md-ellipsis">
-      Output Formats
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#dont-save-open-in-imagej-instead" class="md-nav__link">
-    <span class="md-ellipsis">
-      Don't save, open in ImageJ instead
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#invert-before-operation" class="md-nav__link">
-    <span class="md-ellipsis">
-      Invert before operation
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#operation" class="md-nav__link">
-    <span class="md-ellipsis">
-      Operation
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#start-and-end-frame" class="md-nav__link">
-    <span class="md-ellipsis">
-      Start and End frame
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#preview" class="md-nav__link">
-    <span class="md-ellipsis">
-      Preview
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -589,7 +442,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../invert-video/" class="md-nav__link">
+      <a href="../../tools/invert-video/" class="md-nav__link">
         
   
   
@@ -612,7 +465,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../performance-test/" class="md-nav__link">
+      <a href="../../tools/performance-test/" class="md-nav__link">
         
   
   
@@ -635,7 +488,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../z-project/" class="md-nav__link">
+      <a href="../../tools/z-project/" class="md-nav__link">
         
   
   
@@ -1110,8 +963,6 @@
   
   
   
-    
-  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -1120,99 +971,9 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#interface" class="md-nav__link">
-    <span class="md-ellipsis">
-      Interface
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#input-video" class="md-nav__link">
     <span class="md-ellipsis">
       Input Video
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#open-frame" class="md-nav__link">
-    <span class="md-ellipsis">
-      Open Frame
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#input-image" class="md-nav__link">
-    <span class="md-ellipsis">
-      Input Image
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#output-file" class="md-nav__link">
-    <span class="md-ellipsis">
-      Output File
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#output-formats" class="md-nav__link">
-    <span class="md-ellipsis">
-      Output Formats
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#dont-save-open-in-imagej-instead" class="md-nav__link">
-    <span class="md-ellipsis">
-      Don't save, open in ImageJ instead
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#invert-before-operation" class="md-nav__link">
-    <span class="md-ellipsis">
-      Invert before operation
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#operation" class="md-nav__link">
-    <span class="md-ellipsis">
-      Operation
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#start-and-end-frame" class="md-nav__link">
-    <span class="md-ellipsis">
-      Start and End frame
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#preview" class="md-nav__link">
-    <span class="md-ellipsis">
-      Preview
     </span>
   </a>
   
@@ -1237,40 +998,10 @@
   
 
 
-<h1 id="image-calculator">Image Calculator</h1>
-<p>Performs a mathematical operation on a video and an image. Similar to ImageJ's built-in one (without the need to load the video to RAM).</p>
-<h2 id="interface">Interface</h2>
-<p><img alt="Interface image" src="../img/gui-image-calc.png" width="300em" /></p>
+  <h1>Input video</h1>
+
 <h2 id="input-video">Input Video</h2>
 <p>Any videos supported by ffmpeg. This includes most video formats in existence. Notably, one exclusion: AVI videos saved from ImageJ with compression set to "None" (codec rawvideo) will not work.</p>
-<h2 id="open-frame">Open Frame</h2>
-<p>Opens the first frame of the video as a preview. Can be used to set the ROI in functions that require it. Ignores the file's EXIF rotation data.</p>
-<h2 id="input-image">Input Image</h2>
-<p>Image to perform the operation.
-Any image format supported by <a href="https://docs.opencv.org/4.x/d4/da8/group__imgcodecs.html#gaffb68fce322c6e52841d7d9357b9ad2d">OpenCV's imread</a> can be used.</p>
-<div class="admonition warning">
-<p class="admonition-title">Image and Video Mismatch</p>
-<p>This image and the input video need to be in the same resolution, bit depth and channel count.</p>
-</div>
-<p>It's recommended to only use images generated from this plugin's Z-Project function. </p>
-<p>Notably, <strong>32-bit images aren't supported</strong>.</p>
-<h2 id="output-file">Output File</h2>
-<p>The path to save the operation's output.</p>
-<h2 id="output-formats">Output Formats</h2>
-<p>The user can choose between AVI, TIFF or MP4.</p>
-<h2 id="dont-save-open-in-imagej-instead">Don't save, open in ImageJ instead</h2>
-<p>Files won't be saved to the output path. Instead, they'll be opened in ImageJ.</p>
-<h2 id="invert-before-operation">Invert before operation</h2>
-<p>Invert each frame before performing the operation. Done as a <a href="https://docs.opencv.org/4.x/d0/d86/tutorial_py_image_arithmetics.html">bitwise NOT</a> operation.</p>
-<h2 id="operation">Operation</h2>
-<p>Mathematical operation to be performed on the inputs. Same effect as the built-in ImageJ ones.</p>
-<h2 id="start-and-end-frame">Start and End frame</h2>
-<p>Specify the frame number to begin and end the processing.</p>
-<p>The selection is inclusive, meaning both the start and end frames will be processed.</p>
-<p>Frame numbers are one-indexed (the first frame has a frame number equal to 1).</p>
-<p>To process the video all the way to its final frame, enter 0 in the 'End frame' field.</p>
-<h2 id="preview">Preview</h2>
-<p>Shows a preview of the function, using the first 10 frames ahead of the Start frame set by the user.</p>
 
 
 
