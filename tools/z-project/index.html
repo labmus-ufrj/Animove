@@ -571,9 +571,9 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#output-file" class="md-nav__link">
+  <a href="#output-image" class="md-nav__link">
     <span class="md-ellipsis">
-      Output File
+      Output Image
     </span>
   </a>
   
@@ -1129,9 +1129,9 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#output-file" class="md-nav__link">
+  <a href="#output-image" class="md-nav__link">
     <span class="md-ellipsis">
-      Output File
+      Output Image
     </span>
   </a>
   
@@ -1208,8 +1208,8 @@
 <p>Any videos supported by ffmpeg. This includes most video formats in existence. Notably, one exclusion: AVI videos saved from ImageJ with compression set to "None" (codec rawvideo) will not work.</p>
 <h2 id="open-frame">Open Frame</h2>
 <p>Opens the first frame of the video as a preview. Can be used to set the ROI in functions that require it. Ignores the file's EXIF rotation data.</p>
-<h2 id="output-file">Output File</h2>
-<p>The path to save the operation's output.</p>
+<h2 id="output-image">Output Image</h2>
+<p>The path to save the operation's image output. <strong>Tiff is the recommended format</strong>, although all formats supported by <a href="https://docs.opencv.org/4.x/d4/da8/group__imgcodecs.html#gabbc7ef1aa2edfaa87772f1202d67e0ce">OpenCV imwrite</a> are supported.</p>
 <h2 id="dont-save-open-in-imagej-instead">Don't save, open in ImageJ instead</h2>
 <p>Files won't be saved to the output path. Instead, they'll be opened in ImageJ.</p>
 <h2 id="invert-before-operation">Invert before operation</h2>
@@ -1220,9 +1220,7 @@
 <li>Darkest (Min)</li>
 <li>Brightest (Max)</li>
 <li>Average</li>
-<li>Always saved as 32-bit</li>
-<li>Sum</li>
-<li>Always saved as 32-bit</li>
+<li>Sum (saved as 32-bit)</li>
 </ul>
 <h2 id="start-and-end-frame">Start and End frame</h2>
 <p>Specify the frame number to begin and end the processing.</p>
