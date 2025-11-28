@@ -7,7 +7,7 @@
 
 1. Run **Fiji → Help → Update…**
 2. Click the **Manage update sites** button
-3. In the new popup window search for the site name `ZF-Utils` and activate the checkbox
+3. In the new popup window search for the site name `Animove` and activate the checkbox
 4. Press the **Close** button
 5. Finally, press the **Apply changes** button and restart Fiji
 6. The plugin will appear under the menu Plugins → ZF Utils
