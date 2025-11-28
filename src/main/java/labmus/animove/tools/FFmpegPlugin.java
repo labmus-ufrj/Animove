@@ -19,6 +19,7 @@ import org.scijava.widget.Button;
 import org.scijava.widget.FileWidget;
 import org.scijava.widget.NumberWidget;
 
+import java.awt.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
@@ -263,13 +264,16 @@ public class FFmpegPlugin implements Command, Interactive {
      */
     private void executeProcessing(boolean isPosview) {
         try {
-            // Get ROI manager instance
             RoiManager roiManager = RoiManager.getInstance();
+            if (roiManager == null) {
+                roiManager = new RoiManager();
+            }
+
 
             // Handle Multi-Crop mode
             if (multiCrop) {
                 // Validate ROI manager has ROIs
-                if (roiManager == null || roiManager.getCount() == 0) {
+                if (roiManager.getCount() == 0) {
                     uiService.showDialog("Multi-Crop mode requires ROIs in the ROI Manager.",
                             "Multi-Crop Error", DialogPrompt.MessageType.ERROR_MESSAGE);
                     return;
@@ -300,16 +304,18 @@ public class FFmpegPlugin implements Command, Interactive {
                 Roi singleRoi = null;
                 // Get active ROI if crop option enabled
                 if (useRoiCrop) {
-                    if (previewImagePlus != null) {
+                    if (previewImagePlus != null && previewImagePlus.getRoi() != null) {
                         singleRoi = previewImagePlus.getRoi();
+                        singleRoi.setName(ZFConfigs.pluginName);
+                        roiManager.addRoi(singleRoi);
                     } else {
-                        RoiManager rm = RoiManager.getInstance();
-                        singleRoi = (rm != null && rm.getSelectedIndex() != -1) ? rm.getRoi(rm.getSelectedIndex()) : null;
+                        int roiIndex = roiManager.getSelectedIndex() != -1 ? roiManager.getSelectedIndex() : 0;
+                        singleRoi = roiManager.getRoi(roiIndex);
                     }
 
                     // Validate ROI exists
                     if (singleRoi == null) {
-                        uiService.showDialog("The 'Crop using active ROI' option was checked, but no ROI is selected.",
+                        uiService.showDialog("The 'Crop using active ROI' option was checked, but no ROI was found.",
                                 "ROI Error", DialogPrompt.MessageType.ERROR_MESSAGE);
                         return;
                     }
@@ -520,7 +526,7 @@ public class FFmpegPlugin implements Command, Interactive {
         if (verticalFlip) filterChain.add("vflip");
 
         if (roi != null) {
-            java.awt.Rectangle bounds = roi.getBounds();
+            Rectangle bounds = roi.getBounds();
             String cropString = "crop=" + bounds.width + ":" + bounds.height + ":" + bounds.x + ":" + bounds.y;
             log.info("cropString: " + cropString);
             filterChain.add(cropString);
