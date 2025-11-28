@@ -101,12 +101,12 @@ public class ZFHelperMethods {
         commandList.add("-an");
         commandList.add("-noautorotate");
         commandList.add("-i");
-        commandList.add("\"" + inputFile.getAbsolutePath() + "\"");
+        commandList.add(inputFile.getAbsolutePath());
 
         commandList.add("-vframes");
         commandList.add("1");
 
-        commandList.add("\"" + tempFile.getAbsolutePath() + "\"");
+        commandList.add(tempFile.getAbsolutePath());
 
         // Execute FFmpeg command
         ProcessBuilder pb = new ProcessBuilder(commandList);

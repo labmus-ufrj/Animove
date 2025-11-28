@@ -376,7 +376,7 @@ public class FFmpegPlugin implements Command, Interactive {
         commandList.add("-y");
         commandList.add("-noautorotate");
         commandList.add("-i");
-        commandList.add("\"" + inputFile.getAbsolutePath() + "\"");
+        commandList.add(inputFile.getAbsolutePath());
 
         commandList.add("-pix_fmt");
         if (outputCodec.equals("mjpeg")) {
@@ -406,14 +406,14 @@ public class FFmpegPlugin implements Command, Interactive {
         }
 
         commandList.add("-vf");
-        commandList.add("\"" + buildVideoFilter(cropRoi) + "\"");
+        commandList.add(buildVideoFilter(cropRoi));
 
         // Set number of frames to process
         commandList.add("-vframes");
         commandList.add(String.valueOf(totalFramesToProcess));
 
         // Add output file
-        commandList.add("\"" + currentOutputFile.getAbsolutePath() + "\"");
+        commandList.add(currentOutputFile.getAbsolutePath());
 
         log.info(commandList.toString());
 
