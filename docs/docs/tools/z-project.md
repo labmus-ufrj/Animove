@@ -7,7 +7,7 @@
 
 --8<-- "open-frame.md"
 
---8<-- "output-file.md"
+--8<-- "output-image.md"
 
 --8<-- "dont-save.md"
 
@@ -19,9 +19,7 @@ The operations available mimic ImageJ's built-in **Image → Stacks → Z projec
 * Darkest (Min)
 * Brightest (Max)
 * Average
-  * Always saved as 32-bit
-* Sum
-  * Always saved as 32-bit
+* Sum (saved as 32-bit)
 
 --8<-- "start-end-frame.md"
 

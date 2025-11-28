@@ -13,5 +13,3 @@
 -> change apply brightness function to use openCV one
 
 -> change 'Tools' name?
-
--> Run median filter (and normalize) after all processing steps in embryos tracking

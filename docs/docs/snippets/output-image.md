@@ -1,0 +1,2 @@
+## Output Image
+The path to save the operation's image output. **Tiff is the recommended format**, although all formats supported by [OpenCV imwrite](https://docs.opencv.org/4.x/d4/da8/group__imgcodecs.html#gabbc7ef1aa2edfaa87772f1202d67e0ce) are supported.

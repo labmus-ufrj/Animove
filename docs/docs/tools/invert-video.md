@@ -9,7 +9,7 @@ Uses OpenCV and FFmpeg to invert each frame, allowing faster operation without t
 
 --8<-- "open-frame.md"
 
---8<-- "output-file.md"
+--8<-- "output-image.md"
 
 --8<-- "output-formats.md"
 

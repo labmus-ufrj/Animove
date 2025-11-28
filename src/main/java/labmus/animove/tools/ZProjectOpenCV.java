@@ -50,7 +50,7 @@ public class ZProjectOpenCV extends DynamicCommand implements Interactive {
     @Parameter(label = "Open Frame", callback = "openFrame")
     private Button btn1;
 
-    @Parameter(label = "Output File (Image)", style = "save", persist = false, required = false)
+    @Parameter(label = "Output Image", style = "save", persist = false, required = false)
     private File outputFile;
 
     @Parameter(label = "Don't save, open in ImageJ instead", persist = false)
