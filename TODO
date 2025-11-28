@@ -2,7 +2,6 @@
 
 -> Write documentation
     -> Suggest the usage of that excel export plugin  https://imagej.net/plugins/excel-functions
-    -> image calc: images and videos might be in different resolutions, bit depths, channel count, etc. That can generate errors. Only use images generated from Zproject plugin. lets document that.
 
 -> Extract Frequency Data
 -> Extract Tracking Data
