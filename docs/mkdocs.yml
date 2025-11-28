@@ -25,6 +25,7 @@ nav:
       - 'Installation': 'guide/installation.md'
       - 'Quick Start': 'guide/quick-start.md'
   - '1 - Tools':
+      - 'Check Dependencies': 'tools/check-dependencies.md'
       - 'FFmpeg': 'tools/ffmpeg.md'
       - 'Image Calculator': 'tools/image-calculator.md'
       - 'Invert Video': 'tools/invert-video.md'

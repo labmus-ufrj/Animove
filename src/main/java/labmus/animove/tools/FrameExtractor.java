@@ -20,7 +20,8 @@ import java.io.File;
 import java.util.concurrent.Executors;
 
 @SuppressWarnings({"FieldCanBeLocal"})
-@Plugin(type = Command.class, menuPath = ZFConfigs.frameExtractorPath)
+//@Plugin(type = Command.class, menuPath = ZFConfigs.frameExtractorPath)
+// This is a debugging tool.
 public class FrameExtractor implements Command, Interactive {
 
     static {
