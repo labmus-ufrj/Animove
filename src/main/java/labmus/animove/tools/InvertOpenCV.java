@@ -112,7 +112,8 @@ public class InvertOpenCV extends DynamicCommand implements Interactive {
                 statusService.showStatus("Opening result in ImageJ...");
                 simpleRecorderFunction.getRecorder().openResultinIJ(uiService, datasetIOService, false);
             } else {
-                Files.move(tempOutputFile.toPath(), outputFile.toPath());
+                Files.copy(tempOutputFile.toPath(), outputFile.toPath());
+                tempOutputFile.deleteOnExit();
                 uiService.showDialog("Video saved successfully!",
                         ZFConfigs.pluginName, DialogPrompt.MessageType.INFORMATION_MESSAGE);
             }

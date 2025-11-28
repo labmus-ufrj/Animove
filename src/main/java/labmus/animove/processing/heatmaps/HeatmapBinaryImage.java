@@ -127,7 +127,8 @@ public class HeatmapBinaryImage extends DynamicCommand implements Interactive {
                 statusService.showStatus("Opening result in ImageJ...");
                 uiService.show(new ImagePlus(tempOutputFile.getAbsolutePath()));
             } else {
-                Files.move(tempOutputFile.toPath(), outputFile.toPath());
+                Files.copy(tempOutputFile.toPath(), outputFile.toPath());
+                tempOutputFile.deleteOnExit();
                 uiService.showDialog("Image saved successfully!",
                         ZFConfigs.pluginName, DialogPrompt.MessageType.INFORMATION_MESSAGE);
             }

@@ -158,7 +158,8 @@ public class AdultsTrackingProcessing extends DynamicCommand implements Interact
                 recorderFunction.getRecorder().openResultinIJ(uiService, datasetIOService, false);
                 IJ.getImage().setRoi(lastRoi);
             } else {
-                Files.move(tempOutputFile.toPath(), outputFile.toPath());
+                Files.copy(tempOutputFile.toPath(), outputFile.toPath());
+                tempOutputFile.deleteOnExit();
                 uiService.showDialog("Video saved successfully!",
                         ZFConfigs.pluginName, DialogPrompt.MessageType.INFORMATION_MESSAGE);
             }
