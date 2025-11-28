@@ -75,19 +75,9 @@ public class ZprojectFunction implements Function<Mat, Mat> {
         Mat resultMat;
         if (mode == OperationMode.AVG) {
             // The logic is: you opened a video file, which can only be 8-bit. No need to save anything higher than that.
-            Mat tempMat = new Mat();
-            double scale = 1.0 / framesProcessedCount;
-            accumulator.convertTo(tempMat, opencv_core.CV_32FC1, scale, 0); // scale to create avg
             resultMat = new Mat();
-            opencv_core.normalize( // normalize to 8 bit
-                    tempMat,
-                    resultMat,
-                    0,
-                    Math.pow(2, 8) - 1,
-                    opencv_core.NORM_MINMAX,
-                    opencv_core.CV_8UC1,
-                    null
-            );
+            double scale = 1.0 / framesProcessedCount;
+            accumulator.convertTo(resultMat, opencv_core.CV_8UC1, scale, 0);
         } else {
             resultMat = accumulator;
         }

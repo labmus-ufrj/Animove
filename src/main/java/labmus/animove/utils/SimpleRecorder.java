@@ -191,6 +191,9 @@ public class SimpleRecorder implements AutoCloseable {
             } else {
                 pixFmt = frameMat.channels() == 1 ? opencv_core.CV_8UC1 : opencv_core.CV_8UC3;
             }
+//            tempFrame = new Mat();
+//            frameMat.convertTo(tempFrame, opencv_core.CV_8UC1);
+//            is this intended behaviour?
             opencv_core.normalize(
                     frameMat,
                     tempFrame,
