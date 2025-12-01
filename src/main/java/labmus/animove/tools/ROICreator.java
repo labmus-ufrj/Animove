@@ -1,4 +1,4 @@
-package labmus.animove.analysis;
+package labmus.animove.tools;
 
 import ij.IJ;
 import ij.ImagePlus;

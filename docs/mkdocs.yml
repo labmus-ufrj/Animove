@@ -26,6 +26,7 @@ nav:
       - 'Quick Start': 'guide/quick-start.md'
   - '1 - Tools':
       - 'Check Dependencies': 'tools/check-dependencies.md'
+      - 'Create Sequential ROIs': 'analysis/create-rois.md'
       - 'FFmpeg': 'tools/ffmpeg.md'
       - 'Image Calculator': 'tools/image-calculator.md'
       - 'Invert Video': 'tools/invert-video.md'
@@ -42,7 +43,6 @@ nav:
   - '3 - Analysis':
       - 'Calculate Score Gradient': 'analysis/score-gradient.md'
       - 'Calculate Score Sectors': 'analysis/score-sectors.md'
-      - 'Create Sequential ROIs': 'analysis/create-rois.md'
       - 'Extract Tracking Data': 'analysis/tracking-data.md'
       - 'Extract Tracking Frequency Data': 'analysis/frequency-data.md'
       - 'Quantify Binary Heatmap': 'analysis/quantify-heatmap.md'
