@@ -1,5 +1,7 @@
 # Adults Tracking
 
+Pre-process the input video to make it suitable for Trackmate analysis. The steps include image inversion, as Trackmate algorithm recognizes white spots in a dark background. Substracts the background and  adjusts brighness and contrast. 
+
 <!--
 run("Invert", "stack");
 perform a Morphological Top-Hat () subtract background
