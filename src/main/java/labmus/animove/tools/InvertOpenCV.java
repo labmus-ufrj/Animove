@@ -47,7 +47,7 @@ public class InvertOpenCV extends DynamicCommand implements Interactive {
     String format = "AVI";
 
     @Parameter(label = "Save output", persist = false)
-    private boolean saveOutput = false;
+    private boolean saveOutput = true;
 
     @Parameter(label = "Start Frame", min = "1", persist = false)
     private int startFrame = 1;

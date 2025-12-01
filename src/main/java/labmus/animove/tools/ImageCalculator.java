@@ -61,7 +61,7 @@ public class ImageCalculator extends DynamicCommand implements Interactive {
     String format = "AVI";
 
     @Parameter(label = "Save output", persist = false)
-    private boolean saveOutput = false;
+    private boolean saveOutput = true;
 
     @Parameter(label = "Invert before operation", persist = false)
     private boolean invertVideo = false;

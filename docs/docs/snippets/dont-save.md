@@ -1,2 +1,2 @@
-## Don't save, open in ImageJ instead
-Files won't be saved to the output path. Instead, they'll be opened in ImageJ.
+## Save Output
+Choose whether to save the output to the specified output path. If left unchecked, only displays the output.

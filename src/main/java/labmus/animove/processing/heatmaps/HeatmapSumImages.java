@@ -59,7 +59,7 @@ public class HeatmapSumImages extends DynamicCommand implements Interactive {
     private String lut = "";
 
     @Parameter(label = "Save output", persist = false)
-    private boolean saveOutput = false;
+    private boolean saveOutput = true;
 
     @Parameter(label = "Start")
     private boolean doStartInterval = true;

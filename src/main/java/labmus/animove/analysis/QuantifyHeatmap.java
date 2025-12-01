@@ -1,6 +1,7 @@
 package labmus.animove.analysis;
 
 import ij.ImagePlus;
+import ij.WindowManager;
 import ij.gui.Roi;
 import ij.measure.ResultsTable;
 import ij.plugin.frame.RoiManager;
@@ -23,6 +24,7 @@ import org.jfree.chart.renderer.category.StandardBarPainter;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.scijava.command.Command;
+import org.scijava.command.CommandService;
 import org.scijava.command.Interactive;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -34,6 +36,7 @@ import java.awt.*;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.concurrent.Executors;
 
@@ -57,11 +60,16 @@ public class QuantifyHeatmap implements Command, Interactive {
     @Parameter(label = "Display Plots", persist = false)
     private boolean displayPlots = false;
 
+    @Parameter(label = "Create Sequential ROI's", callback = "createROIs")
+    private Button btn1;
+
     @Parameter(label = "Process", callback = "process")
     private Button btn2;
 
     @Parameter
     private UIService uiService;
+    @Parameter
+    private CommandService commandService;
 
     @Override
     public void run() {
@@ -79,7 +87,8 @@ public class QuantifyHeatmap implements Command, Interactive {
         }
 
         if (roiManager.getCount() < 1) {
-            uiService.showDialog("No ROIs in RoiManager. At least one is expected.", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
+            uiService.showDialog("No ROIs in RoiManager. At least one is expected. \nOpening Create Sequential ROI's", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
+            createROIs();
             return;
         }
 
@@ -177,5 +186,18 @@ public class QuantifyHeatmap implements Command, Interactive {
             return false;
         }
         return true;
+    }
+
+    private void createROIs() {
+        if (!checkFiles()) {
+            return;
+        }
+        if (WindowManager.getImageCount() == 0){ // test if there is one image open
+            ImagePlus imp = new ImagePlus(heatmapFile.getAbsolutePath());
+            imp.setTitle(heatmapFile.getName());
+            imp.show();
+        }
+        // run plugin
+        commandService.run(ROICreator.class, true, Collections.EMPTY_MAP);
     }
 }

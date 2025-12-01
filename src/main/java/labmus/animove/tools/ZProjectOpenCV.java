@@ -56,7 +56,7 @@ public class ZProjectOpenCV extends DynamicCommand implements Interactive {
     private File outputFile;
 
     @Parameter(label = "Save output", persist = false)
-    private boolean saveOutput = false;
+    private boolean saveOutput = true;
 
     @Parameter(label = "Invert before operation", persist = false)
     private boolean invertVideo = false;

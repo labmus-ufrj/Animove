@@ -48,7 +48,7 @@ public class HeatmapBinaryImage extends DynamicCommand implements Interactive {
     private File outputFile;
 
     @Parameter(label = "Save output", persist = false)
-    private boolean saveOutput = false;
+    private boolean saveOutput = true;
 
     @Parameter(label = "Initial Frame", min = "1", persist = false)
     private int startFrame = 1;
