@@ -26,16 +26,16 @@ public abstract class ZFConfigs {
     public static final String invertPath = toolsPath + "Invert Video";
 
     private static final String heatmapsPath = processingPath + "Heatmaps>";
-    public static final String heatmapSumImagesPath = heatmapsPath + "Sum Heatmap Images";
-    public static final String heatmapSumVideoPath = heatmapsPath + "Sum Heatmap Video";
-    public static final String heatmapBinaryImagePath = heatmapsPath + "Binary Heatmap Image";
+    public static final String heatmapSumImagesPath = heatmapsPath + "Sum Heatmap Images (Adults)";
+    public static final String heatmapSumVideoPath = heatmapsPath + "Sum Heatmap Video (Adults)";
+    public static final String heatmapBinaryImagePath = heatmapsPath + "Binary Heatmap Image (Embryos & Adults)";
 
     private static final String trackingPath = processingPath + "Tracking>";
     public static final String embryosTrackingPath = trackingPath + "Embryos Tracking";
     public static final String adultsTrackingPath = trackingPath + "Adults Tracking";
+    public static final String roisPath = trackingPath + "Create Sequential ROIs";
 
-//    private static final String embryosPath = analysisPath + "Embryos Analysis>";
-    public static final String roisPath = analysisPath + "Create Sequential ROIs";
+    //    private static final String embryosPath = analysisPath + "Embryos Analysis>";
     public static final String quantifyEmbryos = analysisPath + "Quantify Binary Heatmap";
     public static final String analyzeFrequencyEmbryos = analysisPath + "Extract Frequency Data";
 

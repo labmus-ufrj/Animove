@@ -1,5 +1,6 @@
 package labmus.animove.utils.functions;
 
+import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.global.opencv_imgproc;
 import org.bytedeco.opencv.opencv_core.Mat;
 
@@ -15,6 +16,7 @@ public class MedianBlurFunction implements Function<Mat, Mat> {
     @Override
     public Mat apply(Mat mat) {
         opencv_imgproc.medianBlur(mat, mat, ksize);
+        opencv_core.normalize(mat, mat, 0, 255, opencv_core.NORM_MINMAX, opencv_core.CV_8UC1, null);
         return mat;
     }
 }

@@ -233,11 +233,6 @@ public class EmbryosTrackingProcessing extends DynamicCommand implements Interac
             uiService.showDialog("Could not open video: \n Invalid file", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
             return;
         }
-        String extension = inputFile.getName().substring(inputFile.getName().lastIndexOf(".") + 1).toLowerCase();
-        if (!extension.contentEquals("avi") && !extension.contentEquals("mp4")) {
-            uiService.showDialog("Could not open video: \n Invalid extension ." + extension, ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
-            return;
-        }
         Executors.newSingleThreadExecutor().submit(() -> {
             try {
                 if (previewImagePlus != null && previewImagePlus.getWindow() != null) {

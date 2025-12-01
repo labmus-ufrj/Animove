@@ -394,11 +394,6 @@ public class SectorScoreAnalysis implements Command, Interactive {
             uiService.showDialog("Could not open video: \n Invalid file", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
             return;
         }
-        String extension = videoFile.getName().substring(videoFile.getName().lastIndexOf(".") + 1).toLowerCase();
-        if (!extension.contentEquals("avi") && !extension.contentEquals("mp4")) {
-            uiService.showDialog("Could not open video: \n Invalid extension ." + extension, ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
-            return;
-        }
         Executors.newSingleThreadExecutor().submit(() -> {
             try {
                 if (videoFrame != null && videoFrame.getWindow() != null) {
