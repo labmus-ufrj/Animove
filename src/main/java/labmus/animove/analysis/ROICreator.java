@@ -22,7 +22,7 @@ import org.scijava.widget.Button;
 @Plugin(type = Command.class, menuPath = ZFConfigs.roisPath)
 public class ROICreator extends DynamicCommand implements Interactive {
 
-    @Parameter(label = "Well amount", min = "1", persist = false, callback = "refreshUnit" )
+    @Parameter(label = "Number of wells", min = "1", persist = false, callback = "refreshUnit" )
     private int wellNum = 1;
 
     @Parameter(label = "Well size", min = "1", persist = false, callback = "refreshUnit")
