@@ -2,6 +2,7 @@ package labmus.animove.tools;
 
 import ij.ImagePlus;
 import ij.gui.Roi;
+import ij.plugin.AVI_Reader;
 import ij.plugin.frame.RoiManager;
 import labmus.animove.ZFConfigs;
 import labmus.animove.ZFHelperMethods;
@@ -328,8 +329,11 @@ public class FFmpegPlugin implements Command, Interactive {
             // Clear status and show completion message
             statusService.clearStatus();
             if (!isPosview) {
-                uiService.showDialog("Video conversion finished successfully!",
-                        "Process Complete", DialogPrompt.MessageType.INFORMATION_MESSAGE);
+                if (this.outputCodec.contentEquals("mjpeg")) {
+                    ImagePlus imp = AVI_Reader.open(outputFile.getAbsolutePath(), true);
+                    imp.setTitle(outputFile.getName());
+                    imp.show();
+                }
             }
         } catch (Exception e) {
             // Log and show any errors

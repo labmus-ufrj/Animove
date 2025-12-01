@@ -47,8 +47,8 @@ public class HeatmapBinaryImage extends DynamicCommand implements Interactive {
     @Parameter(label = "Output Image", style = "save", persist = false, required = false)
     private File outputFile;
 
-    @Parameter(label = "Don't save, open in ImageJ instead", persist = false)
-    private boolean openResultInstead = false;
+    @Parameter(label = "Save output", persist = false)
+    private boolean saveOutput = false;
 
     @Parameter(label = "Initial Frame", min = "1", persist = false)
     private int startFrame = 1;
@@ -123,14 +123,12 @@ public class HeatmapBinaryImage extends DynamicCommand implements Interactive {
             heatmapMat.close();
             avgMat.close();
 
-            if (openResultInstead || doPreview) {
-                statusService.showStatus("Opening result in ImageJ...");
-                uiService.show(new ImagePlus(tempOutputFile.getAbsolutePath()));
-            } else {
+            ImagePlus imp = new ImagePlus(tempOutputFile.getAbsolutePath());
+            imp.setTitle(outputFile.getName());
+            imp.show();
+
+            if (saveOutput && !doPreview){
                 Files.copy(tempOutputFile.toPath(), outputFile.toPath());
-                tempOutputFile.deleteOnExit();
-                uiService.showDialog("Image saved successfully!",
-                        ZFConfigs.pluginName, DialogPrompt.MessageType.INFORMATION_MESSAGE);
             }
 
         } catch (Exception e) {
@@ -193,14 +191,14 @@ public class HeatmapBinaryImage extends DynamicCommand implements Interactive {
             uiService.showDialog("Invalid input file", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
             return false;
         }
-        if (outputFile == null || outputFile.isDirectory()) {
-            if (!openResultInstead) {
+        if (saveOutput) {
+            if (outputFile == null || outputFile.isDirectory()) {
                 uiService.showDialog("Invalid output file", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
                 return false;
+            } else if (outputFile.exists()) {
+                uiService.showDialog("Output file already exists", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
+                return false;
             }
-        } else if (outputFile.exists()) {
-            uiService.showDialog("Output file already exists", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
-            return false;
         }
         return true;
     }

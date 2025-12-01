@@ -57,8 +57,8 @@ public class EmbryosTrackingProcessing extends DynamicCommand implements Interac
     @Parameter(label = "Output Format", choices = {"AVI", "TIFF"}, callback = "updateExtensionChoice", persist = false)
     String format = "AVI";
 
-    @Parameter(label = "Don't save, open in ImageJ instead", persist = false)
-    private boolean openResultInstead = false;
+    @Parameter(label = "Save output", persist = false)
+    private boolean saveOutput = false;
 
     @Parameter(label = "Initial Frame", min = "1", persist = false)
     private int startFrame = 1;
@@ -97,10 +97,10 @@ public class EmbryosTrackingProcessing extends DynamicCommand implements Interac
     }
 
     private void generate(boolean doPreview) {
-        if (!checkFiles()){
+        if (!checkFiles()) {
             return;
         }
-        if (previewImagePlus != null){
+        if (previewImagePlus != null) {
             previewImagePlus.close();
         }
         Executors.newSingleThreadExecutor().submit(() -> this.executeProcessing(doPreview));
@@ -141,15 +141,9 @@ public class EmbryosTrackingProcessing extends DynamicCommand implements Interac
             ZFHelperMethods.iterateOverFrames(processFunction, inputFile, startFrame, doPreview ? this.startFrame + 9 : this.endFrame, statusService);
             recorderFunction.close();
 
-            if (openResultInstead || doPreview) {
-                statusService.showStatus("Opening result in ImageJ...");
-                recorderFunction.getRecorder().openResultinIJ(uiService, datasetIOService, false);
-
-            } else {
+            recorderFunction.getRecorder().openResultinIJ(uiService, datasetIOService, false, outputFile.getName());
+            if (saveOutput && !doPreview){
                 Files.copy(tempOutputFile.toPath(), outputFile.toPath());
-                tempOutputFile.deleteOnExit();
-                uiService.showDialog("Video saved successfully!",
-                        ZFConfigs.pluginName, DialogPrompt.MessageType.INFORMATION_MESSAGE);
             }
 
         } catch (Exception e) {
@@ -216,14 +210,14 @@ public class EmbryosTrackingProcessing extends DynamicCommand implements Interac
             uiService.showDialog("Invalid input file", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
             return false;
         }
-        if (outputFile == null || outputFile.isDirectory()) {
-            if (!openResultInstead) {
+        if (saveOutput) {
+            if (outputFile == null || outputFile.isDirectory()) {
                 uiService.showDialog("Invalid output file", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
                 return false;
+            } else if (outputFile.exists()) {
+                uiService.showDialog("Output file already exists", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
+                return false;
             }
-        } else if (outputFile.exists()){
-            uiService.showDialog("Output file already exists", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
-            return false;
         }
         return true;
     }

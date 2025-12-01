@@ -254,7 +254,7 @@ public class SimpleRecorder implements AutoCloseable {
      * @param datasetIOService get it from @Parameter
      * @throws Exception mainly IOException
      */
-    public void openResultinIJ(UIService uiService, DatasetIOService datasetIOService, boolean openAllChannels) throws Exception {
+    public void openResultinIJ(UIService uiService, DatasetIOService datasetIOService, boolean openAllChannels, String displayName) throws Exception {
         this.close();
         switch (this.format) {
             case MP4:
@@ -274,6 +274,7 @@ public class SimpleRecorder implements AutoCloseable {
                     config.imgOpenerSetImgModes(SCIFIOConfig.ImgMode.CELL, SCIFIOConfig.ImgMode.PLANAR);
                 }
                 Dataset dataset = datasetIOService.open(outputFile.getAbsolutePath(), config);
+                dataset.setName(displayName);
                 uiService.show(dataset);
                 break;
             case AVI:
@@ -281,7 +282,9 @@ public class SimpleRecorder implements AutoCloseable {
                 if (!openAllChannels) {
                     opt += "convert";
                 }
-                AVI_Reader.open(outputFile.getAbsolutePath(), opt).show();
+                ImagePlus imp = AVI_Reader.open(outputFile.getAbsolutePath(), opt);
+                imp.setTitle(displayName);
+                imp.show();
                 // For some reason, datasetIOService.open() would throw an EOFException
                 // when reading some AVI files. This seemingly random behavior made me use the legacy option instead
                 break;

@@ -64,8 +64,8 @@ public class HeatmapSumVideo extends DynamicCommand implements Interactive {
     @Parameter(label = "Output Format", choices = {"AVI", "TIFF", "MP4"}, callback = "updateExtensionChoice", persist = false)
     String format = "AVI";
 
-    @Parameter(label = "Don't save, open in ImageJ instead", persist = false)
-    private boolean openResultInstead = false;
+    @Parameter(label = "Save output", persist = false)
+    private boolean saveOutput = false;
 
     @Parameter(label = "Initial Frame", min = "1", persist = false)
     private int startFrame = 1;
@@ -172,14 +172,9 @@ public class HeatmapSumVideo extends DynamicCommand implements Interactive {
             brightnessLUTFunction.close();
             simpleRecorderFunction.close();
 
-            if (openResultInstead || doPreview) {
-                statusService.showStatus("Opening result in ImageJ...");
-                simpleRecorderFunction.getRecorder().openResultinIJ(uiService, datasetIOService, !lut.contains(defaultLut));
-            } else {
+            simpleRecorderFunction.getRecorder().openResultinIJ(uiService, datasetIOService, !lut.contains(defaultLut), outputFile.getName());
+            if (saveOutput && !doPreview) {
                 Files.copy(tempOutputFile.toPath(), outputFile.toPath());
-                tempOutputFile.deleteOnExit();
-                uiService.showDialog("Video saved successfully!",
-                        ZFConfigs.pluginName, DialogPrompt.MessageType.INFORMATION_MESSAGE);
             }
 
         } catch (Exception e) {
@@ -265,14 +260,14 @@ public class HeatmapSumVideo extends DynamicCommand implements Interactive {
             uiService.showDialog("Invalid input file", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
             return false;
         }
-        if (outputFile == null || outputFile.isDirectory()) {
-            if (!openResultInstead) {
+        if (saveOutput) {
+            if (outputFile == null || outputFile.isDirectory()) {
                 uiService.showDialog("Invalid output file", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
                 return false;
+            } else if (outputFile.exists()) {
+                uiService.showDialog("Output file already exists", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
+                return false;
             }
-        } else if (outputFile.exists()) {
-            uiService.showDialog("Output file already exists", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
-            return false;
         }
         return true;
     }

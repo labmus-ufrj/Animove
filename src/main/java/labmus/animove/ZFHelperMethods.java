@@ -136,7 +136,7 @@ public class ZFHelperMethods {
 
             if (startFrame == 1) {
                 // grabber.setFrameNumber() will mess the frame count. just leave as-is for the first frame.
-                if (!processUntilEnd){
+                if (!processUntilEnd) {
                     actualEndFrame++;
                 }
             } else if (startFrame == 2) {
@@ -194,7 +194,7 @@ public class ZFHelperMethods {
                         currentFrame = currentFrameColor;
                     }
 
-                    if (currentFrame.isNull()){
+                    if (currentFrame.isNull()) {
                         throw new Exception("Error processing frame " + i); // we were NOT done!!
                     }
 
@@ -257,6 +257,16 @@ public class ZFHelperMethods {
         }
         process.waitFor();
         return -1;
+    }
+
+    /**
+     * unused
+     */
+    public static File createPluginTempFileWithReadableName(String fileName) throws IOException {
+        String extension = fileName.substring(fileName.lastIndexOf(".") + 1);
+        File tempOutputFile = File.createTempFile(fileName.substring(0, fileName.lastIndexOf(".")) + "_", "." + extension);
+        tempOutputFile.deleteOnExit();
+        return tempOutputFile;
     }
 
     public static File createPluginTempFile(String extension) throws IOException {

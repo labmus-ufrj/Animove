@@ -58,8 +58,8 @@ public class HeatmapSumImages extends DynamicCommand implements Interactive {
     @Parameter(label = "Lookup Table", persist = false, initializer = "initLUT")
     private String lut = "";
 
-    @Parameter(label = "Don't save, open in ImageJ instead", persist = false, description = "Files won't be saved to the specified Output Folder. Instead, they'll be opened in ImageJ")
-    private boolean openResultInstead = false;
+    @Parameter(label = "Save output", persist = false)
+    private boolean saveOutput = false;
 
     @Parameter(label = "Start")
     private boolean doStartInterval = true;
@@ -188,11 +188,11 @@ public class HeatmapSumImages extends DynamicCommand implements Interactive {
                 ImagePlus imp = new ImagePlus(interval, brightnessLUTFunction.getLastBi());
                 brightnessLUTFunction.close();
 
-                if (openResultInstead || doPreview) {
-                    imp.show();
-                } else {
+                imp.show();
+
+                if (saveOutput && !doPreview){
                     IJ.save(imp, outputDir.toPath().resolve(interval + ".tif").toString());
-                    imp.close();
+
                 }
                 if (doPreview) {
                     break;
@@ -200,7 +200,7 @@ public class HeatmapSumImages extends DynamicCommand implements Interactive {
                 sumMat.close();
                 avgMat.close();
             }
-            if (!doPreview){
+            if (!doPreview) {
                 uiService.showDialog("Processing done", ZFConfigs.pluginName, DialogPrompt.MessageType.INFORMATION_MESSAGE);
             }
         } catch (Exception e) {
@@ -254,11 +254,9 @@ public class HeatmapSumImages extends DynamicCommand implements Interactive {
             uiService.showDialog("Invalid input file", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
             return false;
         }
-        if (outputDir == null || !outputDir.isDirectory() || !outputDir.exists()) {
-            if (!openResultInstead) {
-                uiService.showDialog("Invalid output folder", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
-                return false;
-            }
+        if (saveOutput && (outputDir == null || !outputDir.isDirectory() || !outputDir.exists())) {
+            uiService.showDialog("Invalid output folder", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
+            return false;
         }
         return true;
     }
