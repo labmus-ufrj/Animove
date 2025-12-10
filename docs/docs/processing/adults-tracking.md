@@ -1,6 +1,18 @@
 # Adults Tracking
 
-Pre-process the input video to make it suitable for Trackmate analysis. The steps include image inversion, as Trackmate algorithm recognizes white spots in a dark background. Substracts the background and  adjusts brighness and contrast. 
+Pre-process the input video to make it suitable for Trackmate analysis. The steps include image inversion, as Trackmate algorithm recognizes white spots in a dark background. Uses Top-Hat processing to substract the background and adjusts brightness and contrast. The plugin also make a substack with 3 frames interval and opens the TrackMate plugin. 
+The TrackMate tutorial can be found in https://imagej.net/plugins/trackmate/tutorials/getting-started
+
+--8<-- "input-video.md"
+
+--8<-- "output-file.md"
+
+--8<-- "output-formats.md"
+
+--8<-- "start-end-frame.md"
+
+--8<-- "preview.md"
+
 
 <!--
 run("Invert", "stack");
