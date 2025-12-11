@@ -1,13 +1,21 @@
 package labmus.animove.analysis;
 
 import ij.ImagePlus;
-import ij.gui.Roi;
 import ij.measure.ResultsTable;
-import ij.plugin.frame.RoiManager;
 import labmus.animove.ZFConfigs;
 import labmus.animove.ZFHelperMethods;
 import labmus.animove.utils.XMLHelper;
-import org.jfree.data.general.DefaultPieDataset;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.AxisSpace;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.NumberTickUnit;
+import org.jfree.chart.plot.CombinedDomainXYPlot;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.chart.ui.RectangleInsets;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 import org.scijava.command.Command;
 import org.scijava.command.Interactive;
 import org.scijava.log.LogService;
@@ -18,6 +26,7 @@ import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 import org.scijava.widget.FileWidget;
 
+import java.awt.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -85,54 +94,135 @@ public class FrequencyData implements Command, Interactive {
         }
 
         List<List<Double>> distancesPerTrack = data.stream().map((track) -> IntStream.range(0, track.size() - 1)
-                .mapToDouble(i -> getDistance(track.get(i), track.get(i + 1)))
+                .mapToDouble(i -> getDistance(track.get(i), track.get(i + 1)) * videoFrame.getCalibration().pixelWidth)
                 .boxed()
                 .collect(Collectors.toList())).collect(Collectors.toList());
 
-//        String name = "Scores from " + xmlFile.getName() + " and " + videoFile.getName();
-//
-//        DefaultPieDataset<String> dataset = new DefaultPieDataset<>();
-//
-//        ResultsTable rt = new ResultsTable();
-//        rt.setNaNEmptyCells(true); // prism reads 0.00 as zeros and requires manual fixing
-//        // NaN just gets deleted when pasting
-//
-//        int globalCount = 0;
-//        for (int i = 0; i < roiManager.getCount(); i++) {
-//            Roi roi = roiManager.getRoi(i);
-//            int count = 0;
-//            for (ArrayList<XMLHelper.PointData> list : data) {
-//                for (XMLHelper.PointData pointData : list) {
-//                    if (roi.contains((int) pointData.x, (int) pointData.y)) {
-//                        count++;
-//                    }
-//                }
-//            }
-//            globalCount += count;
-//            rt.setValue("ROI Name", i, roi.getName());
-//            rt.setValue("Count", i, count);
-//            dataset.setValue(roi.getName(), count);
-//        }
-//
-//        int lastRowIndex = roiManager.getCount();
-//        rt.setValue("ROI Name", lastRowIndex, "Outside All ROIs");
-//
-//        int spotsCount = data.stream()
-//                .map(ArrayList::size)
-//                .reduce(Integer::sum).get(); // there'll always be spots. hopefully.
-//
-//        rt.setValue("Count", lastRowIndex, spotsCount - globalCount);
-//        dataset.setValue("Outside All ROIs", spotsCount - globalCount);
-//
-//        if (this.displayPlots) {
-//            new ImagePlus("Plot", getPieChart(dataset, name).createBufferedImage(1600, 1200)).show();
-//        }
-//
-//        rt.show(name);
+        String name = "Frequency from " + xmlFile.getName() + " and " + videoFile.getName();
+        ResultsTable rt = new ResultsTable();
+        rt.setNaNEmptyCells(true); // prism reads 0.00 as zeros and requires manual fixing
+        // NaN just gets deleted when pasting
+
+        // Iterate through each inner list, treating it as a column.
+        for (int colIndex = 0; colIndex < distancesPerTrack.size(); colIndex++) {
+
+            // Get the data for the current column.
+            List<Double> distances = distancesPerTrack.get(colIndex);
+
+            // Define a name for the column header.
+            String columnHeader = "Track " + (colIndex + 1);
+
+            // Iterate through the values in the current column.
+            for (int rowIndex = 0; rowIndex < distances.size(); rowIndex++) {
+                rt.setValue(columnHeader, rowIndex, distances.get(rowIndex));
+            }
+        }
+
+        if (this.displayPlots) {
+            new ImagePlus("Plot", createChart(name, distancesPerTrack, videoFrame.getCalibration().getXUnit()).createBufferedImage(1600, 1200)).show();
+        }
+        rt.show(name);
+    }
+
+    private static JFreeChart createChart(String title, List<List<Double>> distancesPerTrack, String axisUnit) {
+        NumberAxis domainAxis = new NumberAxis("Frame");
+        domainAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+        domainAxis.setRange(1, distancesPerTrack.get(0).size());
+        domainAxis.setTickLabelFont(new Font("SansSerif", Font.PLAIN, 30));
+        domainAxis.setLabelFont(new Font("SansSerif", Font.BOLD, 36));
+
+        CombinedDomainXYPlot parentPlot = new CombinedDomainXYPlot(domainAxis);
+        parentPlot.setGap(30.0);
+        parentPlot.setOrientation(PlotOrientation.VERTICAL);
+
+        List<Color> colors = generateColors(distancesPerTrack.size());
+        for (int i = 0; i < distancesPerTrack.size(); i++) {
+            List<Double> distances = distancesPerTrack.get(i);
+            boolean isLast = (i == distancesPerTrack.size() - 1);
+            parentPlot.add(createSubPlot(createDataset(distances), colors.get(i), isLast, axisUnit));
+        }
+
+        JFreeChart chart = new JFreeChart(
+                title,
+                JFreeChart.DEFAULT_TITLE_FONT,
+                parentPlot,
+                false
+        );
+
+        chart.setBackgroundPaint(Color.WHITE);
+        chart.getTitle().setFont(new Font(Font.SANS_SERIF, Font.BOLD, 48));
+        chart.setPadding(new RectangleInsets(30.0, 30.0, 30.0, 30.0));
+
+        return chart;
+    }
+
+    private static XYSeriesCollection createDataset(List<Double> distances) {
+        XYSeries series = new XYSeries("");
+
+        for (int i = 0; i < distances.size(); i++) {
+            series.add(i + 1, distances.get(i));
+        }
+
+        return new XYSeriesCollection(series);
+    }
+
+    private static XYPlot createSubPlot(XYSeriesCollection dataset, Color lineColor, boolean showYLabel, String axisUnit) {
+
+        // Renderer config (Lines only, no shapes)
+        XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer(true, false);
+        renderer.setSeriesPaint(0, lineColor);
+        renderer.setSeriesStroke(0, new BasicStroke(3.0f));
+
+        // Range Axis (Y-Axis) config
+        // Only set the text if showYLabel is true, otherwise pass null
+        NumberAxis rangeAxis = new NumberAxis(showYLabel ? "Distance (" + axisUnit + ")" : null);
+        rangeAxis.setRange(0.0, 1.25);
+        rangeAxis.setTickUnit(new NumberTickUnit(0.3));
+        rangeAxis.setLabelFont(new Font("SansSerif", Font.BOLD, 36));
+        rangeAxis.setTickLabelFont(new Font(Font.SANS_SERIF, Font.PLAIN, 30));
+
+        // Construct the plot
+        XYPlot plot = new XYPlot(dataset, null, rangeAxis, renderer);
+        plot.setBackgroundPaint(Color.WHITE);
+        plot.setOutlinePaint(Color.BLACK);
+
+        plot.setBackgroundPaint(Color.decode("#f0f0f0"));
+        plot.setRangeGridlinePaint(Color.GRAY);
+
+        // CRITICAL: Force all plots to reserve the same space on the left (e.g., 65 pixels).
+        // Without this, the middle plot (with text) will be narrower than the top/bottom plots.
+        AxisSpace space = new AxisSpace();
+        space.setLeft(65.0);
+        space.setRight(2.0); // Optional: consistent right padding
+        plot.setFixedRangeAxisSpace(space);
+
+        return plot;
+    }
+
+    public static List<Color> generateColors(int numColors) {
+        List<Color> colors = new ArrayList<>(numColors);
+
+        final float GOLDEN_RATIO = 0.618033988749895f;
+
+        final float SATURATION = 0.75f;
+        final float BRIGHTNESS = 0.75f;
+
+        float currentHue = 0.5f;
+
+        for (int i = 0; i < numColors; i++) {
+            Color c = Color.getHSBColor(currentHue, SATURATION, BRIGHTNESS);
+            colors.add(c);
+
+            currentHue += GOLDEN_RATIO;
+
+            currentHue %= 1.0f;
+        }
+
+        return colors;
     }
 
     //    private double getDistance(double x1, double y1, double x2, double y2) {
-    private double getDistance(XMLHelper.PointData point1, XMLHelper.PointData point2) {
+    private static double getDistance(XMLHelper.PointData point1, XMLHelper.PointData point2) {
         return Math.hypot(point2.x - point1.x, point2.y - point1.y);
     }
 

@@ -1,13 +1,13 @@
 -> FFmpeg plugin repeats the first frame of videos converted to AVI (probably to all of them), doing it from blank->end
 -> change apply brightness function to use openCV one
 -> heatmap-images needs a proper processing sequence written
+-> use auto-generated colors in sectors score (like in frequency data)
 
 -> Write documentation
     -> Suggest the usage of that excel export plugin  https://imagej.net/plugins/excel-functions
     -> provide more test samples, ready to be tested ones, to be linked in each tool/feature
         -> https://drive.google.com/drive/folders/1qrz53eYvl06PCNzTaGLvaBCJtKP0Ubd8?usp=drive_link
     -> quantify heatmap input image
-    -> quantify heatmap needs a mkdocs link to create sequential rois
 
 -> Extract Frequency Data
 -> Extract Tracking Data
