@@ -12,4 +12,4 @@ ADD EXAMPLE IMAGE
 
 ## Create sequential ROIs
 
-It opens the [Create sequential ROIs](create-rois.md) tool window, allowing the user to quantify different ROIs and compare results using the same file.
+It opens the [Create sequential ROIs](../tools/create-rois.md) tool window, allowing the user to quantify different ROIs and compare results using the same file.

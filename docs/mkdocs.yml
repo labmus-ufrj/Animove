@@ -28,7 +28,7 @@ nav:
       - 'Quick Start': 'guide/quick-start.md'
   - '1 - Tools':
       - 'Check Dependencies': 'tools/check-dependencies.md'
-      - 'Create Sequential ROIs': 'analysis/create-rois.md'
+      - 'Create Sequential ROIs': 'tools/create-rois.md'
       - 'FFmpeg': 'tools/ffmpeg.md'
       - 'Image Calculator': 'tools/image-calculator.md'
       - 'Invert Video': 'tools/invert-video.md'
