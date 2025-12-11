@@ -721,9 +721,54 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#dont-save-open-in-imagej-instead" class="md-nav__link">
+  <a href="#interface" class="md-nav__link">
     <span class="md-ellipsis">
-      Don't save, open in ImageJ instead
+      Interface
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#input-video" class="md-nav__link">
+    <span class="md-ellipsis">
+      Input Video
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output File
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lookup-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      Lookup Table
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#start-and-end-frame" class="md-nav__link">
+    <span class="md-ellipsis">
+      Start and End frame
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#preview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Preview
     </span>
   </a>
   
@@ -936,29 +981,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../../analysis/tracking-data/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Extract Tracking Data
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../../analysis/frequency-data/" class="md-nav__link">
         
   
@@ -1032,9 +1054,54 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#dont-save-open-in-imagej-instead" class="md-nav__link">
+  <a href="#interface" class="md-nav__link">
     <span class="md-ellipsis">
-      Don't save, open in ImageJ instead
+      Interface
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#input-video" class="md-nav__link">
+    <span class="md-ellipsis">
+      Input Video
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output File
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lookup-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      Lookup Table
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#start-and-end-frame" class="md-nav__link">
+    <span class="md-ellipsis">
+      Start and End frame
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#preview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Preview
     </span>
   </a>
   
@@ -1060,13 +1127,26 @@
 
 
 <h1 id="sum-heatmap-video">Sum Heatmap Video</h1>
+<p>Generates a video file using pixelwise addition of the selected frames. Processing steps are the same as <a href="../heatmap-images/">Sum Heatmap Images</a>, but processing each frame from the original video individually.</p>
+<h2 id="interface">Interface</h2>
+<p>ADD IMAGE</p>
+<h2 id="input-video">Input Video</h2>
+<p>Any videos supported by ffmpeg. This includes most video formats in existence. Notably, one exclusion: AVI videos saved from ImageJ with compression set to "None" (codec rawvideo) will not work.</p>
+<h2 id="output-file">Output File</h2>
+<p>The path to save the operation's output.</p>
+<h2 id="lookup-table">Lookup Table</h2>
+<p>The LUTs available are the ImageJ's built-in ones (found at Image → Lookup Tables). Leave as "Don't change" for RGB images if Convert to Grayscale is not checked.</p>
+<h2 id="start-and-end-frame">Start and End frame</h2>
+<p>Specify the frame number to begin and end the processing.</p>
+<p>The selection is inclusive, meaning both the start and end frames will be processed.</p>
+<p>Frame numbers are one-indexed (the first frame has a frame number equal to 1).</p>
+<p>To process the video all the way to its final frame, enter 0 in the 'End frame' field.</p>
+<h2 id="preview">Preview</h2>
+<p>Shows a preview of the function, using the first 10 frames ahead of the Start frame set by the user.</p>
 <!--
 info:
 essa macro faz a mesma coisa que o heatmap images só que uma vez por frame do vídeo original.
 -->
-
-<h2 id="dont-save-open-in-imagej-instead">Don't save, open in ImageJ instead</h2>
-<p>The disk space is still needed for processing, this just marks all temp files for exclusion when the JVM closes. A virtual stack will be imported from the loose frames.</p>
 
 
 

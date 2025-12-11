@@ -18,7 +18,7 @@
         <link rel="prev" href="../score-gradient/">
       
       
-        <link rel="next" href="../tracking-data/">
+        <link rel="next" href="../frequency-data/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -961,29 +961,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../tracking-data/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Extract Tracking Data
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../frequency-data/" class="md-nav__link">
         
   
@@ -1113,13 +1090,19 @@
 
 <h1 id="calculate-score-sectors">Calculate Score Sectors</h1>
 <h2 id="xml-file">XML File</h2>
-<p>Two possible files can be used here:
-1. Trackamate's whole save file
-    * Ideal option overall.
-    * Mandatory if you only have spots and no tracks. In this case, a spots will be considered as-is, without fixing missing spots.
-    * <strong>If there are any tracks, all spots outside them will get filtered out.</strong>
-2. Output of trackmate's <code>Export tracks to XML file</code> export action.
-    * Only spots in tracks get saved in this file, so only them will be considered.</p>
+<p>Two possible files can be used here:</p>
+<ol>
+<li>Trackmate's whole save file<ul>
+<li>Ideal option overall.</li>
+<li>Mandatory if you only have spots and no tracks. In this case, a spots will be considered as-is, without fixing missing spots.</li>
+<li><strong>If there are any tracks, all spots outside them will get filtered out.</strong></li>
+</ul>
+</li>
+<li>Output of trackmate's <code>Export tracks to XML file</code> export action.<ul>
+<li>Only spots in tracks get saved in this file, so only them will be considered.</li>
+</ul>
+</li>
+</ol>
 <h2 id="source-video">Source Video</h2>
 <p>The source video used for tracking. Ideally not the processed one, so you can set the ROIs better.</p>
 <h2 id="fix-missing-spots">Fix Missing Spots</h2>
