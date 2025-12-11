@@ -14,6 +14,8 @@ This project was developed at the Laboratório de Diferenciação Muscular e Cit
 
 **Authors:** Murilo Nespolo Spineli, Paloma Vieira, Claudia Mermelstein and Manoel Luis Costa.
 
+Please report any questions to **manoelluiscosta@ufrj.br**
+
 ## License
 
 This software is provided under [GPLv3 license](https://www.gnu.org/licenses/gpl-3.0.html).
