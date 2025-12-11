@@ -400,6 +400,29 @@
   
   
     <li class="md-nav__item">
+      <a href="../../analysis/create-rois/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Create Sequential ROIs
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../tools/ffmpeg/" class="md-nav__link">
         
   
@@ -726,6 +749,19 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Adults Tracking
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -737,6 +773,70 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#input-video" class="md-nav__link">
+    <span class="md-ellipsis">
+      Input Video
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output File
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output Formats
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#start-and-end-frame" class="md-nav__link">
+    <span class="md-ellipsis">
+      Start and End frame
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#preview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Preview
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -872,29 +972,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../../analysis/create-rois/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Create Sequential ROIs
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../../analysis/tracking-data/" class="md-nav__link">
         
   
@@ -984,6 +1061,59 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#input-video" class="md-nav__link">
+    <span class="md-ellipsis">
+      Input Video
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output File
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output Formats
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#start-and-end-frame" class="md-nav__link">
+    <span class="md-ellipsis">
+      Start and End frame
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#preview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Preview
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1002,6 +1132,21 @@
 
 
 <h1 id="adults-tracking">Adults Tracking</h1>
+<p>Pre-process the input video to make it suitable for Trackmate analysis. The steps include image inversion, as Trackmate algorithm recognizes white spots in a dark background. It uses Top-Hat processing to substract the background and adjusts brightness and contrast. The plugin also make a substack with 3 frames interval and opens the TrackMate plugin. 
+The TrackMate tutorial can be found <a href="https://imagej.net/plugins/trackmate/tutorials/getting-started">here</a>.</p>
+<h2 id="input-video">Input Video</h2>
+<p>Any videos supported by ffmpeg. This includes most video formats in existence. Notably, one exclusion: AVI videos saved from ImageJ with compression set to "None" (codec rawvideo) will not work.</p>
+<h2 id="output-file">Output File</h2>
+<p>The path to save the operation's output.</p>
+<h2 id="output-formats">Output Formats</h2>
+<p>The user can choose between AVI, TIFF or MP4.</p>
+<h2 id="start-and-end-frame">Start and End frame</h2>
+<p>Specify the frame number to begin and end the processing.</p>
+<p>The selection is inclusive, meaning both the start and end frames will be processed.</p>
+<p>Frame numbers are one-indexed (the first frame has a frame number equal to 1).</p>
+<p>To process the video all the way to its final frame, enter 0 in the 'End frame' field.</p>
+<h2 id="preview">Preview</h2>
+<p>Shows a preview of the function, using the first 10 frames ahead of the Start frame set by the user.</p>
 <!--
 run("Invert", "stack");
 perform a Morphological Top-Hat () subtract background

@@ -400,6 +400,29 @@
   
   
     <li class="md-nav__item">
+      <a href="../../analysis/create-rois/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Create Sequential ROIs
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../tools/ffmpeg/" class="md-nav__link">
         
   
@@ -985,29 +1008,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../../analysis/create-rois/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Create Sequential ROIs
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../../analysis/tracking-data/" class="md-nav__link">
         
   
@@ -1204,6 +1204,18 @@
 
 
 <h1 id="sum-heatmap-images">Sum Heatmap Images</h1>
+<p>Generates an image using pixelwise addition of the selected frames. Processing steps:</p>
+<ul>
+<li>
+<p><strong>Heatmap Generation</strong> Iterates through the video frames, performing a Otsu automatic threshold to binarize the frames, then aggregates them using a minimum Z-Projection.</p>
+</li>
+<li>
+<p><strong>Background Reference Creation:</strong> Performs a second iteration over the frames to calculate the Average Z-projection of the raw footage.</p>
+</li>
+<li>
+<p><strong>Final Composition:</strong> Inverts the generated average image and applies the selected Lookup table (LUT).</p>
+</li>
+</ul>
 <!--
 info: 
 esse é o fluxograma dessa macro:
