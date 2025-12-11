@@ -66,6 +66,9 @@ The LUTs available are the ImageJ's built-in ones (found at Image → Lookup Tab
 
 
 ## Intervals
-The checkboxes either activate or deactivate the relative interval. Frame numbers should be presented as `initialFrame-endFrame`, both being inclusive, like ImageJ's built-in **Image → Duplicate** feature, or [this plugin's Z-Project tool](../tools/z-project.md#initial-frame).  
+The checkboxes either activate or deactivate the relative interval.
+
+Frame numbers should be presented as `initialFrame-endFrame`, both being inclusive, like ImageJ's built-in **Image → Duplicate** feature. 
+
 An empty interval field results in a skipped interval, while a malformed one (without a `-` separator) throws an error.
 

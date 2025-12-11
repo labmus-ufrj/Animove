@@ -7,7 +7,7 @@ All ROIs are added to the ROI manager.
 
 Changing their position consists of:
 
-1. Clicking at one ROI in the ROI Manager.
+1. Clicking on one ROI in the ROI Manager.
 2. Moving the selected ROI around.
 3. Clicking Update in ROI Manager.
 

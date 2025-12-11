@@ -10,7 +10,8 @@
     -> quantify heatmap input image
 
 -> Extract Frequency Data
--> Extract Tracking Data
+    -> bouts/peaks plot?
+-> Extract Tracking Data?
 -> Thigmotaxis
     -> internal area is 50% of external area
 
