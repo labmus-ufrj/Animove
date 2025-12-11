@@ -43,7 +43,7 @@ nav:
   - '3 - Analysis':
       - 'Calculate Score Gradient': 'analysis/score-gradient.md'
       - 'Calculate Score Sectors': 'analysis/score-sectors.md'
-      - 'Extract Tracking Data': 'analysis/tracking-data.md'
+#      - 'Extract Tracking Data': 'analysis/tracking-data.md'
       - 'Extract Tracking Frequency Data': 'analysis/frequency-data.md'
       - 'Quantify Binary Heatmap': 'analysis/quantify-heatmap.md'
 
