@@ -84,26 +84,10 @@ public class FrequencyData implements Command, Interactive {
             return;
         }
 
-        data.forEach(list -> log.info(list.size()));
-
-        log.info("-----------------");
-
-        log.info(data.get(0).get(0) + " - " + data.get(0).get(1) + " - " + getDistance(data.get(0).get(0), data.get(0).get(1)));
-        log.info(data.get(0).get(1) + " - " + data.get(0).get(2) + " - " + getDistance(data.get(0).get(1), data.get(0).get(2)));
-        log.info(data.get(0).get(2) + " - " + data.get(0).get(3) + " - " + getDistance(data.get(0).get(2), data.get(0).get(3)));
-
-        log.info("-----------------");
-
         List<List<Double>> distancesPerTrack = data.stream().map((track) -> IntStream.range(0, track.size() - 1)
                 .mapToDouble(i -> getDistance(track.get(i), track.get(i + 1)))
                 .boxed()
                 .collect(Collectors.toList())).collect(Collectors.toList());
-
-        log.info(distancesPerTrack.get(0).get(0));
-        log.info(distancesPerTrack.get(0).get(1));
-        log.info(distancesPerTrack.get(0).get(2));
-
-        log.info("-----------------");
 
 //        String name = "Scores from " + xmlFile.getName() + " and " + videoFile.getName();
 //
