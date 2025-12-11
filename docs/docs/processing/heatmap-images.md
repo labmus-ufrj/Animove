@@ -1,5 +1,15 @@
 # Sum Heatmap Images
 
+Generates an image using pixelwise addition of the selected frames. Processing steps:
+
+* **Heatmap Generation** Iterates through the video frames, performing a Otsu automatic threshold to binarize the frames, then aggregates them using a minimum Z-Projection.
+  
+* **Background Reference Creation:** Performs a second iteration over the frames to calculate the Average Z-projection of the raw footage.
+
+* **Final Composition:** Inverts the generated average image and applies the selected Lookup table (LUT).
+
+
+
 <!--
 info: 
 esse é o fluxograma dessa macro:
