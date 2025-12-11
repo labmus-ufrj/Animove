@@ -12,13 +12,13 @@
         <meta name="author" content="LabMus - UFRJ">
       
       
-        <link rel="canonical" href="https://animove-docs.vercel.app/analysis/create-rois/">
+        <link rel="canonical" href="https://animove-docs.vercel.app/tools/create-rois/">
       
       
-        <link rel="prev" href="../../tools/check-dependencies/">
+        <link rel="prev" href="../check-dependencies/">
       
       
-        <link rel="next" href="../../tools/ffmpeg/">
+        <link rel="next" href="../ffmpeg/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -379,7 +379,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../tools/check-dependencies/" class="md-nav__link">
+      <a href="../check-dependencies/" class="md-nav__link">
         
   
   
@@ -435,7 +435,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../tools/ffmpeg/" class="md-nav__link">
+      <a href="../ffmpeg/" class="md-nav__link">
         
   
   
@@ -458,7 +458,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../tools/image-calculator/" class="md-nav__link">
+      <a href="../image-calculator/" class="md-nav__link">
         
   
   
@@ -481,7 +481,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../tools/invert-video/" class="md-nav__link">
+      <a href="../invert-video/" class="md-nav__link">
         
   
   
@@ -504,7 +504,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../tools/performance-test/" class="md-nav__link">
+      <a href="../performance-test/" class="md-nav__link">
         
   
   
@@ -527,7 +527,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../tools/z-project/" class="md-nav__link">
+      <a href="../z-project/" class="md-nav__link">
         
   
   
@@ -847,7 +847,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../score-gradient/" class="md-nav__link">
+      <a href="../../analysis/score-gradient/" class="md-nav__link">
         
   
   
@@ -870,7 +870,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../score-sectors/" class="md-nav__link">
+      <a href="../../analysis/score-sectors/" class="md-nav__link">
         
   
   
@@ -893,7 +893,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../frequency-data/" class="md-nav__link">
+      <a href="../../analysis/frequency-data/" class="md-nav__link">
         
   
   
@@ -916,7 +916,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../quantify-heatmap/" class="md-nav__link">
+      <a href="../../analysis/quantify-heatmap/" class="md-nav__link">
         
   
   
@@ -977,7 +977,21 @@
 
 
 <h1 id="create-sequential-rois">Create Sequential ROIs</h1>
-<p>It creates circular ROI sections according to the number and size specified by the user. The size unit will depend on the scale previously stated. The plugin creats the given number of ROI and opens directly in the ROI manager.</p>
+<p>Creates circular ROIs according to the number and size specified by the user.
+Positions them according to a grid (the smallest divisors to the chosen well amount).
+The size unit will rely on the scale previously stated.
+All ROIs are added to the ROI manager.</p>
+<p>Changing their position consists of:</p>
+<ol>
+<li>Clicking at one ROI in the ROI Manager.</li>
+<li>Moving the selected ROI around.</li>
+<li>Clicking Update in ROI Manager.</li>
+</ol>
+<p>Saving these ROIs is recommended, as they are used in many functions and are re-usable.</p>
+<div class="admonition warning">
+<p class="admonition-title">Saving ROIs</p>
+<p>Avoid saving only one ROI instead of the whole collection. Before saving, select all of them in the ROI Manager (using the Shift key).</p>
+</div>
 
 
 
