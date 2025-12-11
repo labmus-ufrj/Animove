@@ -1,5 +1,31 @@
 # Sum Heatmap Images
 
+Generates an image using pixelwise addition of the selected frames. Processing steps:
+
+* **Heatmap Generation** Iterates through the video frames, performing a Otsu automatic threshold to binarize the frames, then aggregates them using a minimum Z-Projection.
+  
+* **Background Reference Creation:** Performs a second iteration over the frames to calculate the Average Z-projection of the raw footage.
+
+* **Final Composition:** Inverts the generated average image and applies the selected Lookup table (LUT).
+
+
+--8<-- "input-video.md"
+
+--8<-- "open-frame.md"
+
+## Lookup Table 
+
+Displays Fiji LUT library and allows the user to choose and applie one of them. 
+
+
+--8<-- "dont-save.md"
+
+## Frame interval
+
+Allows the user to process different frame intervals simultaneously, defining Start, Middle and End frame intervals, or choosing a Custom interval. 
+
+--8<-- "preview.md"
+
 <!--
 info: 
 esse é o fluxograma dessa macro:
