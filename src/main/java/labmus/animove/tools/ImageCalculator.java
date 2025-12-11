@@ -226,7 +226,7 @@ public class ImageCalculator extends DynamicCommand implements Interactive {
 
     private void openFrame() {
         if (inputVideoFile == null || !inputVideoFile.exists() || !inputVideoFile.isFile()) {
-            uiService.showDialog("Could not open video: \n Invalid file", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
+            uiService.showDialog("Could not open video:\nInvalid file", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
             return;
         }
         Executors.newSingleThreadExecutor().submit(() -> {
