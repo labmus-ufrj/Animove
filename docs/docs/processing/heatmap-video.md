@@ -1,13 +1,12 @@
 # Sum Heatmap Video
 
-Generates a video file using pixelwise addition of the selected frames. Processing steps are the same as (Sum Heatmap Images)[link], but processing each frame from the original video individually.
+Generates a video file using pixelwise addition of the selected frames. Processing steps are the same as [Sum Heatmap Images](heatmap-images.md), but processing each frame from the original video individually.
 
 ## Interface
 
 ADD IMAGE
 
-## Input Video
-[Refer to this plugin's Z-Project tool](../tools/z-project.md#input-video)
+--8<-- "input-video.md"
 
 --8<-- "output-file.md"
 

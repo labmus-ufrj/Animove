@@ -1,6 +1,6 @@
 -> FFmpeg plugin repeats the first frame of videos converted to AVI (probably to all of them), doing it from blank->end
 -> change apply brightness function to use openCV one
--> GradientScoreAnalysis should use code from XMLHelper
+-> heatmap-images needs a proper processing sequence written
 
 -> Write documentation
     -> Suggest the usage of that excel export plugin  https://imagej.net/plugins/excel-functions

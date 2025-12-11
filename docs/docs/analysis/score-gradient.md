@@ -2,6 +2,7 @@
 
 ## XML File
 Two possible files can be used here:
+
 1. Trackmate's whole save file
     * Ideal option overall.
     * Mandatory if you only have spots and no tracks. In this case, a mean score of every spot on each frame will be calculated.

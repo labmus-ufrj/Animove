@@ -56,18 +56,13 @@ run("Apply LUT");
 
 ![Expected output image](img/output-heatmapImages.png){ width="400em" }
 
-## Input Video
-[Refer to this plugin's Z-Project tool](../tools/z-project.md#input-video)
+--8<-- "input-video.md"
 
 ## Output Folder
 Where output images will be saved with `.tif` format.
 
-## Convert to Grayscale
-[Refer to this plugin's Z-Project tool](../tools/z-project.md#convert-to-grayscale)
-
 ## Lookup Table
 The LUTs available are the ImageJ's built-in ones (found at Image → Lookup Tables). Leave as "Don't change" for RGB images if Convert to Grayscale is not checked.
-
 
 
 ## Intervals
