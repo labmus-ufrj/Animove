@@ -17,6 +17,8 @@ theme:
     - navigation.tracking
     - search.suggest
     - search.highlight
+
+#todo: change this link
 site_url: https://animove-docs.vercel.app/
 
 nav:

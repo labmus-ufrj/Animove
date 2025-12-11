@@ -10,7 +10,7 @@
 3. In the new popup window search for the site name `Animove` and activate the checkbox
 4. Press the **Close** button
 5. Finally, press the **Apply changes** button and restart Fiji
-6. The plugin will appear under the menu Plugins → ZF Utils
+6. The plugin will appear in Fiji's menu bar.
 7. **Installing dependencies** (this is only done once, not every update)
     - Run Animove → Tools → Check Dependencies
     - Follow the instructions, you'll need to restart Fiji multiple times
