@@ -155,9 +155,11 @@ public class AdultsTrackingProcessing extends DynamicCommand implements Interact
 
             recorderFunction.getRecorder().openResultinIJ(uiService, datasetIOService, false, outputFile.getName());
             IJ.getImage().setRoi(lastRoi);
-
             if (saveOutput && !doPreview){
                 Files.copy(tempOutputFile.toPath(), outputFile.toPath());
+            }
+            if (!doPreview) {
+                uiService.showDialog("You must set this stack's scale before opening Trackmate! \n Otherwise, all data won't have proper calibrated data.", ZFConfigs.pluginName, DialogPrompt.MessageType.INFORMATION_MESSAGE);
             }
 
         } catch (Exception e) {

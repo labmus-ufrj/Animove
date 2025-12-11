@@ -15,5 +15,3 @@
 -> crop heatmaps output
     -> Mat cropped = new Mat(masked, roi);
 -> ROI creator scale always in pixel
--> force calibration?
-    -> after processing for tracking (copy calibration)
