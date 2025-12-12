@@ -1,6 +1,6 @@
 # Extract Frequency Data
 
-
+Extracts X and Y positional data from the selected XML file and allows the user to visualize the results in a graphical plot.
 
 --8<-- "excel-functions.md"
 
