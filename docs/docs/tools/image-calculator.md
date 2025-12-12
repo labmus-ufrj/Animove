@@ -4,7 +4,7 @@ Performs a mathematical operation on a video and an image. Similar to ImageJ's b
 
 
 ## Interface
-![Interface image](img/gui-image-calc.png){ width="300em" }
+![Interface image](img/gui-image-calc.png){ width="400em" }
 
 --8<-- "input-video.md"
 

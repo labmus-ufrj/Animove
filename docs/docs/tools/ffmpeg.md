@@ -5,7 +5,7 @@ A graphical user interface to use FFmpeg. It's simplified to display only the fe
 <!-- why not use the built-in FrameRecorder? because it's much slower than the standalone binary-->
 
 ## Interface
-![Interface image](img/gui-ffmpeg.png){ width="300em" }
+![Interface image](img/gui-ffmpeg.png){ width="400em" }
 
 --8<-- "input-video.md"
 

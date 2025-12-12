@@ -1,7 +1,7 @@
 # Z-Project
 
 ## Interface
-![Interface image](img/gui-z-project.png){ width="300em" }
+![Interface image](img/gui-z-project.png){ width="400em" }
 
 --8<-- "input-video.md"
 
