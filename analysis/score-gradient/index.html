@@ -15,7 +15,7 @@
         <link rel="canonical" href="https://animove-docs.vercel.app/analysis/score-gradient/">
       
       
-        <link rel="prev" href="../../processing/embryos-tracking/">
+        <link rel="prev" href="../../processing/larvae-tracking/">
       
       
         <link rel="next" href="../score-sectors/">
@@ -584,7 +584,7 @@
   
   
   <span class="md-ellipsis">
-    Binary Heatmap Image (Embryos)
+    Binary Heatmap Image (Larvae)
     
   </span>
   
@@ -717,12 +717,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../processing/embryos-tracking/" class="md-nav__link">
+      <a href="../../processing/larvae-tracking/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Embryos Tracking
+    Larvae Tracking
     
   </span>
   
@@ -889,6 +889,51 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#open-frame" class="md-nav__link">
+    <span class="md-ellipsis">
+      Open Frame
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#load-minmax-from-xml" class="md-nav__link">
+    <span class="md-ellipsis">
+      Load Min/Max from XML
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#change-max-score" class="md-nav__link">
+    <span class="md-ellipsis">
+      Change Max Score
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#change-min-score" class="md-nav__link">
+    <span class="md-ellipsis">
+      Change Min Score
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stop" class="md-nav__link">
+    <span class="md-ellipsis">
+      Stop
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -957,6 +1002,29 @@
   
   <span class="md-ellipsis">
     Quantify Binary Heatmap
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../thigmotaxis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Thigmotaxis
     
   </span>
   
@@ -1045,6 +1113,51 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#open-frame" class="md-nav__link">
+    <span class="md-ellipsis">
+      Open Frame
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#load-minmax-from-xml" class="md-nav__link">
+    <span class="md-ellipsis">
+      Load Min/Max from XML
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#change-max-score" class="md-nav__link">
+    <span class="md-ellipsis">
+      Change Max Score
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#change-min-score" class="md-nav__link">
+    <span class="md-ellipsis">
+      Change Min Score
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stop" class="md-nav__link">
+    <span class="md-ellipsis">
+      Stop
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1065,6 +1178,12 @@
 
 
 <div><h1 id="calculate-score-gradient">Calculate Score Gradient</h1>
+<p>From user-defined min and max values, calculates a score (0-10) of each spot from Trackmate.</p>
+<div class="admonition note">
+<p class="admonition-title">Results Table Output</p>
+<p>Exporting data from imageJ's result tables to the default CSV option can led to problems related to decimal case separators.
+If you found this error, we recommend the usage of <a href="https://imagej.net/plugins/excel-functions">Excel Functions</a>, a plugin that allows trouble-free data exports to xlsx format.</p>
+</div>
 <h2 id="interface">Interface</h2>
 <p><img alt="Interface image" src="../img/gui-score-gradient.png" width="400em"></p>
 <h2 id="xml-file">XML File</h2>
@@ -1094,7 +1213,18 @@
 <p><strong>Dial Chart</strong>: Dial is set to the median score value. (If you have multiple tracks, montage of all track's dials is created)</p>
 <p><img alt="Dial Chart image" src="../img/output-score-gradient-dial.png" width="400em"></p>
 </li>
-</ul></div>
+</ul>
+<h2 id="open-frame">Open Frame</h2>
+<p>Opens the first frame of the video as a preview. Can be used to set the ROI in functions that require it. Ignores the file's EXIF rotation data.</p>
+<h2 id="load-minmax-from-xml">Load Min/Max from XML</h2>
+<p>Gathers and displays the min and max position values from the current XML.
+It is required to click this button to check for calibration issues.</p>
+<h2 id="change-max-score">Change Max Score</h2>
+<p>Allows the user to change the max value by clicking on the preview image.</p>
+<h2 id="change-min-score">Change Min Score</h2>
+<p>Allows the user to change the min value by clicking on the preview image.</p>
+<h2 id="stop">Stop</h2>
+<p>Stop changing max and min values.</p></div>
 
 
 

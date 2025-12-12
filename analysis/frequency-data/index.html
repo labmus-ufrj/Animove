@@ -584,7 +584,7 @@
   
   
   <span class="md-ellipsis">
-    Binary Heatmap Image (Embryos)
+    Binary Heatmap Image (Larvae)
     
   </span>
   
@@ -717,12 +717,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../processing/embryos-tracking/" class="md-nav__link">
+      <a href="../../processing/larvae-tracking/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Embryos Tracking
+    Larvae Tracking
     
   </span>
   
@@ -967,6 +967,29 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../thigmotaxis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Thigmotaxis
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1065,12 +1088,17 @@
 
 
 <div><h1 id="extract-frequency-data">Extract Frequency Data</h1>
+<div class="admonition note">
+<p class="admonition-title">Results Table Output</p>
+<p>Exporting data from imageJ's result tables to the default CSV option can led to problems related to decimal case separators.
+If you found this error, we recommend the usage of <a href="https://imagej.net/plugins/excel-functions">Excel Functions</a>, a plugin that allows trouble-free data exports to xlsx format.</p>
+</div>
 <h2 id="interface">Interface</h2>
 <p><img alt="Interface image" src="../img/gui-frequency-data.png" width="400em"></p>
 <h2 id="xml-file">XML File</h2>
 <div class="admonition warning">
 <p class="admonition-title">Tracking Required</p>
-<p>Note that this plugin function <strong>requires tracks</strong> to gather data about movement frequency, so files without them will get rejected.</p>
+<p>Note that this function <strong>depends on the previous use of Trackmate</strong> to gather data about movement frequency, so files without them will get rejected.</p>
 </div>
 <p>Two possible files can be used here:</p>
 <ol>

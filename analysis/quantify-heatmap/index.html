@@ -18,6 +18,8 @@
         <link rel="prev" href="../frequency-data/">
       
       
+        <link rel="next" href="../thigmotaxis/">
+      
       
       <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.22">
@@ -582,7 +584,7 @@
   
   
   <span class="md-ellipsis">
-    Binary Heatmap Image (Embryos)
+    Binary Heatmap Image (Larvae)
     
   </span>
   
@@ -715,12 +717,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../processing/embryos-tracking/" class="md-nav__link">
+      <a href="../../processing/larvae-tracking/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Embryos Tracking
+    Larvae Tracking
     
   </span>
   
@@ -956,6 +958,29 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../thigmotaxis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Thigmotaxis
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1047,6 +1072,11 @@
 <div><h1 id="quantify-heatmap">Quantify Heatmap</h1>
 <p>Quantify the area of a binary heatmap to analyze the animal percentage traveled area.
 It counts the black pixels from a given binary image. </p>
+<div class="admonition note">
+<p class="admonition-title">Results Table Output</p>
+<p>Exporting data from imageJ's result tables to the default CSV option can led to problems related to decimal case separators.
+If you found this error, we recommend the usage of <a href="https://imagej.net/plugins/excel-functions">Excel Functions</a>, a plugin that allows trouble-free data exports to xlsx format.</p>
+</div>
 <h2 id="interface">Interface</h2>
 <p><img alt="Interface image" src="../img/gui-qnt-bin.png" width="400em"></p>
 <h2 id="input-binary-heatmap-image">Input Binary Heatmap Image</h2>

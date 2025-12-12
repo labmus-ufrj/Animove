@@ -12,7 +12,7 @@
         <meta name="author" content="LabMus - UFRJ">
       
       
-        <link rel="canonical" href="https://animove-docs.vercel.app/processing/embryos-tracking/">
+        <link rel="canonical" href="https://animove-docs.vercel.app/processing/larvae-tracking/">
       
       
         <link rel="prev" href="../adults-tracking/">
@@ -26,7 +26,7 @@
     
     
       
-        <title>Embryos Tracking - Animove</title>
+        <title>Larvae Tracking - Animove</title>
       
     
     
@@ -68,7 +68,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#embryos-tracking" class="md-skip">
+        <a href="#larvae-tracking" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Embryos Tracking
+              Larvae Tracking
             
           </span>
         </div>
@@ -586,7 +586,7 @@
   
   
   <span class="md-ellipsis">
-    Binary Heatmap Image (Embryos)
+    Binary Heatmap Image (Larvae)
     
   </span>
   
@@ -735,7 +735,7 @@
   
   
   <span class="md-ellipsis">
-    Embryos Tracking
+    Larvae Tracking
     
   </span>
   
@@ -748,7 +748,7 @@
   
   
   <span class="md-ellipsis">
-    Embryos Tracking
+    Larvae Tracking
     
   </span>
   
@@ -978,6 +978,29 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../analysis/thigmotaxis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Thigmotaxis
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1084,11 +1107,15 @@
   
 
 
-<div><h1 id="embryos-tracking">Embryos Tracking</h1>
+<div><h1 id="larvae-tracking">Larvae Tracking</h1>
 <p>Pre-process the input video to make it suitable for Trackmate analysis.
 These steps include frames duplication and inversion, as Trackmate algorithm recognizes white spots in a dark background.
 Background subtraction trough average subtraction is also performed.</p>
 <p>A TrackMate tutorial can be found <a href="https://imagej.net/plugins/trackmate/tutorials/getting-started">here</a>.</p>
+<div class="admonition warning">
+<p class="admonition-title">FPS reduction</p>
+<p>We found 20 fps to be suitable to track larvae fish movement. It's possible to change the framerate using <a href="../../tools/ffmpeg/">this plugin's FFmpeg tool</a></p>
+</div>
 <h2 id="interface">Interface</h2>
 <p><img alt="Interface image" src="../img/gui-embryos-tracking.png" width="400em"></p>
 <h2 id="input-video">Input Video</h2>

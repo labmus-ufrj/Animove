@@ -12,13 +12,9 @@
         <meta name="author" content="LabMus - UFRJ">
       
       
-        <link rel="canonical" href="https://animove-docs.vercel.app/tools/performance-test/">
+        <link rel="canonical" href="https://animove-docs.vercel.app/snippets/excel-functions/">
       
       
-        <link rel="prev" href="../invert-video/">
-      
-      
-        <link rel="next" href="../z-project/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -26,7 +22,7 @@
     
     
       
-        <title>Performance Test - Animove</title>
+        <title>Excel functions - Animove</title>
       
     
     
@@ -67,11 +63,6 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
-        
-        <a href="#performance-test" class="md-skip">
-          Skip to content
-        </a>
-      
     </div>
     <div data-md-component="announce">
       
@@ -104,7 +95,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Performance Test
+              Excel functions
             
           </span>
         </div>
@@ -294,20 +285,18 @@
       
   
   
-    
   
   
-  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
         
           
           <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
@@ -323,7 +312,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             1 - Tools
@@ -337,7 +326,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../check-dependencies/" class="md-nav__link">
+      <a href="../../tools/check-dependencies/" class="md-nav__link">
         
   
   
@@ -360,7 +349,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../create-rois/" class="md-nav__link">
+      <a href="../../tools/create-rois/" class="md-nav__link">
         
   
   
@@ -383,7 +372,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../ffmpeg/" class="md-nav__link">
+      <a href="../../tools/ffmpeg/" class="md-nav__link">
         
   
   
@@ -406,7 +395,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../image-calculator/" class="md-nav__link">
+      <a href="../../tools/image-calculator/" class="md-nav__link">
         
   
   
@@ -429,7 +418,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../invert-video/" class="md-nav__link">
+      <a href="../../tools/invert-video/" class="md-nav__link">
         
   
   
@@ -449,19 +438,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../tools/performance-test/" class="md-nav__link">
         
   
   
@@ -472,7 +452,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -485,7 +464,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../z-project/" class="md-nav__link">
+      <a href="../../tools/z-project/" class="md-nav__link">
         
   
   
@@ -937,8 +916,6 @@
   
   
   
-    
-  
   
 </nav>
                   </div>
@@ -957,16 +934,13 @@
   
 
 
-<div><h1 id="performance-test">Performance Test</h1>
-<p>Used to test the plugin's performance. Creates a video with the specified dimensions and length set to the product of them. </p>
-<p>Each video frame has one more white pixel than the last one. Pixels are filled in left to right and up to bottom.</p>
-<div class="admonition warning">
-<p class="admonition-title">Avoid Big Dimensions</p>
-<p>Only use small resolutions.
-Even using a relatively low resolution such as VGA (800x600) will create a video with 480,000 frames. That's a 4,5 hour-long AVI video, at 30 fps, saved with low compression. This will use A LOT of HDD space. And, most importantly, <strong>it won't fit in your computer's RAM</strong> to be processed by ImageJ's built-in Z-project function.</p>
+  <h1>Excel functions</h1>
+
+<div class="admonition note">
+<p class="admonition-title">Results Table Output</p>
+<p>Exporting data from imageJ's result tables to the default CSV option can led to problems related to decimal case separators.
+If you found this error, we recommend the usage of <a href="https://imagej.net/plugins/excel-functions">Excel Functions</a>, a plugin that allows trouble-free data exports to xlsx format.</p>
 </div>
-<p>The video is saved as a temp file; then the operation Z-Project (Max intensity) is run, both with the ImageJ's built-in tool and this plugin's implementation.</p>
-<p>The time to complete these operations is displayed.</p></div>
 
 
 
