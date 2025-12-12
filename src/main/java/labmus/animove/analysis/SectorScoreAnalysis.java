@@ -153,7 +153,7 @@ public class SectorScoreAnalysis implements Command, Interactive {
 
         List<ArrayList<XMLHelper.PointData>> data;
         try {
-            data = XMLHelper.iterateOverXML(xmlFile, videoFrame, this.fixSpots);
+            data = XMLHelper.iterateOverXML(xmlFile, videoFrame, this.fixSpots, false);
         } catch (Exception e) {
             log.error(e);
             uiService.showDialog("An error occured during processing:\n" + e.getLocalizedMessage(),

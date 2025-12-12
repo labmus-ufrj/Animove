@@ -32,7 +32,7 @@ public class XMLHelper {
 
         @Override
         public String toString() {
-            return "x: "+this.x+", y:"+this.y;
+            return "x: " + this.x + ", y:" + this.y;
         }
     }
 
@@ -48,14 +48,18 @@ public class XMLHelper {
         }
     }
 
-    public static List<ArrayList<PointData>> iterateOverXML(File xmlFile, ImagePlus videoFrame, boolean fixSpots) throws Exception {
+    public static List<ArrayList<PointData>> iterateOverXML(File xmlFile, ImagePlus videoFrame, boolean fixSpots, boolean assertTracks) throws Exception {
         Document doc = getXML(xmlFile);
         ArrayList<HashMap<Integer, PointData>> trackScores = new ArrayList<>(); // the easy way not the right way
         if (doc.getElementsByTagName("Tracks").getLength() > 0) {
             fromTracksXML(doc, trackScores, videoFrame);
         } else if (doc.getElementsByTagName("Model").getLength() > 0) {
             // if there were no tracks, this can return false
-            fixSpots = fromFullXML(doc, trackScores, videoFrame);
+            boolean manyTracks = fromFullXML(doc, trackScores, videoFrame);
+            if (!manyTracks && assertTracks) {
+                throw new Exception("No tracks found in XML file. Please make sure you have complete the Trackmate tracking routine.");
+            }
+            fixSpots = manyTracks;
         } else {
             throw new Exception("Wrong XML file.");
         }

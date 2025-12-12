@@ -5,7 +5,7 @@
 -> change apply brightness function (in ZF Helper Methods) to use openCV one
 
 -> Write documentation
-    -> Analysis main tools descriptions missing
+    -> Thigmotaxis description missing
 
 -> Extract Frequency Data
     -> bouts/peaks plot?
