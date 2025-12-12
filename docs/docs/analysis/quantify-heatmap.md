@@ -1,15 +1,17 @@
 # Quantify Heatmap
 
-Quantify the area of a binary heatmap in order to analyse the animals percentage travelled area. It counts the black pixels from a given binary image. 
+Quantify the area of a binary heatmap to analyze the animal percentage traveled area.
+It counts the black pixels from a given binary image. 
 
-INPUT IMAGE SNIPPET
+## Interface
+![Interface image](img/gui-qnt-bin.png){ width="400em" }
+
+## Input Binary Heatmap Image
+The binary heatmap image to be processed. Ideally, generated with [Binary Heatmap Image](../processing/heatmap-binary.md).
 
 ## Display plots
-
-Creates results graphical images using Matplotlib. 
-
-ADD EXAMPLE IMAGE
+* **Bar Chart**: Simple chart to represent area percentage.
+![Bar Chart image](img/output-qnt-bin.png){ width="400em" }
 
 ## Create sequential ROIs
-
-It opens the [Create sequential ROIs](../tools/create-rois.md) tool window, allowing the user to quantify different ROIs and compare results using the same file.
+Opens the [Create sequential ROIs](../tools/create-rois.md) plugin window.

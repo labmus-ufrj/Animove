@@ -2,7 +2,7 @@
 
 Generates a binary heatmap image. Processing steps:
 
-* **Heatmap Generation** Iterates through the video frames, performing a Otsu automatic threshold to binarize the frames, then aggregates them using a minimum Z-Projection.
+* **Heatmap Generation** Iterates through the video frames, performing an Otsu automatic threshold to binarize the frames, then aggregates them using a minimum Z-Projection.
 
 
 * **Background Reference Creation:** Performs a second iteration over the frames to calculate the Average Z-projection of the raw footage.
@@ -11,7 +11,7 @@ Generates a binary heatmap image. Processing steps:
 * **Final Composition:** Binarizes and inverts the generated average image (using the same method), then adds it mathematically to the binary heatmap to produce the final result.
 
 ## Interface
-![Interface image](img/gui-binary-heatmap.png){ width="300em" }
+![Interface image](img/gui-binary-heatmap.png){ width="400em" }
 
 ## Expected Output
 

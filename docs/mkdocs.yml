@@ -36,9 +36,9 @@ nav:
       - 'Z-project': 'tools/z-project.md'
   - '2 - Processing':
       - 'Heatmaps':
-          - 'Binary Heatmap Image': 'processing/heatmap-binary.md'
-          - 'Sum Heatmap Images': 'processing/heatmap-images.md'
-          - 'Sum Heatmap Video': 'processing/heatmap-video.md'
+          - 'Binary Heatmap Image (Embryos)': 'processing/heatmap-binary.md'
+          - 'Sum Heatmap Images (Adults)': 'processing/heatmap-images.md'
+          - 'Sum Heatmap Video (Adults)': 'processing/heatmap-video.md'
       - 'Tracking':
           - 'Adults Tracking': 'processing/adults-tracking.md'
           - 'Embryos Tracking': 'processing/embryos-tracking.md'
@@ -57,3 +57,6 @@ markdown_extensions:
   - pymdownx.snippets:
       base_path: ["docs/snippets"]
       check_paths: true # This helps debug by throwing an error if the file isn't found
+
+plugins:
+  - mkdocs-video

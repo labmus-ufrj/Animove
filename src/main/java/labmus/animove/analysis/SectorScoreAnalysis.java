@@ -102,7 +102,7 @@ public class SectorScoreAnalysis implements Command, Interactive {
             plot.setSectionPaint(keys.get(i), colors.get(i));
         }
 
-        plot.setBackgroundPaint(Color.WHITE);
+        plot.setBackgroundPaint(Color.decode("#f0f0f0"));
         plot.setOutlineVisible(false);
         plot.setShadowPaint(null);
 
@@ -186,15 +186,17 @@ public class SectorScoreAnalysis implements Command, Interactive {
             dataset.setValue(roi.getName(), count);
         }
 
-        int lastRowIndex = roiManager.getCount();
-        rt.setValue("ROI Name", lastRowIndex, "Outside All ROIs");
-
         int spotsCount = data.stream()
                 .map(ArrayList::size)
                 .reduce(Integer::sum).get(); // there'll always be spots. hopefully.
 
-        rt.setValue("Count", lastRowIndex, spotsCount - globalCount);
-        dataset.setValue("Outside All ROIs", spotsCount - globalCount);
+        int outsideCount = spotsCount - globalCount;
+        if (outsideCount > 0){
+            int lastRowIndex = roiManager.getCount();
+            rt.setValue("ROI Name", lastRowIndex, "Outside All ROIs");
+            rt.setValue("Count", lastRowIndex, outsideCount);
+            dataset.setValue("Outside All ROIs", outsideCount);
+        }
 
         if (this.displayPlots) {
             new ImagePlus("Plot", getPieChart(dataset, name).createBufferedImage(1600, 1200)).show();

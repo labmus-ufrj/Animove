@@ -2,58 +2,20 @@
 
 Generates an image using pixelwise addition of the selected frames. Processing steps:
 
-* **Heatmap Generation** Iterates through the video frames, performing a Otsu automatic threshold to binarize the frames, then aggregates them using a minimum Z-Projection.
-  
-* **Background Reference Creation:** Performs a second iteration over the frames to calculate the Average Z-projection of the raw footage.
+* **Background Reference Creation:** Performs an iteration over the frames to calculate the Average Z-projection of the raw footage.
 
-* **Final Composition:** Inverts the generated average image and applies the selected Lookup table (LUT).
+* **Background Subtraction:** Starts a second iteration over the frames. In this step, subtracts the generated average background from each frame.
 
+* **Brightness Adjust:** Increases the overall brightness.
 
+* **Frame Sum:** Ending the second frame iteration, this operation sums all pixel values into a single 32-bit frame.
 
-<!--
-info: 
-esse é o fluxograma dessa macro:
-selectImage(fullStackID);
-run("Duplicate...", "duplicate range="+intervals[i]);
-sliceID = getImageID();
-selectImage(sliceID);
-
-run("Invert", "stack");
-run("Z Project...", "projection=[Average Intensity]");
-avrID = getImageID();
-
-imageCalculator("Subtract create stack", sliceID, avrID);
-run("Invert", "stack");
-noBgID = getImageID();
-rename(intervals[i]);
-
-selectImage(sliceID);
-close();
-selectImage(avrID);
-close();
-
-brilhoContraste(noBgID);
-
-
-run("Z Project...", "projection=[Sum Slices]");
-run("Invert");
-sumID = getImageID();
-
-close(sliceID);
-selectImage(sumID);
-run("16-bit");
-
-ajusteMinMaxAuto(1);
-run("Apply LUT");
--->
-
+* **Final Composition:** A simple B&C adjust is applied, stretching the histogram to its boundaries. After that, the selected Lookup table (LUT) is applied.
 
 ## Interface
-
-![Interface image](img/gui-heatmapImages.png){ width="300em" }
+![Interface image](img/gui-heatmapImages.png){ width="400em" }
 
 ## Expected Output
-
 ![Expected output image](img/output-heatmapImages.png){ width="400em" }
 
 --8<-- "input-video.md"
@@ -62,8 +24,7 @@ run("Apply LUT");
 Where output images will be saved with `.tif` format.
 
 ## Lookup Table
-The LUTs available are the ImageJ's built-in ones (found at Image → Lookup Tables). Leave as "Don't change" for RGB images if Convert to Grayscale is not checked.
-
+The LUTs available are the ImageJ's built-in ones (found at Image → Lookup Tables).
 
 ## Intervals
 The checkboxes either activate or deactivate the relative interval.

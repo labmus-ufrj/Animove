@@ -9,7 +9,7 @@ Changing their position consists of:
 
 1. Clicking on one ROI in the ROI Manager.
 2. Moving the selected ROI around.
-3. Clicking Update in ROI Manager.
+3. Clicking `Update` in ROI Manager.
 
 Saving these ROIs is recommended, as they are used in many functions and are re-usable.
 

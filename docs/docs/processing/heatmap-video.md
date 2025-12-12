@@ -1,10 +1,15 @@
 # Sum Heatmap Video
 
-Generates a video file using pixelwise addition of the selected frames. Processing steps are the same as [Sum Heatmap Images](heatmap-images.md), but processing each frame from the original video individually.
+Generates a video file using pixelwise addition of the selected frames. 
+Processing steps are the same as [Sum Heatmap Images](heatmap-images.md).
+
+Each frame is then concatenated into a single video.
 
 ## Interface
+![Interface image](img/gui-heatmap-video.png){ width="400em" }
 
-ADD IMAGE
+## Expected Output
+![type:video](img/output-heatmap-video.mp4)
 
 --8<-- "input-video.md"
 
