@@ -17,6 +17,7 @@ import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.scijava.app.StatusService;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
@@ -276,6 +277,28 @@ public class ZFHelperMethods {
 //        IJ.log("Temp file: " + tempOutputFile.getAbsolutePath());
         tempOutputFile.deleteOnExit();
         return tempOutputFile;
+    }
+
+    public static List<Color> generateColors(int numColors) {
+        List<Color> colors = new ArrayList<>(numColors);
+
+        final float GOLDEN_RATIO = 0.618033988749895f;
+
+        final float SATURATION = 0.75f;
+        final float BRIGHTNESS = 0.55f;
+
+        float currentHue = (float) Math.random();
+
+        for (int i = 0; i < numColors; i++) {
+            Color c = Color.getHSBColor(currentHue, SATURATION, BRIGHTNESS);
+            colors.add(c);
+
+            currentHue += GOLDEN_RATIO;
+
+            currentHue %= 1.0f;
+        }
+
+        return colors;
     }
 
     public static void autoAdjustBrightnessStack(ImagePlus imp, boolean useROI) {

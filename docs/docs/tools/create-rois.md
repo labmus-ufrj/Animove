@@ -1,7 +1,7 @@
 # Create Sequential ROIs
 
 Creates circular ROIs according to the number and size specified by the user.
-Positions them according to a grid (the smallest divisors to the chosen well amount).
+Positions them according to a grid (the smallest divisors to the chosen number of wells).
 The size unit will rely on the scale previously stated.
 All ROIs are added to the ROI manager.
 

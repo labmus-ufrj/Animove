@@ -95,6 +95,13 @@ public class SectorScoreAnalysis implements Command, Interactive {
         title.setPaint(Color.BLACK);
 
         PiePlot<String> plot = (PiePlot) chart.getPlot();
+
+        List<String> keys = dataset.getKeys();
+        List<Color> colors = ZFHelperMethods.generateColors(keys.size());
+        for (int i = 0; i < keys.size(); i++) {
+            plot.setSectionPaint(keys.get(i), colors.get(i));
+        }
+
         plot.setBackgroundPaint(Color.WHITE);
         plot.setOutlineVisible(false);
         plot.setShadowPaint(null);

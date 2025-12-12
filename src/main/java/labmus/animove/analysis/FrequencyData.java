@@ -119,12 +119,12 @@ public class FrequencyData implements Command, Interactive {
         }
 
         if (this.displayPlots) {
-            new ImagePlus("Plot", createChart(name, distancesPerTrack, videoFrame.getCalibration().getXUnit()).createBufferedImage(1600, 1200)).show();
+            new ImagePlus("Plot", createMultipleLineChart(name, distancesPerTrack, videoFrame.getCalibration().getXUnit()).createBufferedImage(1600, 1200)).show();
         }
         rt.show(name);
     }
 
-    private static JFreeChart createChart(String title, List<List<Double>> distancesPerTrack, String axisUnit) {
+    private static JFreeChart createMultipleLineChart(String title, List<List<Double>> distancesPerTrack, String axisUnit) {
         NumberAxis domainAxis = new NumberAxis("Frame");
         domainAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
         domainAxis.setRange(1, distancesPerTrack.get(0).size());
@@ -135,7 +135,7 @@ public class FrequencyData implements Command, Interactive {
         parentPlot.setGap(30.0);
         parentPlot.setOrientation(PlotOrientation.VERTICAL);
 
-        List<Color> colors = generateColors(distancesPerTrack.size());
+        List<Color> colors = ZFHelperMethods.generateColors(distancesPerTrack.size());
         for (int i = 0; i < distancesPerTrack.size(); i++) {
             List<Double> distances = distancesPerTrack.get(i);
             boolean isLast = (i == distancesPerTrack.size() - 1);
@@ -197,28 +197,6 @@ public class FrequencyData implements Command, Interactive {
         plot.setFixedRangeAxisSpace(space);
 
         return plot;
-    }
-
-    public static List<Color> generateColors(int numColors) {
-        List<Color> colors = new ArrayList<>(numColors);
-
-        final float GOLDEN_RATIO = 0.618033988749895f;
-
-        final float SATURATION = 0.75f;
-        final float BRIGHTNESS = 0.75f;
-
-        float currentHue = 0.5f;
-
-        for (int i = 0; i < numColors; i++) {
-            Color c = Color.getHSBColor(currentHue, SATURATION, BRIGHTNESS);
-            colors.add(c);
-
-            currentHue += GOLDEN_RATIO;
-
-            currentHue %= 1.0f;
-        }
-
-        return colors;
     }
 
     //    private double getDistance(double x1, double y1, double x2, double y2) {
