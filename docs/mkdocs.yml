@@ -36,12 +36,12 @@ nav:
       - 'Z-project': 'tools/z-project.md'
   - '2 - Processing':
       - 'Heatmaps':
-          - 'Binary Heatmap Image (Embryos)': 'processing/heatmap-binary.md'
+          - 'Binary Heatmap Image (Larvae)': 'processing/heatmap-binary.md'
           - 'Sum Heatmap Images (Adults)': 'processing/heatmap-images.md'
           - 'Sum Heatmap Video (Adults)': 'processing/heatmap-video.md'
       - 'Tracking':
           - 'Adults Tracking': 'processing/adults-tracking.md'
-          - 'Embryos Tracking': 'processing/embryos-tracking.md'
+          - 'Larvae Tracking': 'processing/larvae-tracking.md'
   - '3 - Analysis':
       - 'Calculate Score Gradient': 'analysis/score-gradient.md'
       - 'Calculate Score Sectors': 'analysis/score-sectors.md'
