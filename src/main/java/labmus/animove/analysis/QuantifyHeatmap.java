@@ -46,7 +46,7 @@ import static org.bytedeco.opencv.global.opencv_core.CMP_EQ;
 import static org.bytedeco.opencv.global.opencv_imgcodecs.imread;
 
 @SuppressWarnings({"FieldCanBeLocal"})
-@Plugin(type = Command.class, menuPath = ZFConfigs.quantifyLarvae)
+@Plugin(type = Command.class, menuPath = ZFConfigs.quantifyLarvaePath)
 public class QuantifyHeatmap implements Command, Interactive {
 
     static {

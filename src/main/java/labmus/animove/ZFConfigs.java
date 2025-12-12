@@ -35,11 +35,12 @@ public abstract class ZFConfigs {
     public static final String larvaeTrackingPath = trackingPath + "Larvae Tracking";
     public static final String adultsTrackingPath = trackingPath + "Adults Tracking";
 
-    public static final String quantifyLarvae = analysisPath + "Quantify Binary Heatmap";
-    public static final String analyzeFrequencyLarvae = analysisPath + "Extract Frequency Data";
-
     public static final String scoreGradientPath = analysisPath + "Calculate Score Gradient";
     public static final String scoreSectorPath = analysisPath + "Calculate Score Sectors";
+    public static final String analyzeFrequencyLarvaePath = analysisPath + "Extract Frequency Data";
+    public static final String quantifyLarvaePath = analysisPath + "Quantify Binary Heatmap";
+    public static final String thigmotaxisPath = analysisPath + "Thigmotaxis";
+
 
     public static final String trackingDataPath = analysisPath + "Extract Tracking Data";
 
