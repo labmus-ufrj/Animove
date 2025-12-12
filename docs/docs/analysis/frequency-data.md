@@ -5,7 +5,7 @@
 
 ## XML File
 !!! warning "Tracking Required"
-    Note that this plugin function **requires tracks** to gather data about movement frequency, so files without them will get rejected.
+    Note that this function **depends on the previous use of Trackmate** to gather data about movement frequency, so files without them will get rejected.
 
 Two possible files can be used here:
 
