@@ -8,6 +8,7 @@ import ij.plugin.frame.RoiManager;
 import labmus.animove.ZFConfigs;
 import labmus.animove.ZFHelperMethods;
 import labmus.animove.tools.ROICreator;
+import org.bytedeco.javacv.Java2DFrameConverter;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.global.opencv_imgcodecs;
@@ -55,6 +56,9 @@ public class QuantifyHeatmap implements Command, Interactive {
         Executors.newSingleThreadExecutor().submit(OpenCVFrameConverter.ToMat::new);
     }
 
+    @Parameter(required = false)
+    private ImagePlus imagePlus;
+
     @Parameter(label = "Input Binary Heatmap Image", style = "file", persist = false, required = false)
     private File heatmapFile;
 
@@ -92,44 +96,54 @@ public class QuantifyHeatmap implements Command, Interactive {
             createROIs();
             return;
         }
+        // these have to be initialized here, even if unused.
+        try (OpenCVFrameConverter.ToMat matConverter = new OpenCVFrameConverter.ToMat();
+             Java2DFrameConverter biConverter = new Java2DFrameConverter()) {
 
-        Mat heatmapMat = imread(heatmapFile.getAbsolutePath(), opencv_imgcodecs.IMREAD_GRAYSCALE);
+            Mat heatmapMat;
+            String name;
 
-        String name = "Quantified from " + heatmapFile.getName();
+            if (imagePlus == null) {
+                heatmapMat = imread(heatmapFile.getAbsolutePath(), opencv_imgcodecs.IMREAD_GRAYSCALE);
+                name = "Quantified from " + heatmapFile.getName();
+            } else {
+                heatmapMat = matConverter.convert(biConverter.convert(imagePlus.getBufferedImage()));
+                name = "Quantified from " + imagePlus.getTitle();
+            }
 
-        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-        ResultsTable rt = new ResultsTable();
-        rt.setNaNEmptyCells(true); // prism reads 0.00 as zeros and requires manual fixing
+            DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+            ResultsTable rt = new ResultsTable();
+            rt.setNaNEmptyCells(true); // prism reads 0.00 as zeros and requires manual fixing
 
-        try (Mat tempCompare = new Mat();
-             Mat tempIntersection = new Mat();
-             Scalar scalarBlack = new Scalar(0);
-             Mat matBlack = new Mat(heatmapMat.rows(), heatmapMat.cols(), heatmapMat.type(), scalarBlack)) {
+            try (Mat tempCompare = new Mat();
+                 Mat tempIntersection = new Mat();
+                 Scalar scalarBlack = new Scalar(0);
+                 Mat matBlack = new Mat(heatmapMat.rows(), heatmapMat.cols(), heatmapMat.type(), scalarBlack)) {
 
-            for (int i = 0; i < roiManager.getCount(); i++) {
-                Roi roi = roiManager.getRoi(i);
-                try (Mat maskMat = ZFHelperMethods.getMaskMatFromRoi(heatmapMat.arrayWidth(), heatmapMat.arrayHeight(), roi)) {
-                    opencv_core.compare(heatmapMat, matBlack, tempCompare, CMP_EQ);
-                    opencv_core.bitwise_and(tempCompare, maskMat, tempIntersection);
+                for (int i = 0; i < roiManager.getCount(); i++) {
+                    Roi roi = roiManager.getRoi(i);
+                    try (Mat maskMat = ZFHelperMethods.getMaskMatFromRoi(heatmapMat.arrayWidth(), heatmapMat.arrayHeight(), roi)) {
+                        opencv_core.compare(heatmapMat, matBlack, tempCompare, CMP_EQ);
+                        opencv_core.bitwise_and(tempCompare, maskMat, tempIntersection);
 
-                    int roiPixelCount = opencv_core.countNonZero(maskMat); // or roi.getContainedPoints().length
-                    int blackPixelCount = opencv_core.countNonZero(tempIntersection);
-                    double index = (double) blackPixelCount / roiPixelCount;
+                        int roiPixelCount = opencv_core.countNonZero(maskMat); // or roi.getContainedPoints().length
+                        int blackPixelCount = opencv_core.countNonZero(tempIntersection);
+                        double index = (double) blackPixelCount / roiPixelCount;
 
-                    rt.setValue("ROI Name", i, roi.getName());
-                    rt.setValue("Area %", i, String.format(Locale.US, "%.2f", index * 100));
-                    dataset.addValue(index * 100, "", roi.getName());
+                        rt.setValue("ROI Name", i, roi.getName());
+                        rt.setValue("Area %", i, String.format(Locale.US, "%.2f", index * 100));
+                        dataset.addValue(index * 100, "", roi.getName());
+                    }
                 }
             }
+
+            if (this.displayPlots) {
+                new ImagePlus("Plot", getBarChart(name, dataset).createBufferedImage(1600, 1200)).show();
+            }
+
+            rt.show(name);
+            heatmapMat.close();
         }
-
-        if (this.displayPlots) {
-            new ImagePlus("Plot", getBarChart(name, dataset).createBufferedImage(1600, 1200)).show();
-        }
-
-        rt.show(name);
-
-        heatmapMat.close();
     }
 
     private JFreeChart getBarChart(String title, DefaultCategoryDataset dataset) {
@@ -182,7 +196,7 @@ public class QuantifyHeatmap implements Command, Interactive {
     }
 
     private boolean checkFiles() {
-        if (heatmapFile == null || !heatmapFile.exists() || !heatmapFile.isFile()) {
+        if (imagePlus == null && (heatmapFile == null || !heatmapFile.exists() || !heatmapFile.isFile())) {
             uiService.showDialog("Invalid input heatmap image", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
             return false;
         }
@@ -193,7 +207,7 @@ public class QuantifyHeatmap implements Command, Interactive {
         if (!checkFiles()) {
             return;
         }
-        if (WindowManager.getImageCount() == 0){ // test if there is one image open
+        if (WindowManager.getImageCount() == 0) { // test if there is one image open
             ImagePlus imp = new ImagePlus(heatmapFile.getAbsolutePath());
             imp.setTitle(heatmapFile.getName());
             imp.show();

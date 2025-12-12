@@ -11,6 +11,10 @@ It counts the black pixels from a given binary image.
 ## Input Binary Heatmap Image
 The binary heatmap image to be processed. Ideally, generated with [Binary Heatmap Image](../processing/heatmap-binary.md).
 
+!!! Note "Image Input"
+    This plugin also accepts the current open image as input. In that case, leave this field blank and ensure you have the image opened in Fiji **before** running the plugin.
+
+
 ## Display plots
 * **Bar Chart**: Simple chart to represent area percentage.
 ![Bar Chart image](img/output-qnt-bin.png){ width="400em" }
