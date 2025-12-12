@@ -1,5 +1,7 @@
 # Calculate Score Gradient
 
+From user-defined min and max values, calculates a score (0-10) of each spot from Trackmate.
+
 ## Interface
 ![Interface image](img/gui-score-gradient.png){ width="400em" }
 
@@ -26,3 +28,18 @@ There's no prejudice in setting this to `True` if you have a perfect tracking, w
    * **Dial Chart**: Dial is set to the median score value. (If you have multiple tracks, montage of all track's dials is created)
      
      ![Dial Chart image](img/output-score-gradient-dial.png){ width="400em" }
+
+--8<-- "open-frame.md"
+
+## Load Min/Max from XML
+Gathers and displays the min and max position values from the current XML.
+It is required to click this button to check for calibration issues.
+
+## Change Max Score
+Allows the user to change the max value by clicking on the preview image.
+
+## Change Min Score
+Allows the user to change the min value by clicking on the preview image.
+
+## Stop
+Stop changing max and min values.
