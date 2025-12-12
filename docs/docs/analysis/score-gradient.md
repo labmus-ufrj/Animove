@@ -2,6 +2,8 @@
 
 From user-defined min and max values, calculates a score (0-10) of each spot from Trackmate.
 
+--8<-- "excel-functions.md"
+
 ## Interface
 ![Interface image](img/gui-score-gradient.png){ width="400em" }
 

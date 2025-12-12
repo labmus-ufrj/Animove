@@ -3,6 +3,8 @@
 Quantify the area of a binary heatmap to analyze the animal percentage traveled area.
 It counts the black pixels from a given binary image. 
 
+--8<-- "excel-functions.md"
+
 ## Interface
 ![Interface image](img/gui-qnt-bin.png){ width="400em" }
 

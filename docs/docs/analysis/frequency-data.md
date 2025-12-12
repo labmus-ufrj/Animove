@@ -1,5 +1,9 @@
 # Extract Frequency Data
 
+
+
+--8<-- "excel-functions.md"
+
 ## Interface
 ![Interface image](img/gui-frequency-data.png){ width="400em" }
 

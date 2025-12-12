@@ -1,5 +1,9 @@
 # Calculate Score Sectors
 
+
+
+--8<-- "excel-functions.md"
+
 ## Interface
 ![Interface image](img/gui-score-sectors.png){ width="400em" }
 

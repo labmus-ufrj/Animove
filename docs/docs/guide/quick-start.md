@@ -15,6 +15,7 @@ Notably:
     - Gutter/Track (short and long versions)
     - Plus Maze
     - Tank (sideways recording)
+    - Tracking data
 - Embryos
     - Six-well plate (short and long versions)
 
