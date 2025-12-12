@@ -32,7 +32,7 @@ public class AboutPlugin implements Command {
         final String repoUrl = AppInfo.getProperty("app.url");
         final String wikiUrl = "https://labmus-ufrj.github.io/Animove/";
         final String paperUrl = "https://doi.org/paper-doi"; // todo: add paper doi
-        final String descriptionText = "This Plug-In imports, process and analyse video files for movement and position. It was developed in December 2025 to study embryo and adult zebrafish physical performance and behaviour. Please report any questions to manoelluiscosta@ufrj.br.";
+        final String descriptionText = "This Plug-In imports, process and analyse video files for movement and position. It was developed in December 2025 to study larvae and adult zebrafish physical performance and behaviour. Please report any questions to manoelluiscosta@ufrj.br.";
         final String authorsText = "Developed by: Murilo Nespolo Spineli, Paloma de Carvalho Vieira,\n Claudia Mermelstein and Manoel Luis Costa";
 
         SwingUtilities.invokeLater(() -> {

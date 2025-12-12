@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @SuppressWarnings({"FieldCanBeLocal"})
-@Plugin(type = Command.class, menuPath = ZFConfigs.analyzeFrequencyEmbryos)
+@Plugin(type = Command.class, menuPath = ZFConfigs.analyzeFrequencyLarvae)
 public class FrequencyData implements Command, Interactive {
     static {
         // this runs on a Menu click

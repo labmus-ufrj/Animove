@@ -28,16 +28,15 @@ public abstract class ZFConfigs {
     private static final String heatmapsPath = processingPath + "Heatmaps>";
     public static final String heatmapSumImagesPath = heatmapsPath + "Sum Heatmap Images (Adults)";
     public static final String heatmapSumVideoPath = heatmapsPath + "Sum Heatmap Video (Adults)";
-    public static final String heatmapBinaryImagePath = heatmapsPath + "Binary Heatmap Image (Embryos)";
+    public static final String heatmapBinaryImagePath = heatmapsPath + "Binary Heatmap Image (Larvae)";
     public static final String roisPath = toolsPath + "Create Sequential ROIs";
 
     private static final String trackingPath = processingPath + "Tracking>";
-    public static final String embryosTrackingPath = trackingPath + "Embryos Tracking";
+    public static final String larvaeTrackingPath = trackingPath + "Larvae Tracking";
     public static final String adultsTrackingPath = trackingPath + "Adults Tracking";
 
-    //    private static final String embryosPath = analysisPath + "Embryos Analysis>";
-    public static final String quantifyEmbryos = analysisPath + "Quantify Binary Heatmap";
-    public static final String analyzeFrequencyEmbryos = analysisPath + "Extract Frequency Data";
+    public static final String quantifyLarvae = analysisPath + "Quantify Binary Heatmap";
+    public static final String analyzeFrequencyLarvae = analysisPath + "Extract Frequency Data";
 
     public static final String scoreGradientPath = analysisPath + "Calculate Score Gradient";
     public static final String scoreSectorPath = analysisPath + "Calculate Score Sectors";

@@ -16,7 +16,7 @@ Notably:
     - Plus Maze
     - Tank (sideways recording)
     - Tracking data
-- Embryos
+- Larvae
     - Six-well plate (short and long versions)
 
 These may be used to experiment on the plugin's capabilities or simply to get used to the workflows.

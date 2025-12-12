@@ -35,8 +35,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @SuppressWarnings({"FieldCanBeLocal"})
-@Plugin(type = Command.class, menuPath = ZFConfigs.embryosTrackingPath)
-public class EmbryosTrackingProcessing extends DynamicCommand implements Interactive {
+@Plugin(type = Command.class, menuPath = ZFConfigs.larvaeTrackingPath)
+public class LarvaeTrackingProcessing extends DynamicCommand implements Interactive {
 
     static {
         // this runs on a Menu click
@@ -166,12 +166,12 @@ public class EmbryosTrackingProcessing extends DynamicCommand implements Interac
         }
         String parentDir = inputFile.getParent();
         String baseName = inputFile.getName().replaceFirst("[.][^.]+$", "");
-        File testFile = new File(parentDir, baseName + "_embryosTracking" + "." + format.toLowerCase());
+        File testFile = new File(parentDir, baseName + "_larvaeTracking" + "." + format.toLowerCase());
 
         int count = 2;
         while (testFile.exists()) {
             // naming the file with a sequential number to avoid overwriting
-            testFile = new File(parentDir, baseName + "_embryosTracking_" + count + "." + format.toLowerCase());
+            testFile = new File(parentDir, baseName + "_larvaeTracking_" + count + "." + format.toLowerCase());
             count++;
         }
         outputFile = testFile;

@@ -11,7 +11,7 @@ A TrackMate tutorial can be found [here](https://imagej.net/plugins/trackmate/tu
 
 
 ## Interface
-![Interface image](img/gui-embryos-tracking.png){ width="400em" }
+![Interface image](img/gui-larvae-tracking.png){ width="400em" }
 
 --8<-- "input-video.md"
 
