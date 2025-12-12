@@ -1,6 +1,6 @@
 # Calculate Score Sectors
 
-
+Represents the total number of identified spots within the selected ROIs. This function allows the user to calculate the percentage of spots located in a given area, such as the maze arms. The number and area of the ROIs are defined by the user, as long as at least one ROI is selected.
 
 --8<-- "excel-functions.md"
 
