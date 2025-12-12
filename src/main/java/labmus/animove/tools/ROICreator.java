@@ -4,8 +4,6 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.plugin.frame.RoiManager;
 import labmus.animove.ZFConfigs;
-import net.imagej.Dataset;
-import net.imagej.axis.CalibratedAxis;
 import net.imagej.display.ImageDisplayService;
 import org.scijava.ItemVisibility;
 import org.scijava.command.Command;
@@ -22,17 +20,20 @@ import org.scijava.widget.Button;
 @Plugin(type = Command.class, menuPath = ZFConfigs.roisPath)
 public class ROICreator extends DynamicCommand implements Interactive {
 
-    @Parameter(label = "Number of wells", min = "1", persist = false, callback = "refreshUnit" )
+    @Parameter(label = "Number of wells", min = "1", persist = false, callback = "initUnit" )
     private int wellNum = 1;
 
-    @Parameter(label = "Well size", min = "1", persist = false, callback = "refreshUnit")
+    @Parameter(label = "Well size", min = "1", persist = false, callback = "initUnit")
     private double wellSize = 1;
 
-    @Parameter(label = "Unit: ", visibility = ItemVisibility.MESSAGE, persist = false)
+    @Parameter(label = "Unit: ", visibility = ItemVisibility.MESSAGE, persist = false, initializer = "initUnit")
     private String unit = "";
 
+    @Parameter(label = "Refresh Unit", callback = "initUnit")
+    private Button btn1;
+
     @Parameter(label = "Process", callback = "execute")
-    private Button executeButton;
+    private Button btn2;
 
     @Parameter
     private LogService log;
@@ -42,7 +43,7 @@ public class ROICreator extends DynamicCommand implements Interactive {
     private ImageDisplayService imageDisplayService;
 
     @Parameter
-    Dataset dataset;
+    ImagePlus imagePlus;
 
     @Override
     public void run() {
@@ -54,15 +55,14 @@ public class ROICreator extends DynamicCommand implements Interactive {
         distributeROIs();
     }
 
-    private void refreshUnit(){
-        initUnit();
-    }
-
     private void initUnit() {
-        CalibratedAxis xAxis = dataset.axis(0);
+        log.info("initUnit");
+        if (imagePlus == null) {
+            return;
+        }
         final MutableModuleItem<String> item =
                 getInfo().getMutableInput("unit", String.class);
-        item.setValue(this, xAxis.unit()); // this fixes the delayed refresh
+        item.setValue(this, imagePlus.getCalibration().getUnit()); // this fixes the delayed refresh
     }
 
 
@@ -76,11 +76,10 @@ public class ROICreator extends DynamicCommand implements Interactive {
     private void distributeROIs() {
         int[] factors = getFactors(wellNum);
 
-        double width = dataset.dimension(0);
-        double height = dataset.dimension(1);
-        CalibratedAxis xAxis = dataset.axis(0);
+        double width = imagePlus.getWidth();
+        double height = imagePlus.getHeight();
 
-        double calibratedSize = wellSize / xAxis.calibratedValue(1);
+        double calibratedSize = wellSize / imagePlus.getCalibration().pixelWidth;
 
         ImagePlus imp = IJ.getImage();
 
