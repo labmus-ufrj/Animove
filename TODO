@@ -1,7 +1,5 @@
 -> FFmpeg plugin repeats the first frame of videos converted to AVI (probably to all of them), doing it from blank->end
     -> this bug was not properly reproduced since. Maybe some code change fixed it.
--> GradientScoreAnalysis should re-use code from XMLHelper
-    -> can be done later, as the code is working fine
 -> change apply brightness function (in ZF Helper Methods) to use openCV one
 
 -> Write documentation

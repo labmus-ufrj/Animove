@@ -10,6 +10,7 @@ import ij.measure.ResultsTable;
 import ij.plugin.ImagesToStack;
 import labmus.animove.ZFConfigs;
 import labmus.animove.ZFHelperMethods;
+import labmus.animove.utils.XMLHelper;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.CategoryAxis;
@@ -33,28 +34,20 @@ import org.scijava.ui.DialogPrompt;
 import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 import org.scijava.widget.FileWidget;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.GeneralPath;
 import java.io.File;
-import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @SuppressWarnings({"FieldCanBeLocal"})
 @Plugin(type = Command.class, menuPath = ZFConfigs.scoreGradientPath)
@@ -239,10 +232,17 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
     }
 
     private void process() {
-        List<ArrayList<Float>> data = iterateOverXML(false);
-        if (data == null) {
+        if (videoFrame == null || videoFrame.getWindow() == null) {
+            uiService.showDialog("Click \"Open Frame\" button first.", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
             return;
         }
+        if (xmlFile == null || !xmlFile.exists()) {
+            uiService.showDialog("Invalid XML file", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
+            return;
+        }
+
+        List<ArrayList<Float>> floatData = iterateOverXML(false);
+
         String name = "Scores from " + xmlFile.getName() + " and " + videoFile.getName();
 
         DefaultBoxAndWhiskerCategoryDataset dataset = new DefaultBoxAndWhiskerCategoryDataset();
@@ -253,10 +253,10 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
         // NaN just gets deleted when pasting
 
         // Iterate through each inner list, treating it as a column.
-        for (int colIndex = 0; colIndex < data.size(); colIndex++) {
+        for (int colIndex = 0; colIndex < floatData.size(); colIndex++) {
 
             // Get the data for the current column.
-            ArrayList<Float> columnData = data.get(colIndex);
+            ArrayList<Float> columnData = floatData.get(colIndex);
 
             // Define a name for the column header.
             String columnHeader = "Track " + (colIndex + 1);
@@ -320,240 +320,66 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
     }
 
     private List<ArrayList<Float>> iterateOverXML(boolean setMinMax) {
-        if (!checkFiles()) {
-            return null;
-        }
-        ArrayList<HashMap<Integer, Float>> trackScores = new ArrayList<>(); // the easy way not the right way
         try {
-            if (videoFrame == null) {
-                throw new Exception("No available video frame, click \"Open Frame\" first.");
-            }
+            // Calls the new utility method to get parsed data
+            XMLHelper.TrackingXMLData trackingData = XMLHelper.iterateOverXML(xmlFile, videoFrame, fixSpots);
 
-            Document doc = getXML();
-            if (doc.getElementsByTagName("Tracks").getLength() > 0) {
-                fromTracksXML(setMinMax, doc, trackScores);
-            } else if (doc.getElementsByTagName("Model").getLength() > 0) {
-                fromFullXML(setMinMax, doc, trackScores);
+            if (setMinMax) {
+                // If setting min/max, we iterate over all points to find the bounds
+                float localMin = Float.MAX_VALUE;
+                float localMax = Float.MIN_VALUE;
+
+                for (ArrayList<XMLHelper.PointData> track : trackingData.data) {
+                    for (XMLHelper.PointData point : track) {
+                        // PointData.x is already scaled by pixelWidth in XMLHelper,
+                        // effectively converting units back to pixel coordinates.
+                        if (point.x < localMin) localMin = point.x;
+                        if (point.x > localMax) localMax = point.x;
+                    }
+                }
+
+                // If no data was found, reset or use video bounds
+                if (localMin == Float.MAX_VALUE) {
+                    localMin = videoFrame.getWidth();
+                    localMax = 0;
+                }
+
+                setMinMax(localMin, localMax, videoFrame.getCalibration());
+
+                return null;
             } else {
-                throw new Exception("Wrong XML file.");
+                // Convert PointData objects to Float scores
+                List<ArrayList<Float>> resultScores = new ArrayList<>();
+                Calibration cal = videoFrame.getCalibration();
+                float calMin = (float) cal.getX(min); // min * cal.pixelWidth
+                float calMax = (float) cal.getX(max);
+
+                for (ArrayList<XMLHelper.PointData> track : trackingData.data) {
+                    ArrayList<Float> trackScores = new ArrayList<>();
+                    for (XMLHelper.PointData point : track) {
+                        trackScores.add(getScore(point.x, calMin, calMax));
+                    }
+                    resultScores.add(trackScores);
+                }
+                return resultScores;
             }
 
         } catch (Exception e) {
             log.error(e);
-            uiService.showDialog(e.getLocalizedMessage(),
-                    "Error", DialogPrompt.MessageType.ERROR_MESSAGE);
-            state = STATE.NONE;
+            uiService.showDialog("An error occured during processing:\n" + e.getLocalizedMessage(),
+                    ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
+            return null;
         }
 
-        return fixMissingSpots(trackScores);
-
-    }
-
-    private static class SpotData {
-        public final float score;
-        public final float x;
-        public final int frame;
-
-        SpotData(Float score, Float x, String frame) {
-            this.score = score;
-            this.x = x;
-            this.frame = Integer.parseInt(frame);
-        }
-    }
-
-    private void fromFullXML(boolean setMinMax, Document doc, ArrayList<HashMap<Integer, Float>> trackScores) throws Exception {
-        /*
-            data is stored as Spots:
-            <Spot ID="176402" FRAME="0" POSITION_X="465.7599892443151" ... />
-
-            and in Edges within Tracks:
-            <Track ...>
-                <Edge SPOT_SOURCE_ID="177087" SPOT_TARGET_ID="177083" ... />
-            </Track>
-         */
-        Node tracks = doc.getElementsByTagName("Model").item(0);
-        Calibration cal = videoFrame.getCalibration();
-
-        String xmlUnit = tracks.getAttributes().getNamedItem("spatialunits").getNodeValue();
-        if (!Objects.equals(cal.getXUnit(), xmlUnit)) {
-            throw new Exception("Calibrate the image frame to match the XML file's space units: " + xmlUnit);
-        }
-        float calMin = (float) cal.getX(min); // min * cal.pixelWidth
-        float calMax = (float) cal.getX(max);
-
-        float localMin = videoFrame.getWidth();
-        float localMax = 0;
-
-        // mapping ID to spot
-        HashMap<Integer, SpotData> spotMap = new HashMap<>();
-        NodeList xmlSpotList = doc.getElementsByTagName("Spot");
-        for (int i = 0; i < xmlSpotList.getLength(); i++) {
-            Node spot = xmlSpotList.item(i);
-            if (spot.getNodeType() == Node.ELEMENT_NODE) {
-                float x = Float.parseFloat(spot.getAttributes().getNamedItem("POSITION_X").getNodeValue());
-                float score = getScore(x, calMin, calMax);
-                spotMap.put(Integer.parseInt(spot.getAttributes().getNamedItem("ID").getNodeValue()),
-                        new SpotData(score, x, spot.getAttributes().getNamedItem("FRAME").getNodeValue()));
-            }
-        }
-
-        NodeList trackList = doc.getElementsByTagName("Track");
-        for (int i = 0; i < trackList.getLength(); i++) {
-            HashMap<Integer, Float> scores = new HashMap<>();
-            Node trackNode = trackList.item(i);
-            if (trackNode.getNodeType() == Node.ELEMENT_NODE) {
-                Element trackElement = (Element) trackNode;
-
-                NodeList edgeList = trackElement.getElementsByTagName("Edge");
-                for (int j = 0; j < edgeList.getLength(); j++) {
-                    Node edgeNode = edgeList.item(j);
-
-                    if (edgeNode.getNodeType() == Node.ELEMENT_NODE) {
-                        Element edgeElement = (Element) edgeNode;
-
-                        for (String s : Arrays.asList("SPOT_SOURCE_ID", "SPOT_TARGET_ID")) {
-                            String attribute = edgeElement.getAttribute(s);
-                            Integer spotId = Integer.parseInt(attribute);
-
-                            SpotData spot = spotMap.get(spotId);
-                            scores.put(spot.frame, spot.score);
-
-                            // this is here so that only filtered spots get used,
-                            // usually spots that are not in tracks have random undesirable positions,
-                            // that threw these min and max values everywhere.
-                            if (spot.x < localMin) {
-                                localMin = spot.x;
-                            }
-                            if (spot.x > localMax) {
-                                localMax = spot.x;
-                            }
-                        }
-                    }
-
-                }
-            }
-            trackScores.add(scores);
-        }
-
-        // if no tracks were found, use all spots
-        if (trackScores.isEmpty()) {
-            // we must average the scores in each frame
-            final HashMap<Integer, List<Float>> allScores = new HashMap<>();
-            for (SpotData spot : spotMap.values()) {
-                if (spot.x < localMin) {
-                    localMin = spot.x;
-                }
-                if (spot.x > localMax) {
-                    localMax = spot.x;
-                }
-                if (!allScores.containsKey(spot.frame)) {
-                    allScores.put(spot.frame, new ArrayList<>());
-                }
-                allScores.get(spot.frame).add(spot.score);
-            }
-            final HashMap<Integer, Float> scores = new HashMap<>();
-            allScores.keySet().forEach(frame -> {
-                Float sum = allScores.get(frame).stream().reduce(Float::sum).get(); // if we are here, there is at least one score in the list
-                scores.put(frame, sum / allScores.get(frame).size());
-            });
-            trackScores.add(scores);
-        }
-
-        if (setMinMax) {
-            setMinMax(localMin, localMax, cal);
-        }
-
-    }
-
-    private void fromTracksXML(boolean setMinMax, Document doc, ArrayList<HashMap<Integer, Float>> trackScores) throws Exception {
-         /*
-            data is stored as detections within particles:
-            <particle ... >
-                <detection t="0" x="377.10679301985425" ... />
-            </particle>
-         */
-        Node tracks = doc.getElementsByTagName("Tracks").item(0);
-        Calibration cal = videoFrame.getCalibration();
-
-        String xmlUnit = tracks.getAttributes().getNamedItem("spaceUnits").getNodeValue();
-        if (!Objects.equals(cal.getXUnit(), xmlUnit)) {
-            throw new Exception("Calibrate the image frame to match the XML file's space units: " + xmlUnit);
-        }
-        float calMin = (float) cal.getX(min); // min * cal.pixelWidth
-        float calMax = (float) cal.getX(max);
-
-        // Get a list of all <particle> elements
-        NodeList particleList = doc.getElementsByTagName("particle");
-
-        float localMin = videoFrame.getWidth();
-        float localMax = 0;
-
-        // Iterate over each <particle> element (iterate over each track)
-        for (int i = 0; i < particleList.getLength(); i++) {
-            HashMap<Integer, Float> scores = new HashMap<>();
-            Node particleNode = particleList.item(i);
-
-            if (particleNode.getNodeType() == Node.ELEMENT_NODE) {
-                Element particleElement = (Element) particleNode;
-
-                // Get all <detection> elements within the current particle
-                NodeList detectionList = particleElement.getElementsByTagName("detection");
-
-                // Iterate over each <detection> element
-                for (int j = 0; j < detectionList.getLength(); j++) {
-                    Node detectionNode = detectionList.item(j);
-
-                    if (detectionNode.getNodeType() == Node.ELEMENT_NODE) {
-                        Element detectionElement = (Element) detectionNode;
-
-                        // Get the value of the "x" attribute
-                        float x = Float.parseFloat(detectionElement.getAttribute("x"));
-                        if (x < localMin) {
-                            localMin = x;
-                        }
-                        if (x > localMax) {
-                            localMax = x;
-                        }
-                        float score = getScore(x, calMin, calMax);
-                        scores.put(Integer.parseInt(detectionElement.getAttribute("t")), score);
-
-                    }
-                }
-            }
-            trackScores.add(scores);
-        }
-        if (setMinMax) {
-            setMinMax(localMin, localMax, cal);
-        }
     }
 
     private void setMinMax(float localMin, float localMax, Calibration cal) {
-        log.info("localMin = " + localMin + " localMax = " + localMax);
-        log.info(cal.pixelWidth);
+//        log.info("localMin = " + localMin + " localMax = " + localMax);
+//        log.info(cal.pixelWidth);
         this.max = (int) (localMin / cal.pixelWidth);
         this.min = (int) (localMax / cal.pixelWidth);
-        log.info("min = " + min + " max = " + max);
+//        log.info("min = " + min + " max = " + max);
         drawOverlay();
-    }
-
-    private List<ArrayList<Float>> fixMissingSpots(ArrayList<HashMap<Integer, Float>> trackScores) {
-        if (fixSpots) {
-            int biggestTime = trackScores.stream().mapToInt(hashmap ->
-                    hashmap.keySet().stream().max(Comparator.naturalOrder()).get()).max().getAsInt(); // using this on a spotless track will crash it. dont do it ig
-            for (HashMap<Integer, Float> hashmap : trackScores) {
-                for (int i = 0; i <= biggestTime; i++) {
-                    if (!hashmap.containsKey(i) && hashmap.containsKey(i - 1)) {
-                        hashmap.put(i, hashmap.get(i - 1));
-                    }
-                }
-                for (int i = biggestTime; i >= 0; i--) {
-                    if (!hashmap.containsKey(i)) {
-                        hashmap.put(i, hashmap.get(i + 1));
-                    }
-                }
-            }
-        }
-        return trackScores.stream().map(hashmap -> new ArrayList<>(hashmap.values())).collect(Collectors.toList());
     }
 
     private float getScore(float x, float calMin, float calMax) {
@@ -562,49 +388,47 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
         return Math.max(0, Math.min(10, b));
     }
 
-    private Document getXML() throws ParserConfigurationException, SAXException, IOException {
-        DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-        Document doc = builder.parse(xmlFile);
-        doc.getDocumentElement().normalize();
-        return doc;
-    }
-
     private void displayImage() {
-        if (!checkFiles()) {
+        if (videoFile == null || !videoFile.exists() || !videoFile.isFile()) {
+            uiService.showDialog("Could not open video: \nInvalid file", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
             return;
         }
+
 //        KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow().setAlwaysOnTop(true);
-        try {
-            if (videoFrame != null && videoFrame.getWindow() != null) {
-                videoFrame.close();
-            }
-            videoFrame = ZFHelperMethods.getFirstFrame(videoFile);
-            videoFrame.setTitle("Video frame");
-            uiService.show(videoFrame);
-
-            // maybe get max and min from fish positions?
-            min = (int) (videoFrame.getWidth() * 0.9);
-            max = (int) (videoFrame.getWidth() * 0.1);
-
-            // this is the nice way of doing this instead of Thread.sleep()
-            ScheduledExecutorService scheduler =
-                    Executors.newSingleThreadScheduledExecutor();
-            scheduler.schedule(() -> {
-                if (videoFrame.getCanvas() != null) {
-                    videoFrame.getCanvas().addMouseListener(this);
-                    videoFrame.getCanvas().addMouseMotionListener(this);
-                    drawOverlay();
-                    scheduler.shutdown();
+        Executors.newSingleThreadExecutor().submit(() -> {
+            try {
+                if (videoFrame != null && videoFrame.getWindow() != null) {
+                    videoFrame.close();
                 }
-            }, 100, TimeUnit.MILLISECONDS);
+                videoFrame = ZFHelperMethods.getFirstFrame(videoFile);
+                videoFrame.setTitle("Video frame");
+                uiService.show(videoFrame);
+
+                // maybe get max and min from fish positions?
+                min = (int) (videoFrame.getWidth() * 0.9);
+                max = (int) (videoFrame.getWidth() * 0.1);
+
+                // this is the nice way of doing this instead of Thread.sleep()
+                ScheduledExecutorService scheduler =
+                        Executors.newSingleThreadScheduledExecutor();
+                scheduler.schedule(() -> {
+                    if (videoFrame.getCanvas() != null) {
+                        videoFrame.getCanvas().addMouseListener(this);
+                        videoFrame.getCanvas().addMouseMotionListener(this);
+                        drawOverlay();
+                        scheduler.shutdown();
+                    }
+                }, 100, TimeUnit.MILLISECONDS);
 
 
-        } catch (Exception e) {
-            log.error(e);
-            uiService.showDialog(e.getLocalizedMessage(),
-                    ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
-            videoFrame = null;
-        }
+            } catch (Exception e) {
+                log.error(e);
+                uiService.showDialog(e.getLocalizedMessage(),
+                        ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
+                videoFrame = null;
+            }
+        });
+
     }
 
     private void changeMax() {
@@ -706,14 +530,4 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
         state = STATE.NONE;
     }
 
-    private boolean checkFiles() {
-        if (xmlFile == null || !xmlFile.exists()) {
-            uiService.showDialog("Invalid XML file", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
-            return false;
-        }
-        if (!videoFile.exists()) {
-            uiService.showDialog("Input video does not exist", ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
-        }
-        return true;
-    }
 }

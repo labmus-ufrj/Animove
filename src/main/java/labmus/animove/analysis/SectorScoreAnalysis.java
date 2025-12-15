@@ -18,6 +18,7 @@ import org.jfree.chart.title.TextTitle;
 import org.jfree.chart.ui.RectangleEdge;
 import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.general.DefaultPieDataset;
+import org.jfree.data.general.PieDataset;
 import org.scijava.command.Command;
 import org.scijava.command.Interactive;
 import org.scijava.log.LogService;
@@ -115,7 +116,22 @@ public class SectorScoreAnalysis implements Command, Interactive {
 
         plot.setLabelGenerator(new StandardPieSectionLabelGenerator(
                 "{2}", new DecimalFormat("0"), new DecimalFormat("0.0%", new DecimalFormatSymbols(Locale.US))
-        ));
+        ) {
+            @Override
+            public String generateSectionLabel(PieDataset dataset, Comparable key) {
+                // Get the value for the specific section
+                Number value = dataset.getValue(key);
+
+                // If value is null or 0, return null (which prevents the label from drawing)
+                if (value == null || value.doubleValue() == 0.0) {
+                    return null;
+                }
+
+                // Otherwise, generate the label normally
+                return super.generateSectionLabel(dataset, key);
+            }
+        });
+
         plot.setLabelBackgroundPaint(null);
         plot.setLabelOutlinePaint(null);
         plot.setLabelShadowPaint(null);
@@ -153,7 +169,7 @@ public class SectorScoreAnalysis implements Command, Interactive {
 
         List<ArrayList<XMLHelper.PointData>> data;
         try {
-            data = XMLHelper.iterateOverXML(xmlFile, videoFrame, this.fixSpots, false);
+            data = XMLHelper.iterateOverXML(xmlFile, videoFrame, fixSpots).data;
         } catch (Exception e) {
             log.error(e);
             uiService.showDialog("An error occured during processing:\n" + e.getLocalizedMessage(),

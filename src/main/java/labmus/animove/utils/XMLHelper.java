@@ -48,22 +48,29 @@ public class XMLHelper {
         }
     }
 
-    public static List<ArrayList<PointData>> iterateOverXML(File xmlFile, ImagePlus videoFrame, boolean fixSpots, boolean assertTracks) throws Exception {
+    public static class TrackingXMLData{
+        public final List<ArrayList<PointData>> data;
+        public final boolean onlySpots;
+
+        public TrackingXMLData(List<ArrayList<PointData>> data, boolean onlySpots) {
+            this.data = data;
+            this.onlySpots = onlySpots;
+        }
+    }
+
+    public static TrackingXMLData iterateOverXML(File xmlFile, ImagePlus videoFrame, boolean fixSpots) throws Exception {
+        boolean spotsOnly = false;
         Document doc = getXML(xmlFile);
         ArrayList<HashMap<Integer, PointData>> trackScores = new ArrayList<>(); // the easy way not the right way
         if (doc.getElementsByTagName("Tracks").getLength() > 0) {
             fromTracksXML(doc, trackScores, videoFrame);
         } else if (doc.getElementsByTagName("Model").getLength() > 0) {
-            // if there were no tracks, this can return false
-            boolean manyTracks = fromFullXML(doc, trackScores, videoFrame);
-            if (!manyTracks && assertTracks) {
-                throw new Exception("No tracks found in XML file. Please make sure you have complete the Trackmate tracking routine.");
-            }
-            fixSpots = manyTracks;
+            // if there were no tracks, this returns false
+            spotsOnly = !fromFullXML(doc, trackScores, videoFrame);
         } else {
             throw new Exception("Wrong XML file.");
         }
-        return fixMissingSpots(trackScores, fixSpots);
+        return fixMissingSpots(trackScores, !spotsOnly && fixSpots);
     }
 
     private static void fromTracksXML(Document doc, ArrayList<HashMap<Integer, XMLHelper.PointData>> trackScores, ImagePlus videoFrame) throws Exception {
@@ -187,7 +194,7 @@ public class XMLHelper {
         return true;
     }
 
-    private static List<ArrayList<XMLHelper.PointData>> fixMissingSpots(ArrayList<HashMap<Integer, XMLHelper.PointData>> trackScores, boolean fixSpots) {
+    private static TrackingXMLData fixMissingSpots(ArrayList<HashMap<Integer, XMLHelper.PointData>> trackScores, boolean fixSpots) {
         if (fixSpots) {
             int biggestTime = trackScores.stream().mapToInt(hashmap ->
                     hashmap.keySet().stream().max(Comparator.naturalOrder()).get()).max().getAsInt(); // using this on a spotless track will crash it. dont do it ig
@@ -204,7 +211,7 @@ public class XMLHelper {
                 }
             }
         }
-        return trackScores.stream().map(hashmap -> new ArrayList<>(hashmap.values())).collect(Collectors.toList());
+        return new TrackingXMLData(trackScores.stream().map(hashmap -> new ArrayList<>(hashmap.values())).collect(Collectors.toList()), !fixSpots);
     }
 
     private static Document getXML(File xmlFile) throws ParserConfigurationException, SAXException, IOException {
