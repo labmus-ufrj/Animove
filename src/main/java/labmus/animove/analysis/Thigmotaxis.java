@@ -70,7 +70,12 @@ public class Thigmotaxis implements Command, Interactive {
 
         List<ArrayList<XMLHelper.PointData>> data;
         try {
-            data = XMLHelper.iterateOverXML(xmlFile, videoFrame, fixSpots).data;
+            XMLHelper.TrackingXMLData trackingXMLData = XMLHelper.iterateOverXML(xmlFile, videoFrame, this.fixSpots);
+            if (trackingXMLData.onlySpots){
+                uiService.showDialog("No tracks found in XML file.\nThe plugin eill resume processing, but won't generate results that are related to tracks.\nPlease make sure you have complete the Trackmate tracking routine if that's your intended result.",
+                        ZFConfigs.pluginName, DialogPrompt.MessageType.ERROR_MESSAGE);
+            }
+            data = trackingXMLData.data;
         } catch (Exception e) {
             log.error(e);
             uiService.showDialog("An error occured during processing:\n" + e.getLocalizedMessage(),
