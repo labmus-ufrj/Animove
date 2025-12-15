@@ -284,8 +284,8 @@ public class ZFHelperMethods {
 
         final float GOLDEN_RATIO = 0.618033988749895f;
 
-        final float SATURATION = 0.75f;
-        final float BRIGHTNESS = 0.55f;
+        final float SATURATION = 0.85f;
+        final float BRIGHTNESS = 0.65f;
 
         float currentHue = (float) Math.random();
 

@@ -161,14 +161,11 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
         domainAxis.setLabelFont(new Font(Font.SANS_SERIF, Font.PLAIN, 30));
         rangeAxis.setLabelFont(new Font(Font.SANS_SERIF, Font.PLAIN, 30));
 
+        List<Color> colors = ZFHelperMethods.generateColors(sourceDataset.getColumnCount());
         BoxAndWhiskerRenderer renderer = new BoxAndWhiskerRenderer() {
-            // Define your colors here
-            Paint[] colors = {new Color(255, 80, 80), new Color(80, 80, 255), new Color(80, 255, 80)};
-
             @Override
             public Paint getItemPaint(int row, int column) {
-                // Use column index to pick color, cycling if we have more columns than colors
-                return colors[column % colors.length];
+                return colors.get(column % colors.size());
             }
         };
 
