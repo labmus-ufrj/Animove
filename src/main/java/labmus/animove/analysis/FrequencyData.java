@@ -205,7 +205,6 @@ public class FrequencyData implements Command, Interactive {
         return plot;
     }
 
-    //    private double getDistance(double x1, double y1, double x2, double y2) {
     private static double getDistance(XMLHelper.PointData point1, XMLHelper.PointData point2) {
         return Math.hypot(point2.x - point1.x, point2.y - point1.y);
     }

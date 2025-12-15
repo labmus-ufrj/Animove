@@ -24,7 +24,7 @@ When tracking with Trackmate, not all frames in a video will have spots. That's 
 
 There's no prejudice in setting this to `True` if you have a perfect tracking, with spots in all frames.
 
-If you have only spots and no tracks, this feature won't work in this mode. It is not significant to mean out the positions of scores on each frame; thus, this checkbox gets deactivated if this is the case.
+If you have only spots and no tracks, this feature won't work in this mode. It is not significant to mean out the positions of scores on each frame.
 
 ## Display Plots
 * **Pie Chart**: Simple chart to represent spot prevalence in different areas by percentage.
