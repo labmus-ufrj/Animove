@@ -936,6 +936,19 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Thigmotaxis
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -947,6 +960,79 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interface
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#xml-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      XML File
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#source-video" class="md-nav__link">
+    <span class="md-ellipsis">
+      Source Video
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#area-percentage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Area Percentage
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fix-missing-spots" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fix Missing Spots
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#display-plots" class="md-nav__link">
+    <span class="md-ellipsis">
+      Display Plots
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -980,6 +1066,68 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interface
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#xml-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      XML File
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#source-video" class="md-nav__link">
+    <span class="md-ellipsis">
+      Source Video
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#area-percentage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Area Percentage
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fix-missing-spots" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fix Missing Spots
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#display-plots" class="md-nav__link">
+    <span class="md-ellipsis">
+      Display Plots
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -998,12 +1146,39 @@
 
 
 <div><h1 id="thigmotaxis">Thigmotaxis</h1>
-<p>Analyzes the percentage of area and time spent by the larvae in the inner and outer regions of the plate. </p>
+<p>Analyzes the percentage of distance and time spent by the larvae in the inner and outer regions of the plate, defined by the user.</p>
+<p>A pre-defined region of interest (ROI) is required, either drawn on the preview frame (opened by clicking the <code>Open Frame</code> button) or by having it in the ROI Manager.</p>
 <div class="admonition note">
 <p class="admonition-title">Results Table Output</p>
 <p>Exporting data from imageJ's result tables to the default CSV option can led to problems related to decimal case separators.
 If you found this error, we recommend the usage of <a href="https://imagej.net/plugins/excel-functions">Excel Functions</a>, a plugin that allows trouble-free data exports to xlsx format.</p>
-</div></div>
+</div>
+<h2 id="interface">Interface</h2>
+<p><img alt="Interface image" src="../img/gui-thigmotaxis.png" width="400em"></p>
+<h2 id="xml-file">XML File</h2>
+<div class="admonition warning">
+<p class="admonition-title">Tracking Required</p>
+<p>Note that this function <strong>depends on the previous use of Trackmate</strong> to gather data about movement distance, so files without them will not get those results.</p>
+</div>
+<p>Two possible files can be used here:</p>
+<ol>
+<li>Trackmate's whole save file</li>
+<li>Output of trackmate's <code>Export tracks to XML file</code> export action.</li>
+</ol>
+<h2 id="source-video">Source Video</h2>
+<p>The source video used for tracking. Ideally not the processed one, so you can set the ROIs better.</p>
+<h2 id="area-percentage">Area Percentage</h2>
+<p>Specifies the percentage of the ROI used to calculate the Thigmotaxis. Note this is a percentage of <strong>area</strong>, not of dimensions.</p>
+<h2 id="fix-missing-spots">Fix Missing Spots</h2>
+<p>When tracking with Trackmate, not all frames in a video will have spots. That's because your target might not be visible in those frames. It's usually not moving as well. An uneven number of frames will create an unreliable score overall. This option fixes the missing spots by using an available adjacent spot and copying its coordinates.</p>
+<p>There's no prejudice in setting this to <code>True</code> if you have a perfect tracking, with spots in all frames.</p>
+<p>If you have only spots and no tracks, this feature won't work in this mode. It is not significant to mean out the positions of scores on each frame.</p>
+<h2 id="display-plots">Display Plots</h2>
+<ul>
+<li><strong>Stacked Bar Chart</strong>: Simple chart to represent time and distance relative percentages.
+  <img alt="Stacked Bar Chart image for time" src="../img/output-thigmotaxis-time.png" width="400em">
+  <img alt="Stacked Bar Chart image for distance" src="../img/output-thigmotaxis-distance.png" width="400em"></li>
+</ul></div>
 
 
 
