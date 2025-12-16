@@ -150,15 +150,17 @@ public class Thigmotaxis implements Command, Interactive {
         ResultsTable timeRt = new ResultsTable();
         for (int i = 0; i < timeData.size(); i++) {
             SpotsData data = timeData.get(i);
-            timeDataset.addValue(data.inside, "Center Area", "Track " + (i + 1));
-            timeDataset.addValue(data.outside, "Peripheral Area", "Track " + (i + 1));
+            double inside = (data.inside / (data.inside + data.outside)) * 100;
+            double outside = (data.outside / (data.inside + data.outside)) * 100;
+            timeDataset.addValue(inside, "Center Area", "Track " + (i + 1));
+            timeDataset.addValue(outside, "Peripheral Area", "Track " + (i + 1));
             timeRt.setValue("Track", i, "Track " + (i + 1));
-            timeRt.setValue("Center Area", i, data.inside); // todo: String.format(Locale.US, "%.2f", index * 100)
-            timeRt.setValue("Peripheral Area", i, data.outside);
+            timeRt.setValue("Center Area %", i, String.format(Locale.US, "%.2f", inside));
+            timeRt.setValue("Peripheral Area %", i, String.format(Locale.US, "%.2f", outside));
         }
         timeRt.show("(time) "+name);
         if (this.displayPlots) {
-            new ImagePlus("Plot", getStackedBarChart(name, timeDataset).createBufferedImage(1600, 1200)).show();
+            new ImagePlus("Plot", getStackedBarChart(name, timeDataset, "Time %").createBufferedImage(1600, 1200)).show();
         }
 
         List<SpotsData> distanceData = trackingXMLData.data.stream().map((track) ->
@@ -184,27 +186,29 @@ public class Thigmotaxis implements Command, Interactive {
         }).collect(Collectors.toList());
         DefaultCategoryDataset distanceDataset = new DefaultCategoryDataset();
         ResultsTable distanceRt = new ResultsTable();
-        for (int i = 0; i < timeData.size(); i++) {
-            SpotsData data = timeData.get(i);
-            distanceDataset.addValue(data.inside, "Center Area", "Track " + (i + 1));
-            distanceDataset.addValue(data.outside, "Peripheral Area", "Track " + (i + 1));
+        for (int i = 0; i < distanceData.size(); i++) {
+            SpotsData data = distanceData.get(i);
+            double inside = (data.inside / (data.inside + data.outside)) * 100;
+            double outside = (data.outside / (data.inside + data.outside)) * 100;
+            distanceDataset.addValue(inside, "Center Area", "Track " + (i + 1));
+            distanceDataset.addValue(outside, "Peripheral Area", "Track " + (i + 1));
             distanceRt.setValue("Track", i, "Track " + (i + 1));
-            distanceRt.setValue("Center Area", i, data.inside);
-            distanceRt.setValue("Peripheral Area", i, data.outside);
+            distanceRt.setValue("Center Area %", i, String.format(Locale.US, "%.2f", inside));
+            distanceRt.setValue("Peripheral Area %", i, String.format(Locale.US, "%.2f", outside));
         }
         distanceRt.show("(distance) "+name);
         if (this.displayPlots) {
-            new ImagePlus("Plot", getStackedBarChart(name, distanceDataset).createBufferedImage(1600, 1200)).show();
+            new ImagePlus("Plot", getStackedBarChart(name, distanceDataset, "Distance %").createBufferedImage(1600, 1200)).show();
         }
 
 
     }
 
-    private static JFreeChart getStackedBarChart(String title, CategoryDataset dataset) {
+    private static JFreeChart getStackedBarChart(String title, CategoryDataset dataset, String yAxisLabel) {
         JFreeChart chart = ChartFactory.createStackedBarChart(
                 title,
                 "",
-                "Distance Percentage (%)",
+                yAxisLabel,
                 dataset,
                 PlotOrientation.VERTICAL,
                 true,
@@ -237,8 +241,10 @@ public class Thigmotaxis implements Command, Interactive {
 
         plot.getDomainAxis().setLabelFont(axisLabelFont);
         plot.getDomainAxis().setTickLabelFont(tickLabelFont);
-        plot.getDomainAxis().setLowerMargin(0.02);
-        plot.getDomainAxis().setUpperMargin(0.02);
+        plot.getDomainAxis().setLowerMargin(0.05);
+        plot.getDomainAxis().setUpperMargin(0.05);
+
+        plot.getDomainAxis().setCategoryMargin(0.5);
 
         NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
         rangeAxis.setRange(0.0, 100.0);

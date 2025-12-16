@@ -2,6 +2,8 @@
 
 Analyzes the percentage of distance and time spent by the larvae in the inner and outer regions of the plate, defined by the user.
 
+A pre-defined region of interest (ROI) is required, either drawn on the preview frame (opened by clicking the `Open Frame` button) or by having it in the ROI Manager.
+
 --8<-- "excel-functions.md"
 
 ## Interface
@@ -30,5 +32,5 @@ If you have only spots and no tracks, this feature won't work in this mode. It i
 
 ## Display Plots
 * **Stacked Bar Chart**: Simple chart to represent time and distance relative percentages.
-  ![Stacked Bar Chart image for time](img/output-thigmotaxis-1.png){ width="400em" }
-  ![Stacked Bar Chart image for distance](img/output-thigmotaxis-1.png){ width="400em" }
+  ![Stacked Bar Chart image for time](img/output-thigmotaxis-time.png){ width="400em" }
+  ![Stacked Bar Chart image for distance](img/output-thigmotaxis-distance.png){ width="400em" }
