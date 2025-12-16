@@ -11,7 +11,7 @@
   <artifactId>Animove</artifactId>
   <name>${project.artifactId}.jar</name>
   <version>0.0.2</version>
-  <description>descrevendo tudo</description>
+  <description>This plugin aims to make it possible to process large amounts of video data with low-spec hardware, specifically to quantify and analyze zebrafish kinetic activity.</description>
   <url>https://github.com/labmus-ufrj/tracking-plugin.git</url>
   <issueManagement>
     <system>GitHub Issues</system>
@@ -40,11 +40,59 @@
         <role>maintainer</role>
       </roles>
     </developer>
+    <developer>
+      <id>paloma-vieira</id>
+      <name>Paloma de Carvalho Vieira</name>
+      <roles>
+        <role>lead</role>
+        <role>developer</role>
+        <role>debugger</role>
+        <role>reviewer</role>
+        <role>support</role>
+        <role>maintainer</role>
+      </roles>
+    </developer>
+    <developer>
+      <id>claudiamermelstein</id>
+      <name>Claudia Mermelstein</name>
+      <roles>
+        <role>lead</role>
+        <role>developer</role>
+        <role>debugger</role>
+        <role>reviewer</role>
+        <role>support</role>
+        <role>maintainer</role>
+      </roles>
+    </developer>
+    <developer>
+      <id>manoelluiscosta</id>
+      <name>Manoel Luis Costa</name>
+      <roles>
+        <role>lead</role>
+        <role>developer</role>
+        <role>debugger</role>
+        <role>reviewer</role>
+        <role>support</role>
+        <role>maintainer</role>
+      </roles>
+    </developer>
   </developers>
   <contributors>
     <contributor>
       <name>Murilo Nespolo Spineli</name>
       <url>http://lattes.cnpq.br/8896434525014436</url>
+    </contributor>
+    <contributor>
+      <name>Paloma de Carvalho Vieira</name>
+      <url>http://lattes.cnpq.br/2273190309603403</url>
+    </contributor>
+    <contributor>
+      <name>Claudia Mermelstein</name>
+      <url>http://lattes.cnpq.br/9864970132351529</url>
+    </contributor>
+    <contributor>
+      <name>Manoel Luis Costa</name>
+      <url>http://lattes.cnpq.br/9678554788147566</url>
     </contributor>
   </contributors>
   <licenses>

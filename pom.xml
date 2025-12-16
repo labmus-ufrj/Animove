@@ -24,8 +24,7 @@
     <version>0.0.2</version>
 
     <description>
-        <!--		TODO: write description-->
-        descrevendo tudo
+        This plugin aims to make it possible to process large amounts of video data with low-spec hardware, specifically to quantify and analyze zebrafish kinetic activity.
     </description>
     <url>https://github.com/labmus-ufrj/tracking-plugin.git</url>
 
@@ -47,6 +46,18 @@
         <contributor>
             <name>Murilo Nespolo Spineli</name>
             <url>http://lattes.cnpq.br/8896434525014436</url>
+        </contributor>
+        <contributor>
+            <name>Paloma de Carvalho Vieira</name>
+            <url>http://lattes.cnpq.br/2273190309603403</url>
+        </contributor>
+        <contributor>
+            <name>Claudia Mermelstein</name>
+            <url>http://lattes.cnpq.br/9864970132351529</url>
+        </contributor>
+        <contributor>
+            <name>Manoel Luis Costa</name>
+            <url>http://lattes.cnpq.br/9678554788147566</url>
         </contributor>
     </contributors>
 
@@ -83,7 +94,42 @@
         <developer>
             <id>mainSpi</id>
             <name>Murilo Nespolo Spineli</name>
-            <!--            TODO: add everyone at LabMus-->
+            <roles>
+                <role>lead</role>
+                <role>developer</role>
+                <role>debugger</role>
+                <role>reviewer</role>
+                <role>support</role>
+                <role>maintainer</role>
+            </roles>
+        </developer>
+        <developer>
+            <id>paloma-vieira</id>
+            <name>Paloma de Carvalho Vieira</name>
+            <roles>
+                <role>lead</role>
+                <role>developer</role>
+                <role>debugger</role>
+                <role>reviewer</role>
+                <role>support</role>
+                <role>maintainer</role>
+            </roles>
+        </developer>
+        <developer>
+            <id>claudiamermelstein</id>
+            <name>Claudia Mermelstein</name>
+            <roles>
+                <role>lead</role>
+                <role>developer</role>
+                <role>debugger</role>
+                <role>reviewer</role>
+                <role>support</role>
+                <role>maintainer</role>
+            </roles>
+        </developer>
+        <developer>
+            <id>manoelluiscosta</id>
+            <name>Manoel Luis Costa</name>
             <roles>
                 <role>lead</role>
                 <role>developer</role>
@@ -247,13 +293,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <!--	  TODO: is this necessary? no it isn't-->
-        <!-- Optional GPL builds with (almost) everything enabled -->
-        <!--        <dependency>-->
-        <!--            <groupId>org.bytedeco</groupId>-->
-        <!--            <artifactId>ffmpeg-platform-gpl</artifactId>-->
-        <!--            <version>6.1.1-1.5.10</version>-->
-        <!--        </dependency>-->
     </dependencies>
 
     <build>
@@ -342,28 +381,6 @@
                     <deleteOtherVersionsPolicy>older</deleteOtherVersionsPolicy>
                 </configuration>
             </plugin>
-            <!--			TODO: figure out what this does-->
-            <!--			<plugin>-->
-            <!--		        <groupId>org.codehaus.mojo</groupId>-->
-            <!--		        <artifactId>buildnumber-maven-plugin</artifactId>-->
-            <!--		        <executions>-->
-            <!--		          <execution>-->
-            <!--		          	<id>useLastCommittedRevision</id>-->
-            <!--		            <phase>validate</phase>-->
-            <!--		            <goals>-->
-            <!--		              <goal>create</goal>-->
-            <!--		            </goals>-->
-            <!--		          </execution>-->
-            <!--		        </executions>-->
-            <!--		        <configuration>-->
-            <!--		           <doCheck>true</doCheck> -->
-            <!--		          	<doUpdate>true</doUpdate>-->
-            <!--		          	<format>{0,date,yyyy/MM/dd}</format>-->
-            <!--      				<items>-->
-            <!--        				<item>timestamp</item>-->
-            <!--      				</items>-->
-            <!--		        </configuration>-->
-            <!--      		</plugin>-->
         </plugins>
     </build>
 </project>
