@@ -18,8 +18,7 @@ theme:
     - search.suggest
     - search.highlight
 
-#todo: change this link
-site_url: https://animove-docs.vercel.app/
+site_url: https://labmus-ufrj.github.io/Animove/
 
 nav:
   - 'Home': 'index.md'

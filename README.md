@@ -1,4 +1,3 @@
 # Animove
 
-[//]: # (todo: change this link)
-Installation, Usage, Examples and more at [the docs website](http://animove-docs.vercel.app/) 
+Installation, Usage, Examples and more at [the documentation website](https://labmus-ufrj.github.io/Animove/) 
