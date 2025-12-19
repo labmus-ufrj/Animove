@@ -7,7 +7,7 @@
 
 1. Run **Fiji → Help → Update…**
 2. Click the **Manage update sites** button
-3. In the new popup window search for the site name `Animove` and activate the checkbox
+3. In the new popup window search for the site name **`Animove`** and activate the checkbox
 5. Press the **Apply and Close** button
 6. Finally, press the **Apply changes** button and restart Fiji
 7. The plugin will appear in Fiji's menu bar.
