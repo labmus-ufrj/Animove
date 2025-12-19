@@ -7,16 +7,13 @@
 
 1. Run **Fiji → Help → Update…**
 2. Click the **Manage update sites** button
-
-[//]: # (3. In the new popup window search for the site name `Animove` and activate the checkbox)
-3. Click the **Add Unlisted Site** button
-4. Fill the URL field with **`https://sites.imagej.net/Animove/`**
+3. In the new popup window search for the site name `Animove` and activate the checkbox
 5. Press the **Apply and Close** button
 6. Finally, press the **Apply changes** button and restart Fiji
 7. The plugin will appear in Fiji's menu bar.
 8. **Installing dependencies** (this is only done once, not every update)
     - Run Animove → Tools → Check Dependencies
-    - Follow the instructions, you'll need to restart Fiji multiple times
+    - Follow the instructions; you'll need to restart Fiji multiple times, running this option again.
 ### Automatic Updating
 The plugin updates via the Update Manager built into Fiji. A search for updates can be triggered by running **Fiji → Help → Update…**
 
