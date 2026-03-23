@@ -87,6 +87,9 @@ public class FFmpegPlugin implements Command, Interactive {
     @Parameter(label = "Output FPS", min = "1", persist = false)
     private double outputFps = 25.0;
 
+    @Parameter(label = "Interval Between Frames", min = "1", persist = false)
+    private int frameInterval = 1;
+
     @Parameter(label = "Horizontal Flip", persist = false)
     private boolean horizontalFlip = false;
 
@@ -428,6 +431,9 @@ public class FFmpegPlugin implements Command, Interactive {
         commandList.add(currentOutputFile.getAbsolutePath());
 
         log.info(commandList.toString());
+        StringBuilder sb = new StringBuilder();
+        commandList.forEach(s -> sb.append(" ").append(s));
+        log.info(sb.toString());
 
         // Execute FFmpeg command
         ProcessBuilder pb = new ProcessBuilder(commandList);
@@ -527,6 +533,7 @@ public class FFmpegPlugin implements Command, Interactive {
     private String buildVideoFilter() {
         StringJoiner filterChain = new StringJoiner(",");
         filterChain.add("setpts=N/(" + outputFps + "*TB)");
+        if (frameInterval > 1) filterChain.add("select='eq(mod(n," + frameInterval + "),0)'");
         if (horizontalFlip) filterChain.add("hflip");
         if (verticalFlip) filterChain.add("vflip");
 

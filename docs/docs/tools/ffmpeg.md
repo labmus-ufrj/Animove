@@ -29,6 +29,13 @@ To process the video all the way to its final frame, enter 0 in the 'End frame' 
 ## Output FPS
 Frames per second rate of the output video. The "Open Frame & Get Info" button above autofills this field with the input file's frame rate.
 
+## Interval Between Frames
+This field defines the frame extraction interval for your video. For example, inputting 2 tells the program to save every second frame (extracting frames 0, 2, 4, 6, and so on), while entering 5 will save every fifth frame.
+
+**Leaving it as 1 uses all frames from the input, as it is the default value.**
+
+This behaves exactly like the interval value in the [Make Substack](https://github.com/imagej/ImageJ/blob/4c44dcad3b8ad588cdf83362be0188394c5cc3c4/ij/plugin/SubstackMaker.java) tool. Specifically, it replaces the final number you would type in the start-end-**interval** format.
+
 ## Horizontal Flip
 Flips the video horizontally. Based on the Preview's frame position. Uses a [ffmpeg fiter](https://ffmpeg.org/ffmpeg-filters.html#hflip).
 
