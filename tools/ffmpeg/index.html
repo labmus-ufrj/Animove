@@ -538,6 +538,24 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#interval-between-frames" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interval Between Frames
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scale" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scale
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#horizontal-flip" class="md-nav__link">
     <span class="md-ellipsis">
       Horizontal Flip
@@ -1201,6 +1219,24 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#interval-between-frames" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interval Between Frames
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scale" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scale
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#horizontal-flip" class="md-nav__link">
     <span class="md-ellipsis">
       Horizontal Flip
@@ -1297,12 +1333,19 @@
 <p>To process the video all the way to its final frame, enter 0 in the 'End frame' field.</p>
 <h2 id="output-fps">Output FPS</h2>
 <p>Frames per second rate of the output video. The "Open Frame &amp; Get Info" button above autofills this field with the input file's frame rate.</p>
+<h2 id="interval-between-frames">Interval Between Frames</h2>
+<p>This field defines the frame extraction interval for your video. For example, inputting 2 tells the program to save every second frame (extracting frames 0, 2, 4, 6, and so on), while entering 5 will save every fifth frame.</p>
+<p><strong>Leaving it as 1 uses all frames from the input, as it is the default value.</strong></p>
+<p>This behaves exactly like the interval value in the <a href="https://github.com/imagej/ImageJ/blob/4c44dcad3b8ad588cdf83362be0188394c5cc3c4/ij/plugin/SubstackMaker.java">Make Substack</a> tool. Specifically, it replaces the final number you would type in the start-end-<strong>interval</strong> format.</p>
+<p>Uses an <a href="https://ffmpeg.org/ffmpeg-filters.html#select_002c-aselect">ffmpeg fiter</a>.</p>
+<h2 id="scale">Scale</h2>
+<p>Defines the multiplier for the video's resolution. A value of 1 keeps the original dimensions, values under 1 shrink it (e.g., 0.5 halves the size), and values over 1 enlarge it. Uses an <a href="https://ffmpeg.org/ffmpeg-filters.html#scale">ffmpeg fiter</a>.</p>
 <h2 id="horizontal-flip">Horizontal Flip</h2>
-<p>Flips the video horizontally. Based on the Preview's frame position. Uses a <a href="https://ffmpeg.org/ffmpeg-filters.html#hflip">ffmpeg fiter</a>.</p>
+<p>Flips the video horizontally. Based on the Preview's frame position. Uses an <a href="https://ffmpeg.org/ffmpeg-filters.html#hflip">ffmpeg fiter</a>.</p>
 <h2 id="vertical-flip">Vertical Flip</h2>
-<p>Flips the video vertically. Based on the Preview's frame position. Uses a <a href="https://ffmpeg.org/ffmpeg-filters.html#vflip">ffmpeg fiter</a>.</p>
+<p>Flips the video vertically. Based on the Preview's frame position. Uses an <a href="https://ffmpeg.org/ffmpeg-filters.html#vflip">ffmpeg fiter</a>.</p>
 <h2 id="rotation">Rotation</h2>
-<p>Rotates the video by the set degrees amount. Based on the Preview's frame position. Uses a <a href="https://ffmpeg.org/ffmpeg-filters.html#transpose">ffmpeg fiter</a>.</p>
+<p>Rotates the video by the set degrees amount. Based on the Preview's frame position. Uses an <a href="https://ffmpeg.org/ffmpeg-filters.html#transpose">ffmpeg fiter</a>.</p>
 <h2 id="crop-using-active-roi">Crop Using Active ROI</h2>
 <p>Crops the video using the active ROI in the preview image. If not found, uses the selected one in ROI Manager. If not found, uses the first one in ROIManger.</p>
 <h2 id="multi-crop">Multi-Crop</h2>
