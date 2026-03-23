@@ -1,15 +1,4 @@
--> FFmpeg plugin repeats the first frame of videos converted to AVI (probably to all of them), doing it from blank->end
-    -> this bug was not properly reproduced since. Maybe some code change fixed it.
 -> change apply brightness function (in ZF Helper Methods) to use openCV one
-
--> Write documentation
-    -> Thigmotaxis description missing
-
--> Extract Frequency Data
-    -> bouts/peaks plot?
--> Extract Tracking Data?
--> Thigmotaxis
-    -> internal area is 50% of external area
 
 -> crop heatmaps output
     -> Mat cropped = new Mat(masked, roi);
