@@ -36,14 +36,19 @@ This field defines the frame extraction interval for your video. For example, in
 
 This behaves exactly like the interval value in the [Make Substack](https://github.com/imagej/ImageJ/blob/4c44dcad3b8ad588cdf83362be0188394c5cc3c4/ij/plugin/SubstackMaker.java) tool. Specifically, it replaces the final number you would type in the start-end-**interval** format.
 
+Uses an [ffmpeg fiter](https://ffmpeg.org/ffmpeg-filters.html#select_002c-aselect).
+
+## Scale
+Defines the multiplier for the video's resolution. A value of 1 keeps the original dimensions, values under 1 shrink it (e.g., 0.5 halves the size), and values over 1 enlarge it. Uses an [ffmpeg fiter](https://ffmpeg.org/ffmpeg-filters.html#scale).
+
 ## Horizontal Flip
-Flips the video horizontally. Based on the Preview's frame position. Uses a [ffmpeg fiter](https://ffmpeg.org/ffmpeg-filters.html#hflip).
+Flips the video horizontally. Based on the Preview's frame position. Uses an [ffmpeg fiter](https://ffmpeg.org/ffmpeg-filters.html#hflip).
 
 ## Vertical Flip
-Flips the video vertically. Based on the Preview's frame position. Uses a [ffmpeg fiter](https://ffmpeg.org/ffmpeg-filters.html#vflip).
+Flips the video vertically. Based on the Preview's frame position. Uses an [ffmpeg fiter](https://ffmpeg.org/ffmpeg-filters.html#vflip).
 
 ## Rotation
-Rotates the video by the set degrees amount. Based on the Preview's frame position. Uses a [ffmpeg fiter](https://ffmpeg.org/ffmpeg-filters.html#transpose).
+Rotates the video by the set degrees amount. Based on the Preview's frame position. Uses an [ffmpeg fiter](https://ffmpeg.org/ffmpeg-filters.html#transpose).
 
 ## Crop Using Active ROI
 Crops the video using the active ROI in the preview image. If not found, uses the selected one in ROI Manager. If not found, uses the first one in ROIManger.
