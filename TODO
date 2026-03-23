@@ -2,6 +2,3 @@
 
 -> crop heatmaps output
     -> Mat cropped = new Mat(masked, roi);
-
--> FFmpegPlugin fps change not working properly. It seems only increasing it is working.
--> FFmpegPlugin needs a scale setting to reduce the video resolution.
