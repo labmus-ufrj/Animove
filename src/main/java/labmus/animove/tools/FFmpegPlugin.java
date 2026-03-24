@@ -537,7 +537,6 @@ public class FFmpegPlugin implements Command, Interactive {
         StringJoiner filterChain = new StringJoiner(",");
         filterChain.add("setpts=N/(" + outputFps + "*TB)");
         if (frameInterval > 1) filterChain.add("select='eq(mod(n," + frameInterval + "),0)'");
-        if (scale != 1) filterChain.add("scale='trunc(iw*"+scale+"/2)*2':-2");
         if (horizontalFlip) filterChain.add("hflip");
         if (verticalFlip) filterChain.add("vflip");
 
@@ -547,6 +546,8 @@ public class FFmpegPlugin implements Command, Interactive {
             log.info("cropString: " + cropString);
             filterChain.add(cropString);
         }
+
+        if (scale != 1) filterChain.add("scale='trunc(iw*"+scale+"/2)*2':-2");
 
         switch (rotation) {
             case "90°":

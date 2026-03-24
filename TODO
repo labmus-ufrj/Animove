@@ -2,5 +2,3 @@
 
 -> crop heatmaps output
     -> Mat cropped = new Mat(masked, roi);
-
--> scale should affect ROI coordinates and size 
