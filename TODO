@@ -2,3 +2,6 @@
 
 -> crop heatmaps output
     -> Mat cropped = new Mat(masked, roi);
+
+-> add documentation for ffmpeg invert colors
+-> progress bar in ffmpeg should consider the select filter when skipping frames (probably -vframes option will be useful)

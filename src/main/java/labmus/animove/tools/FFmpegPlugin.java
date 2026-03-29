@@ -99,6 +99,9 @@ public class FFmpegPlugin implements Command, Interactive {
     @Parameter(label = "Vertical Flip", persist = false)
     private boolean verticalFlip = false;
 
+    @Parameter(label = "Invert colors", persist = false)
+    private boolean invertColors = false;
+
     @Parameter(label = "Rotation", choices = {"0°", "90°", "180°", "270°", "-90°", "-180°", "-270°"}, persist = false)
     private String rotation = "0°";
 
@@ -535,10 +538,9 @@ public class FFmpegPlugin implements Command, Interactive {
      */
     private String buildVideoFilter() {
         StringJoiner filterChain = new StringJoiner(",");
+        if (invertColors) filterChain.add("negate");
         filterChain.add("setpts=N/(" + outputFps + "*TB)");
         if (frameInterval > 1) filterChain.add("select='eq(mod(n," + frameInterval + "),0)'");
-        if (horizontalFlip) filterChain.add("hflip");
-        if (verticalFlip) filterChain.add("vflip");
 
         if (lastCropRoi != null) {
             Rectangle bounds = lastCropRoi.getBounds();
@@ -546,6 +548,9 @@ public class FFmpegPlugin implements Command, Interactive {
             log.info("cropString: " + cropString);
             filterChain.add(cropString);
         }
+
+        if (horizontalFlip) filterChain.add("hflip");
+        if (verticalFlip) filterChain.add("vflip");
 
         if (scale != 1) filterChain.add("scale='trunc(iw*"+scale+"/2)*2':-2");
 
