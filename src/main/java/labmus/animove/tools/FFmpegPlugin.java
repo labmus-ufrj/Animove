@@ -374,7 +374,7 @@ public class FFmpegPlugin implements Command, Interactive {
             grabber.start();
             fps = grabber.getFrameRate();
             int finalFrame = (endFrame <= 0 || endFrame > grabber.getLengthInFrames()) ? grabber.getLengthInFrames() : endFrame;
-            totalFramesToProcess = Math.max(0, finalFrame - startFrame);
+            totalFramesToProcess = Math.max(0, finalFrame - startFrame) / frameInterval;
         }
 
         // For posview modes, set output to temporary file and process single frame

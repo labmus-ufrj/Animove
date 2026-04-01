@@ -47,6 +47,9 @@ Flips the video horizontally. Based on the Preview's frame position. Uses an [ff
 ## Vertical Flip
 Flips the video vertically. Based on the Preview's frame position. Uses an [ffmpeg fiter](https://ffmpeg.org/ffmpeg-filters.html#vflip).
 
+## Invert Colors
+Uses an [ffmpeg fiter](https://ffmpeg.org/ffmpeg-filters.html#negate)
+
 ## Rotation
 Rotates the video by the set degrees amount. Based on the Preview's frame position. Uses an [ffmpeg fiter](https://ffmpeg.org/ffmpeg-filters.html#transpose).
 
