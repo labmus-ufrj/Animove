@@ -396,6 +396,8 @@ public class FFmpegPlugin implements Command, Interactive {
         commandList.add("-an");
         commandList.add("-y");
         commandList.add("-noautorotate");
+        commandList.add("-display_rotation");
+        commandList.add("0");
         commandList.add("-i");
         commandList.add(inputFile.getAbsolutePath());
 
