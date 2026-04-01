@@ -35,6 +35,7 @@ import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -103,11 +104,16 @@ public class QuantifyHeatmap implements Command, Interactive {
             Mat heatmapMat;
             String name;
 
-            if (imagePlus == null) {
+            BufferedImage bi = null;
+            try{
+                bi = imagePlus.getBufferedImage();
+            } catch (NullPointerException e){}
+
+            if (bi == null) {
                 heatmapMat = imread(heatmapFile.getAbsolutePath(), opencv_imgcodecs.IMREAD_GRAYSCALE);
                 name = "Quantified from " + heatmapFile.getName();
             } else {
-                heatmapMat = matConverter.convert(biConverter.convert(imagePlus.getBufferedImage()));
+                heatmapMat = matConverter.convert(biConverter.convert(bi));
                 name = "Quantified from " + imagePlus.getTitle();
             }
 
