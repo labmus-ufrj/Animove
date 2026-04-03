@@ -11,6 +11,8 @@ Each frame is then concatenated into a single video.
 ## Expected Output
 ![type:video](img/output-heatmap-video.mp4)
 
+[How to reproduce this?](../guide/reproducibility.md#sum-heatmap-video){ .md-button }
+
 --8<-- "input-video.md"
 
 --8<-- "output-file.md"

@@ -1,4 +1,4 @@
-# Extract Frequency Data
+# Extract Tracking Frequency Data
 
 Extracts X and Y positional data from the selected XML file and allows the user to visualize the results in a graphical plot.
 
@@ -28,3 +28,6 @@ If you have only spots and no tracks, this feature won't work in this mode. It i
 ## Display Plots
 * **Line Chart**: Composed chart to display displacement over time.
   ![Line Chart image](img/output-frequency-data.png){ width="400em" }
+
+[How to reproduce this?](../guide/reproducibility.md#extract-tracking-frequency-data){ .md-button }
+

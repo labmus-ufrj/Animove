@@ -31,6 +31,8 @@ There's no prejudice in setting this to `True` if you have a perfect tracking, w
      
      ![Dial Chart image](img/output-score-gradient-dial.png){ width="400em" }
 
+[How to reproduce this?](../guide/reproducibility.md#calculate-score-gradient){ .md-button }
+
 --8<-- "open-frame.md"
 
 ## Load Min/Max from XML

@@ -1,4 +1,4 @@
-# Quantify Heatmap
+# Quantify Binary Heatmap
 
 Quantify the area of a binary heatmap to analyze the animal percentage traveled area.
 It counts the black pixels from a given binary image. 
@@ -18,6 +18,8 @@ The binary heatmap image to be processed. Ideally, generated with [Binary Heatma
 ## Display plots
 * **Bar Chart**: Simple chart to represent area percentage.
 ![Bar Chart image](img/output-qnt-bin.png){ width="400em" }
+
+[How to reproduce this?](../guide/reproducibility.md#quantify-binary-heatmap){ .md-button }
 
 ## Create sequential ROIs
 Opens the [Create sequential ROIs](../tools/create-rois.md) plugin window.

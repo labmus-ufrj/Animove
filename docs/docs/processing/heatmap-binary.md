@@ -17,6 +17,8 @@ Generates a binary heatmap image. Processing steps:
 
 ![Expected output image](img/output-binary-heatmap.png){ width="400em" }
 
+[How to reproduce this?](../guide/reproducibility.md#binary-heatmap-image){ .md-button }
+
 --8<-- "input-video.md"
 
 --8<-- "open-frame.md"

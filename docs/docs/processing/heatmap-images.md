@@ -18,6 +18,8 @@ Generates an image using pixelwise addition of the selected frames. Processing s
 ## Expected Output
 ![Expected output image](img/output-heatmapImages.png){ width="400em" }
 
+[How to reproduce this?](../guide/reproducibility.md#sum-heatmap-images){ .md-button }
+
 --8<-- "input-video.md"
 
 ## Output Folder

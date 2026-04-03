@@ -29,3 +29,5 @@ If you have only spots and no tracks, this feature won't work in this mode. It i
 ## Display Plots
 * **Pie Chart**: Simple chart to represent spot prevalence in different areas by percentage.
   ![Pie Chart image](img/output-score-sectors.png){ width="400em" }
+
+[How to reproduce this?](../guide/reproducibility.md#calculate-score-sectors){ .md-button }

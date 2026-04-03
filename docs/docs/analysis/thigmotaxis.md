@@ -31,6 +31,8 @@ There's no prejudice in setting this to `True` if you have a perfect tracking, w
 If you have only spots and no tracks, this feature won't work in this mode. It is not significant to mean out the positions of scores on each frame.
 
 ## Display Plots
-* **Stacked Bar Chart**: Simple chart to represent time and distance relative percentages.
+* **Stacked Bar Chart**: Simple chart to represent **time** and **distance** relative percentages.
   ![Stacked Bar Chart image for time](img/output-thigmotaxis-time.png){ width="400em" }
   ![Stacked Bar Chart image for distance](img/output-thigmotaxis-distance.png){ width="400em" }
+
+[How to reproduce this?](../guide/reproducibility.md#thigmotaxis){ .md-button }

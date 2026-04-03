@@ -21,7 +21,7 @@
     <groupId>labmus-ufrj.plugins</groupId>
     <artifactId>Animove</artifactId>
     <name>${project.artifactId}.jar</name>
-    <version>0.0.3</version>
+    <version>0.0.4</version>
 
     <description>
         This plugin aims to make it possible to process large amounts of video data with low-spec hardware, specifically to quantify and analyze zebrafish kinetic activity.
