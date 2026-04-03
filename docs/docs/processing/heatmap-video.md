@@ -13,16 +13,16 @@ Each frame is then concatenated into a single video.
 
 [How to reproduce this?](../guide/reproducibility.md#sum-heatmap-video){ .md-button }
 
---8<-- "input-video.md"
+{% include "input-video.md" %}
 
---8<-- "output-file.md"
+{% include "output-file.md" %}
 
 ## Lookup Table
 The LUTs available are the ImageJ's built-in ones (found at Image → Lookup Tables). Leave as "Don't change" for RGB images if Convert to Grayscale is not checked.
 
---8<-- "start-end-frame.md"
+{% include "start-end-frame.md" %}
 
---8<-- "preview.md"
+{% include "preview.md" %}
 
 
 <!--

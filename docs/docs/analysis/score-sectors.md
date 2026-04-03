@@ -2,7 +2,7 @@
 
 Represents the total number of identified spots within the selected ROIs. This function allows the user to calculate the percentage of spots located in a given area, such as the maze arms. The number and area of the ROIs are defined by the user, as long as at least one ROI is selected.
 
---8<-- "excel-functions.md"
+{% include "excel-functions.md" %}
 
 ## Interface
 ![Interface image](img/gui-score-sectors.png){ width="400em" }
@@ -17,7 +17,7 @@ Two possible files can be used here:
 2. Output of trackmate's `Export tracks to XML file` export action.
     * Only spots in tracks get saved in this file, so only them will be considered.
 
---8<-- "source-video-analysis.md"
+{% include "source-video-analysis.md" %}
 
 ## Fix Missing Spots
 When tracking with Trackmate, not all frames in a video will have spots. That's because your target might not be visible in those frames. It's usually not moving as well. An uneven number of frames will create an unreliable score overall. This option fixes the missing spots by using an available adjacent spot and copying its coordinates.

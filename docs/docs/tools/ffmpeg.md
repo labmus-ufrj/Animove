@@ -7,11 +7,11 @@ A graphical user interface to use FFmpeg. It's simplified to display only the fe
 ## Interface
 ![Interface image](img/gui-ffmpeg.png){ width="400em" }
 
---8<-- "input-video.md"
+{% include "input-video.md" %}
 
---8<-- "open-frame.md"
+{% include "open-frame.md" %}
 
---8<-- "output-file.md"
+{% include "output-file.md" %}
 
 ## Output Codec
 Choose between mjpeg (AVI), libx264 (MP4) and libx265 (MP4 with better compression). ImageJ only can read AVI video files with mjpeg codec, so that's the preferred one.

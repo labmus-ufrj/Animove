@@ -2,7 +2,9 @@
 
 This section aims to make it possible for any user to reproduce all outputs of this plugin present in this documentation.
 
---8<-- "test-data.md"
+All file mentions (`with this format`) refer to the file structure of the provided test data.
+
+{% include "test-data.md" %}
 
 ---
 

@@ -13,12 +13,12 @@ A TrackMate tutorial can be found [here](https://imagej.net/plugins/trackmate/tu
 ## Interface
 ![Interface image](img/gui-adults-tracking.png){ width="400em" }
 
---8<-- "input-video.md"
+{% include "input-video.md" %}
 
---8<-- "output-file.md"
+{% include "output-file.md" %}
 
---8<-- "output-formats.md"
+{% include "output-formats.md" %}
 
---8<-- "start-end-frame.md"
+{% include "start-end-frame.md" %}
 
---8<-- "preview.md"
+{% include "preview.md" %}

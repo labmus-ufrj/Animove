@@ -4,7 +4,7 @@ Analyzes the percentage of distance and time spent by the larvae in the inner an
 
 A pre-defined region of interest (ROI) is required, either drawn on the preview frame (opened by clicking the `Open Frame` button) or by having it in the ROI Manager.
 
---8<-- "excel-functions.md"
+{% include "excel-functions.md" %}
 
 ## Interface
 ![Interface image](img/gui-thigmotaxis.png){ width="400em" }
@@ -18,7 +18,7 @@ Two possible files can be used here:
 1. Trackmate's whole save file
 2. Output of trackmate's `Export tracks to XML file` export action.
 
---8<-- "source-video-analysis.md"
+{% include "source-video-analysis.md" %}
 
 ## Area Percentage
 Specifies the percentage of the ROI used to calculate the Thigmotaxis. Note this is a percentage of **area**, not of dimensions.

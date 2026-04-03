@@ -5,16 +5,16 @@ Uses OpenCV and FFmpeg to invert each frame, allowing faster operation without t
 ## Interface
 ![Interface image](img/gui-invert-video.png){ width="400em" }
 
---8<-- "input-video.md"
+{% include "input-video.md" %}
 
---8<-- "open-frame.md"
+{% include "open-frame.md" %}
 
---8<-- "output-image.md"
+{% include "output-image.md" %}
 
---8<-- "output-formats.md"
+{% include "output-formats.md" %}
 
---8<-- "dont-save.md"
+{% include "dont-save.md" %}
 
---8<-- "start-end-frame.md"
+{% include "start-end-frame.md" %}
 
---8<-- "preview.md"
+{% include "preview.md" %}

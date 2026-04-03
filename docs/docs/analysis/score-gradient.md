@@ -2,7 +2,7 @@
 
 From user-defined min and max values, calculates a score (0-10) of each spot from Trackmate.
 
---8<-- "excel-functions.md"
+{% include "excel-functions.md" %}
 
 ## Interface
 ![Interface image](img/gui-score-gradient.png){ width="400em" }
@@ -17,7 +17,7 @@ Two possible files can be used here:
 2. Output of trackmate's `Export tracks to XML file` export action.
     * Only spots in tracks get saved in this file, so only them will be considered.
 
---8<-- "source-video-analysis.md"
+{% include "source-video-analysis.md" %}
 
 ## Fix Missing Spots
 When tracking with Trackmate, not all frames in a video will have spots. That's because your target might not be visible in those frames. It's usually not moving as well. An uneven number of frames will create an unreliable score overall. This option fixes the missing spots by using an available adjacent spot and copying its coordinates.
@@ -33,7 +33,7 @@ There's no prejudice in setting this to `True` if you have a perfect tracking, w
 
 [How to reproduce this?](../guide/reproducibility.md#calculate-score-gradient){ .md-button }
 
---8<-- "open-frame.md"
+{% include "open-frame.md" %}
 
 ## Load Min/Max from XML
 Gathers and displays the min and max position values from the current XML.

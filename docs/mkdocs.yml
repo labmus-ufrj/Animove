@@ -54,14 +54,9 @@ markdown_extensions:
   - pymdownx.highlight # code syntax highlighting
   - pymdownx.superfences # code boxes
   - attr_list
-  - pymdownx.snippets:
-      base_path: ["docs/snippets"]
-      check_paths: true # This helps debug by throwing an error if the file isn't found
 
 plugins:
   - mkdocs-video
   - search
-  - macros
-
-extra:
-  data_doi: testeteste
+  - macros: # https://mkdocs-macros-plugin.readthedocs.io/en/latest/
+      include_dir: docs/snippets

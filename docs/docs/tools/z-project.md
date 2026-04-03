@@ -3,15 +3,15 @@
 ## Interface
 ![Interface image](img/gui-z-project.png){ width="400em" }
 
---8<-- "input-video.md"
+{% include "input-video.md" %}
 
---8<-- "open-frame.md"
+{% include "open-frame.md" %}
 
---8<-- "output-image.md"
+{% include "output-image.md" %}
 
---8<-- "dont-save.md"
+{% include "dont-save.md" %}
 
---8<-- "invert-before.md"
+{% include "invert-before.md" %}
 
 ## Processing Mode
 The operations available mimic ImageJ's built-in **Image → Stacks → Z project** operations:
@@ -21,6 +21,6 @@ The operations available mimic ImageJ's built-in **Image → Stacks → Z projec
 * Average
 * Sum (saved as 32-bit)
 
---8<-- "start-end-frame.md"
+{% include "start-end-frame.md" %}
 
---8<-- "preview.md"
+{% include "preview.md" %}

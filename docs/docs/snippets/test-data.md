@@ -1,8 +1,7 @@
 ## Test Data
-Test data is available in [this repository](http://doidoidoi).
-Notably:
 
-{{ macros_info() }}
+Test data is available in [this repository](https://doi.org/10.5281/zenodo.19393670).
+Notably:
 
 - Adults
     - Gutter/Track (short and long versions)

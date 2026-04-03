@@ -20,7 +20,7 @@ Generates an image using pixelwise addition of the selected frames. Processing s
 
 [How to reproduce this?](../guide/reproducibility.md#sum-heatmap-images){ .md-button }
 
---8<-- "input-video.md"
+{% include "input-video.md" %}
 
 ## Output Folder
 Where output images will be saved with `.tif` format.

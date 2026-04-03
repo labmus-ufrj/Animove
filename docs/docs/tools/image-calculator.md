@@ -6,9 +6,9 @@ Performs a mathematical operation on a video and an image. Similar to ImageJ's b
 ## Interface
 ![Interface image](img/gui-image-calc.png){ width="400em" }
 
---8<-- "input-video.md"
+{% include "input-video.md" %}
 
---8<-- "open-frame.md"
+{% include "open-frame.md" %}
 
 ## Input Image
 Image to perform the operation.
@@ -19,17 +19,17 @@ It's recommended to only use images generated from this plugin's Z-Project funct
 
 Notably, **32-bit images aren't supported**.
 
---8<-- "output-file.md"
+{% include "output-file.md" %}
 
---8<-- "output-formats.md"
+{% include "output-formats.md" %}
 
---8<-- "dont-save.md"
+{% include "dont-save.md" %}
 
---8<-- "invert-before.md"
+{% include "invert-before.md" %}
 
 ## Operation
 Mathematical operation to be performed on the inputs. Same effect as the built-in ImageJ ones.
 
---8<-- "start-end-frame.md"
+{% include "start-end-frame.md" %}
 
---8<-- "preview.md"
+{% include "preview.md" %}

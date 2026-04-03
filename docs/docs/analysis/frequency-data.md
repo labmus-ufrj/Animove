@@ -2,7 +2,7 @@
 
 Extracts X and Y positional data from the selected XML file and allows the user to visualize the results in a graphical plot.
 
---8<-- "excel-functions.md"
+{% include "excel-functions.md" %}
 
 ## Interface
 ![Interface image](img/gui-frequency-data.png){ width="400em" }
@@ -16,7 +16,7 @@ Two possible files can be used here:
 1. Trackmate's whole save file
 2. Output of trackmate's `Export tracks to XML file` export action.
 
---8<-- "source-video-analysis.md"
+{% include "source-video-analysis.md" %}
 
 ## Fix Missing Spots
 When tracking with Trackmate, not all frames in a video will have spots. That's because your target might not be visible in those frames. It's usually not moving as well. An uneven number of frames will create an unreliable score overall. This option fixes the missing spots by using an available adjacent spot and copying its coordinates.

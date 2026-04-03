@@ -10,7 +10,7 @@ File requirements are available in each function description.
 
 Refer to this documentation's [reproducibility section](reproducibility.md) for a thorough step-bey-step guide.
 
---8<-- "test-data.md"
+{% include "test-data.md" %}
 
 ## Grayscale Converting Disclaimer
 All RGB videos get converted to grayscale for processing. All image channels will get merged into a single one.

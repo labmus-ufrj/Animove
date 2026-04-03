@@ -19,14 +19,14 @@ Generates a binary heatmap image. Processing steps:
 
 [How to reproduce this?](../guide/reproducibility.md#binary-heatmap-image){ .md-button }
 
---8<-- "input-video.md"
+{% include "input-video.md" %}
 
---8<-- "open-frame.md"
+{% include "open-frame.md" %}
 
---8<-- "output-image.md"
+{% include "output-image.md" %}
 
---8<-- "dont-save.md"
+{% include "dont-save.md" %}
 
---8<-- "start-end-frame.md"
+{% include "start-end-frame.md" %}
 
---8<-- "preview.md"
+{% include "preview.md" %}
