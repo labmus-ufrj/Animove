@@ -18,7 +18,7 @@
         <link rel="prev" href="../installation/">
       
       
-        <link rel="next" href="../../tools/check-dependencies/">
+        <link rel="next" href="../reproducibility/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -361,9 +361,18 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#testing-files" class="md-nav__link">
+  <a href="#workflows-and-processes" class="md-nav__link">
     <span class="md-ellipsis">
-      Testing files
+      Workflows and Processes
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#test-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test Data
     </span>
   </a>
   
@@ -382,6 +391,29 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reproducibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Reproducibility
+    
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -1039,9 +1071,18 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#testing-files" class="md-nav__link">
+  <a href="#workflows-and-processes" class="md-nav__link">
     <span class="md-ellipsis">
-      Testing files
+      Workflows and Processes
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#test-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test Data
     </span>
   </a>
   
@@ -1079,8 +1120,10 @@
 <p>Animove is displayed in the upper-right area of Fiji's menu bar.</p>
 <p><img alt="Menu bar image" src="../img/menu-bar.png" width="400em"></p>
 <p>File requirements are available in each function description. </p>
-<h2 id="testing-files">Testing files</h2>
-<p><a href="https://drive.google.com/drive/u/1/folders/1qrz53eYvl06PCNzTaGLvaBCJtKP0Ubd8">Testing video files</a> are available.
+<h2 id="workflows-and-processes">Workflows and Processes</h2>
+<p>Refer to this documentation's <a href="../reproducibility/">reproducibility section</a> for a thorough step-bey-step guide.</p>
+<h2 id="test-data">Test Data</h2>
+<p>Test data is available in <a href="https://doi.org/10.5281/zenodo.19393670">this repository</a>.
 Notably:</p>
 <ul>
 <li>Adults<ul>
@@ -1092,11 +1135,12 @@ Notably:</p>
 </li>
 <li>Larvae<ul>
 <li>Six-well plate (short and long versions)</li>
+<li>Tracking data</li>
 </ul>
 </li>
 </ul>
 <p>These may be used to experiment on the plugin's capabilities or simply to get used to the workflows.</p>
-<p><strong>The data made available is property of the authors and should not be distributed in any way. Usage outside the plugin's scope is not allowed.</strong></p>
+<p><strong>Distributed under the <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0 License</a></strong></p>
 <h2 id="grayscale-converting-disclaimer">Grayscale Converting Disclaimer</h2>
 <p>All RGB videos get converted to grayscale for processing. All image channels will get merged into a single one.</p>
 <p>The conversion is <a href="https://docs.opencv.org/4.12.0/de/d25/imgproc_color_conversions.html">handled by OpenCV</a>, using the proportions: 0.114 * B + 0.587 * G + 0.229 * R</p>

@@ -12,9 +12,13 @@
         <meta name="author" content="LabMus - UFRJ">
       
       
-        <link rel="canonical" href="https://labmus-ufrj.github.io/Animove/analysis/tracking-data/">
+        <link rel="canonical" href="https://labmus-ufrj.github.io/Animove/guide/reproducibility/">
       
       
+        <link rel="prev" href="../quick-start/">
+      
+      
+        <link rel="next" href="../../tools/check-dependencies/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -22,7 +26,7 @@
     
     
       
-        <title>Extract Tracking Data - Animove</title>
+        <title>Reproducibility - Animove</title>
       
     
     
@@ -64,7 +68,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#extract-tracking-data" class="md-skip">
+        <a href="#reproducibility" class="md-skip">
           Skip to content
         </a>
       
@@ -100,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Extract Tracking Data
+              Reproducibility
             
           </span>
         </div>
@@ -241,18 +245,20 @@
       
   
   
+    
   
   
+  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
           <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
@@ -268,7 +274,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             User Guide
@@ -282,7 +288,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guide/installation/" class="md-nav__link">
+      <a href="../installation/" class="md-nav__link">
         
   
   
@@ -305,7 +311,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guide/quick-start/" class="md-nav__link">
+      <a href="../quick-start/" class="md-nav__link">
         
   
   
@@ -316,6 +322,182 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Reproducibility
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Reproducibility
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#test-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test Data
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      2 - Processing
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2 - Processing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#binary-heatmap-image" class="md-nav__link">
+    <span class="md-ellipsis">
+      Binary Heatmap Image
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sum-heatmap-images" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sum Heatmap Images
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sum-heatmap-video" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sum Heatmap Video
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      3 - Analysis
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3 - Analysis">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#calculate-score-gradient" class="md-nav__link">
+    <span class="md-ellipsis">
+      Calculate Score Gradient
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#calculate-score-sectors" class="md-nav__link">
+    <span class="md-ellipsis">
+      Calculate Score Sectors
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extract-tracking-frequency-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Extract Tracking Frequency Data
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quantify-binary-heatmap" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quantify Binary Heatmap
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#thigmotaxis" class="md-nav__link">
+    <span class="md-ellipsis">
+      Thigmotaxis
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -831,7 +1013,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../score-gradient/" class="md-nav__link">
+      <a href="../../analysis/score-gradient/" class="md-nav__link">
         
   
   
@@ -854,7 +1036,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../score-sectors/" class="md-nav__link">
+      <a href="../../analysis/score-sectors/" class="md-nav__link">
         
   
   
@@ -877,7 +1059,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../frequency-data/" class="md-nav__link">
+      <a href="../../analysis/frequency-data/" class="md-nav__link">
         
   
   
@@ -900,7 +1082,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../quantify-heatmap/" class="md-nav__link">
+      <a href="../../analysis/quantify-heatmap/" class="md-nav__link">
         
   
   
@@ -923,7 +1105,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../thigmotaxis/" class="md-nav__link">
+      <a href="../../analysis/thigmotaxis/" class="md-nav__link">
         
   
   
@@ -966,6 +1148,125 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#test-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test Data
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      2 - Processing
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2 - Processing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#binary-heatmap-image" class="md-nav__link">
+    <span class="md-ellipsis">
+      Binary Heatmap Image
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sum-heatmap-images" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sum Heatmap Images
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sum-heatmap-video" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sum Heatmap Video
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      3 - Analysis
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3 - Analysis">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#calculate-score-gradient" class="md-nav__link">
+    <span class="md-ellipsis">
+      Calculate Score Gradient
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#calculate-score-sectors" class="md-nav__link">
+    <span class="md-ellipsis">
+      Calculate Score Sectors
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extract-tracking-frequency-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Extract Tracking Frequency Data
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quantify-binary-heatmap" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quantify Binary Heatmap
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#thigmotaxis" class="md-nav__link">
+    <span class="md-ellipsis">
+      Thigmotaxis
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -983,7 +1284,84 @@
   
 
 
-<h1 id="extract-tracking-data">Extract Tracking Data</h1>
+<div><h1 id="reproducibility">Reproducibility</h1>
+<p>This section aims to make it possible for any user to reproduce all outputs of this plugin present in this documentation.</p>
+<p>All file mentions (<code>with this format</code>) refer to the file structure of the provided test data.</p>
+<h2 id="test-data">Test Data</h2>
+<p>Test data is available in <a href="https://doi.org/10.5281/zenodo.19393670">this repository</a>.
+Notably:</p>
+<ul>
+<li>Adults<ul>
+<li>Gutter/Track (short and long versions)</li>
+<li>Plus Maze</li>
+<li>Tank (sideways recording)</li>
+<li>Tracking data</li>
+</ul>
+</li>
+<li>Larvae<ul>
+<li>Six-well plate (short and long versions)</li>
+<li>Tracking data</li>
+</ul>
+</li>
+</ul>
+<p>These may be used to experiment on the plugin's capabilities or simply to get used to the workflows.</p>
+<p><strong>Distributed under the <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0 License</a></strong></p>
+<hr>
+<h2 id="2-processing">2 - Processing</h2>
+<h3 id="binary-heatmap-image">Binary Heatmap Image</h3>
+<p><code>larvae/larvae-long.mp4</code> file was inputted in this processing tool. </p>
+<p>The whole video was set as the interval, rendering the <a href="../../processing/heatmap-binary/#expected-output">output shown</a>.</p>
+<p>Minor cropping and rotation adjustments were done.</p>
+<h3 id="sum-heatmap-images">Sum Heatmap Images</h3>
+<p><code>adults/adults-long.mp4</code> file was inputted in this processing tool. </p>
+<p>Lookup table was set to Fire. </p>
+<p>The start interval was chosen (1-5400). </p>
+<p><code>roi.roi</code> was loaded into ROI Manager. </p>
+<p>Minor cropping adjustments were done, rendering the 
+<a href="../../processing/heatmap-images/#expected-output">output</a>.</p>
+<h3 id="sum-heatmap-video">Sum Heatmap Video</h3>
+<p><code>adults/adults-long.mp4</code> file was inputted in this processing tool. </p>
+<p>Lookup table was set to Fire.</p>
+<p>The whole video was set as the interval.</p>
+<p><code>roi.roi</code> was loaded into ROI Manager.</p>
+<p>Rendering the <a href="../../processing/heatmap-video/#expected-output">output</a>.</p>
+<hr>
+<h2 id="3-analysis">3 - Analysis</h2>
+<h3 id="calculate-score-gradient">Calculate Score Gradient</h3>
+<p>Files <code>adults/tracking/full.xml</code> and <code>adults/tracking/adults-tracking.avi</code> were inputted into this tool.</p>
+<p>Fix missing spots and Display Plots were left enabled.</p>
+<p>Max and Min values were loaded from the XML file using the dedicated button.</p>
+<p>Rendering the <a href="../../analysis/score-gradient/#display-plots">plots shown</a></p>
+<h3 id="calculate-score-sectors">Calculate Score Sectors</h3>
+<p>Files <code>adults/tracking/full.xml</code> and <code>adults/tracking/adults-tracking.avi</code> were inputted into this tool.</p>
+<p><code>adults/tracking/sectors.zip</code> was opened in ROI Manager.</p>
+<p>Fix missing spots and Display Plots were left enabled.</p>
+<p>Rendering the <a href="../../analysis/score-sectors/#display-plots">plot shown</a>.</p>
+<h3 id="extract-tracking-frequency-data">Extract Tracking Frequency Data</h3>
+<p>Using this plugin's <a href="../../tools/ffmpeg/">FFmpeg tool</a>, 
+<code>larvae/larvae-short.mp4</code> was cropped 200 frames from the start and util frame 501,
+using the Well_2 ROI from the <code>larvae/RoiSet.zip</code> file.</p>
+<p>The output was processed with <a href="../../processing/larvae-tracking/">larvae tracking</a>,
+generating the <code>larvae/tracking/larvae-tracking.avi</code> file as its output.</p>
+<p>The video scale was set to millimeters. 1 px equivalent to 0.042270531400966184 mm</p>
+<p>The latter file was run through Trackmate. Its output created the <code>larvae/tracking/full.xml</code> file.</p>
+<p>Then, <code>larvae/tracking/full.xml</code> and <code>larvae/tracking/larvae-tracking.avi</code> were inputted into this analysis tool.</p>
+<p>Display Plots was left enabled.</p>
+<p>Generating the <a href="../../analysis/frequency-data/#display-plots">plot shown</a>.</p>
+<h3 id="quantify-binary-heatmap">Quantify Binary Heatmap</h3>
+<p><code>larvae/larvae-long.mp4</code> file was inputted in the <a href="../../processing/heatmap-binary/">Binary Heatmap Image</a> processing plugin.
+The whole video was set as the interval.</p>
+<p>Its output was inputted into this analysis tool.</p>
+<p><code>larvae/RoiSet.zip</code> was opened in ROI Manager.</p>
+<p>Display Plots was left enabled.</p>
+<p>Rendering the <a href="../../analysis/quantify-heatmap/#display-plots">plots shown</a>.</p>
+<h3 id="thigmotaxis">Thigmotaxis</h3>
+<p>Files <a href="http://asdasd"><code>larvae/tracking/full.xml</code></a> and <code>larvae/tracking/larvae-tracking.avi</code> were inputted into this tool.</p>
+<p>Area percentage was set to 50%.</p>
+<p>Open Frame button was pressed, then the image was calibrated to millimeters. 1 px equivalent to 0.042270531400966184 mm</p>
+<p>A ROI enclosing the whole image was created.</p>
+<p>Fix missing spots and Display Plots were left enabled.</p>
+<p>Creating the <a href="../../analysis/thigmotaxis/#display-plots">plots shown</a>.</p></div>
 
 
 
