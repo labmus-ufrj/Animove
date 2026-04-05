@@ -99,7 +99,7 @@ Rendering the [plots shown](../analysis/quantify-heatmap.md#display-plots).
 
 ### Thigmotaxis
 
-Files [`larvae/tracking/full.xml`](http://asdasd) and `larvae/tracking/larvae-tracking.avi` were inputted into this tool.
+Files `larvae/tracking/full.xml` and `larvae/tracking/larvae-tracking.avi` were inputted into this tool.
 
 Area percentage was set to 50%.
 
