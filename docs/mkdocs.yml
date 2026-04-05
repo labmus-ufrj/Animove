@@ -60,3 +60,5 @@ plugins:
   - search
   - macros: # https://mkdocs-macros-plugin.readthedocs.io/en/latest/
       include_dir: docs/snippets
+#  - to-pdf # only works using WSL
+

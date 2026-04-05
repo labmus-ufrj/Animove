@@ -1,0 +1,7 @@
+#   reqs for building the docs with mkdocs
+mkdocs==1.6.1
+mkdocs-material
+mkdocs-video
+mkdocs-macros-plugin
+weasyprint
+mkdocs-to-pdf
