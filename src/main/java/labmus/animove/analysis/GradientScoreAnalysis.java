@@ -77,6 +77,9 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
     @Parameter(label = "Load Min/Max from XML", callback = "loadFromXML")
     private Button btn6;
 
+    @Parameter(label = "Invert Min/Max values", callback = "invertMinMax")
+    private Button btn8;
+
     @Parameter(label = "Change Max Score", callback = "changeMax")
     private Button btn2;
 
@@ -106,6 +109,13 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
     @Override
     public void run() {
         IJ.setTool("rectangle"); // zoom and others get in the way
+    }
+
+    private void invertMinMax() {
+        int temp = max;
+        max = min;
+        min = temp;
+        drawOverlay();
     }
 
     private void loadFromXML() {
