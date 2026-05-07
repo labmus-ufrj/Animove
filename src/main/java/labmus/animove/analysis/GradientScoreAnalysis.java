@@ -65,6 +65,9 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
     @Parameter(label = "Source Video", style = FileWidget.OPEN_STYLE, persist = false, required = false)
     private File videoFile;
 
+    @Parameter(label = "Analysis Axis", choices = {"X", "Y"}, persist = true)
+    private String axis = "X";
+
     @Parameter(label = "Fix Missing Spots", persist = false)
     private boolean fixSpots = true;
 
@@ -129,6 +132,20 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
             for (int c = 0; c < sourceDataset.getColumnCount(); c++) {
 
                 BoxAndWhiskerItem item = sourceDataset.getItem(r, c);
+
+                // Reconstruct the item but pass an empty list for the outliers
+                BoxAndWhiskerItem noOutlierItem = new BoxAndWhiskerItem(
+                        item.getMean(),
+                        item.getMedian(),
+                        item.getQ1(),
+                        item.getQ3(),
+                        item.getMinRegularValue(),
+                        item.getMaxRegularValue(),
+                        item.getMinOutlier(),
+                        item.getMaxOutlier(),
+                        new ArrayList<>() // This empty list hides the circles
+                );
+
                 Comparable rowKey = sourceDataset.getRowKey(r);
                 Comparable colKey = sourceDataset.getColumnKey(c);
 
@@ -137,7 +154,7 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
 
                 String newKey = colKey.toString() + "\n" + String.format(Locale.US, "%.2f", medianVal);
 
-                taggedDataset.add(item, rowKey, newKey);
+                taggedDataset.add(noOutlierItem, rowKey, newKey);
             }
         }
 
@@ -147,7 +164,7 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
         chart.setPadding(new RectangleInsets(20.0, 20.0, 20.0, 20.0));
 
         CategoryPlot plot = (CategoryPlot) chart.getPlot();
-        plot.setOrientation(PlotOrientation.HORIZONTAL);
+        plot.setOrientation(axis.equals("X") ? PlotOrientation.HORIZONTAL : PlotOrientation.VERTICAL);
 
         plot.setRangeGridlineStroke(new BasicStroke(
                 0.5f,
@@ -266,7 +283,7 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
             ArrayList<Float> columnData = floatData.get(colIndex);
 
             // Define a name for the column header.
-            String columnHeader = "Track " + (colIndex + 1);
+            String columnHeader = (floatData.size() == 1 ? "Series " : "Track ") + (colIndex + 1);
 
             ArrayList<Float> values = new ArrayList<>();
             // Iterate through the values in the current column.
@@ -289,7 +306,11 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
                     dialCharts.stream()
                             .map(chart -> new ImagePlus("Plot", BitmapEncoder.getBufferedImage(chart))).toArray(ImagePlus[]::new)
             );
-            IJ.run(stack, "Make Montage...", "columns=" + stack.getNSlices() + " rows=1 scale=1");
+            if(stack.getNSlices() > 1){
+                IJ.run(stack, "Make Montage...", "columns=" + stack.getNSlices() + " rows=1 scale=1");
+            } else {
+                uiService.show(stack);
+            }
 
         }
 
@@ -328,49 +349,44 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
 
     private List<ArrayList<Float>> iterateOverXML(boolean setMinMax) {
         try {
-            // Calls the new utility method to get parsed data
             XMLHelper.TrackingXMLData trackingData = XMLHelper.iterateOverXML(xmlFile, videoFrame, fixSpots);
+            Calibration cal = videoFrame.getCalibration();
+            boolean isX = axis.equals("X");
 
             if (setMinMax) {
-                // If setting min/max, we iterate over all points to find the bounds
                 float localMin = Float.MAX_VALUE;
                 float localMax = Float.MIN_VALUE;
 
                 for (ArrayList<XMLHelper.PointData> track : trackingData.data) {
                     for (XMLHelper.PointData point : track) {
-                        // PointData.x is already scaled by pixelWidth in XMLHelper,
-                        // effectively converting units back to pixel coordinates.
-                        if (point.x < localMin) localMin = point.x;
-                        if (point.x > localMax) localMax = point.x;
+                        float val = isX ? point.x : point.y;
+                        if (val < localMin) localMin = val;
+                        if (val > localMax) localMax = val;
                     }
                 }
 
-                // If no data was found, reset or use video bounds
                 if (localMin == Float.MAX_VALUE) {
-                    localMin = videoFrame.getWidth();
+                    localMin = isX ? videoFrame.getWidth() : videoFrame.getHeight();
                     localMax = 0;
                 }
 
-                setMinMax(localMin, localMax, videoFrame.getCalibration());
-
+                setMinMax(localMin, localMax, cal);
                 return null;
             } else {
-                // Convert PointData objects to Float scores
                 List<ArrayList<Float>> resultScores = new ArrayList<>();
-                Calibration cal = videoFrame.getCalibration();
-                float calMin = (float) cal.getX(min); // min * cal.pixelWidth
-                float calMax = (float) cal.getX(max);
+                float calMin = (float) (isX ? cal.getX(min) : cal.getY(min));
+                float calMax = (float) (isX ? cal.getX(max) : cal.getY(max));
 
                 for (ArrayList<XMLHelper.PointData> track : trackingData.data) {
                     ArrayList<Float> trackScores = new ArrayList<>();
                     for (XMLHelper.PointData point : track) {
-                        trackScores.add(getScore(point.x, calMin, calMax));
+                        float val = isX ? point.x : point.y;
+                        trackScores.add(getScore(val, calMin, calMax));
                     }
                     resultScores.add(trackScores);
                 }
                 return resultScores;
             }
-
         } catch (Exception e) {
             log.error(e);
             uiService.showDialog("An error occured during processing:\n" + e.getLocalizedMessage(),
@@ -381,11 +397,9 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
     }
 
     private void setMinMax(float localMin, float localMax, Calibration cal) {
-//        log.info("localMin = " + localMin + " localMax = " + localMax);
-//        log.info(cal.pixelWidth);
-        this.max = (int) (localMin / cal.pixelWidth);
-        this.min = (int) (localMax / cal.pixelWidth);
-//        log.info("min = " + min + " max = " + max);
+        double unitSize = axis.equals("X") ? cal.pixelWidth : cal.pixelHeight;
+        this.max = (int) (localMin / unitSize);
+        this.min = (int) (localMax / unitSize);
         drawOverlay();
     }
 
@@ -412,8 +426,13 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
                 uiService.show(videoFrame);
 
                 // maybe get max and min from fish positions?
-                min = (int) (videoFrame.getWidth() * 0.9);
-                max = (int) (videoFrame.getWidth() * 0.1);
+                if (axis.equals("X")) {
+                    min = (int) (videoFrame.getWidth() * 0.9);
+                    max = (int) (videoFrame.getWidth() * 0.1);
+                } else {
+                    min = (int) (videoFrame.getHeight() * 0.9);
+                    max = (int) (videoFrame.getHeight() * 0.1);
+                }
 
                 // this is the nice way of doing this instead of Thread.sleep()
                 ScheduledExecutorService scheduler =
@@ -448,26 +467,24 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
 
     @Override
     public void mouseDragged(MouseEvent e) {
-        Object src = e.getSource();
-        if (src != videoFrame.getCanvas()) {
-            return;
-        }
+        if (videoFrame == null || e.getSource() != videoFrame.getCanvas()) return;
+
         Point p = videoFrame.getCanvas().getCursorLoc();
+        int coord = axis.equals("X") ? p.x : p.y; // Logic switch based on axis
+
         switch (this.state) {
             case CHANGE_MAX:
-                videoFrame.deleteRoi(); // delete user selection (rectangle)
-                this.max = p.x;
+                videoFrame.deleteRoi();
+                this.max = coord;
                 break;
             case CHANGE_MIN:
-                videoFrame.deleteRoi(); // delete user selection (rectangle)
-                this.min = p.x;
+                videoFrame.deleteRoi();
+                this.min = coord;
                 break;
             default:
                 break;
         }
-
         drawOverlay();
-
     }
 
     private void drawOverlay() {
@@ -480,26 +497,34 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
             videoFrame.setOverlay(overlay);
         }
 
-        // just deleting the whole thing
-        for (int i = overlay.size() - 1; i >= 0; i--) {
-            overlay.remove(i);
-        }
+        overlay.clear();
 
-        drawLine(min, Color.RED);
-        drawLine(max, Color.BLUE);
+        // Draw lines based on chosen axis
+        if (axis.equals("X")) {
+            drawLine(min, Color.RED, true);
+            drawLine(max, Color.BLUE, true);
+        } else {
+            drawLine(min, Color.RED, false);
+            drawLine(max, Color.BLUE, false);
+        }
 
         videoFrame.draw();
     }
 
-    private void drawLine(int xCoordinate, Color awtColor) {
+    private void drawLine(int coordinate, Color awtColor, boolean isVertical) {
         GeneralPath path = new GeneralPath();
-        path.moveTo(xCoordinate, 0f);
-        path.lineTo(xCoordinate, videoFrame.getHeight());
+        if (isVertical) {
+            path.moveTo(coordinate, 0f);
+            path.lineTo(coordinate, videoFrame.getHeight());
+        } else {
+            path.moveTo(0f, coordinate);
+            path.lineTo(videoFrame.getWidth(), coordinate);
+        }
 
         Roi roi = new ShapeRoi(path);
         roi.setStrokeColor(awtColor);
         roi.setStroke(new BasicStroke(5));
-        roi.setName(String.valueOf(xCoordinate));
+        roi.setName(String.valueOf(coordinate));
         videoFrame.getOverlay().add(roi);
     }
 
