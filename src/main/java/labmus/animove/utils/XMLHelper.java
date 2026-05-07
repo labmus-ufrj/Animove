@@ -2,8 +2,6 @@ package labmus.animove.utils;
 
 import ij.ImagePlus;
 import ij.measure.Calibration;
-import labmus.animove.analysis.SectorScoreAnalysis;
-import org.scijava.ui.DialogPrompt;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -19,6 +17,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class XMLHelper {
+
+    public static String getSpacialUnitFromXML() {
+        return null;
+    }
 
     // we could be using records in a newer version of java maybe?
     public static class PointData {
@@ -48,13 +50,15 @@ public class XMLHelper {
         }
     }
 
-    public static class TrackingXMLData{
+    public static class TrackingXMLData {
         public final List<ArrayList<PointData>> data;
         public final boolean onlySpots;
+        public final String spacialUnit;
 
-        public TrackingXMLData(List<ArrayList<PointData>> data, boolean onlySpots) {
+        public TrackingXMLData(List<ArrayList<PointData>> data, boolean onlySpots, String spacialUnit) {
             this.data = data;
             this.onlySpots = onlySpots;
+            this.spacialUnit = spacialUnit;
         }
     }
 
@@ -62,18 +66,19 @@ public class XMLHelper {
         boolean spotsOnly = false;
         Document doc = getXML(xmlFile);
         ArrayList<HashMap<Integer, PointData>> trackScores = new ArrayList<>(); // the easy way not the right way
+        StringBuilder spacialUnitStringBuilder = new StringBuilder();
         if (doc.getElementsByTagName("Tracks").getLength() > 0) {
-            fromTracksXML(doc, trackScores, videoFrame);
+            fromTracksXML(doc, trackScores, videoFrame, spacialUnitStringBuilder);
         } else if (doc.getElementsByTagName("Model").getLength() > 0) {
             // if there were no tracks, this returns false
-            spotsOnly = !fromFullXML(doc, trackScores, videoFrame);
+            spotsOnly = !fromFullXML(doc, trackScores, videoFrame, spacialUnitStringBuilder);
         } else {
             throw new Exception("Wrong XML file.");
         }
-        return fixMissingSpots(trackScores, !spotsOnly && fixSpots);
+        return fixMissingSpots(trackScores, !spotsOnly && fixSpots, spacialUnitStringBuilder.toString());
     }
 
-    private static void fromTracksXML(Document doc, ArrayList<HashMap<Integer, XMLHelper.PointData>> trackScores, ImagePlus videoFrame) throws Exception {
+    private static void fromTracksXML(Document doc, ArrayList<HashMap<Integer, PointData>> trackScores, ImagePlus videoFrame, StringBuilder spacialUnit) throws Exception {
          /*
             data is stored as detections within particles:
             <particle ... >
@@ -81,12 +86,19 @@ public class XMLHelper {
             </particle>
          */
         Node tracks = doc.getElementsByTagName("Tracks").item(0);
-        Calibration cal = videoFrame.getCalibration();
 
+        double pixelWidth = 1;
         String xmlUnit = tracks.getAttributes().getNamedItem("spaceUnits").getNodeValue();
-        if (!Objects.equals(cal.getXUnit(), xmlUnit)) {
-            throw new Exception("Calibrate the image frame to match the XML file's space units: " + xmlUnit);
+        spacialUnit.append(xmlUnit);
+        if (videoFrame != null) {
+            Calibration cal = videoFrame.getCalibration();
+            pixelWidth = cal.pixelWidth;
+
+            if (!Objects.equals(cal.getXUnit(), xmlUnit)) {
+                throw new Exception("Calibrate the image frame to match the XML file's space units: " + xmlUnit);
+            }
         }
+
 
         // Get a list of all <particle> elements
         NodeList particleList = doc.getElementsByTagName("particle");
@@ -111,7 +123,7 @@ public class XMLHelper {
 
                         float x = Float.parseFloat(detectionElement.getAttribute("x"));
                         float y = Float.parseFloat(detectionElement.getAttribute("y"));
-                        scores.put(Integer.parseInt(detectionElement.getAttribute("t")), new XMLHelper.PointData(x, y, cal.pixelWidth));
+                        scores.put(Integer.parseInt(detectionElement.getAttribute("t")), new XMLHelper.PointData(x, y, pixelWidth));
 
                     }
                 }
@@ -120,7 +132,7 @@ public class XMLHelper {
         }
     }
 
-    private static boolean fromFullXML(Document doc, ArrayList<HashMap<Integer, XMLHelper.PointData>> trackScores, ImagePlus videoFrame) throws Exception {
+    private static boolean fromFullXML(Document doc, ArrayList<HashMap<Integer, PointData>> trackScores, ImagePlus videoFrame, StringBuilder spacialUnit) throws Exception {
         /*
             data is stored as Spots:
             <Spot ID="176402" FRAME="0" POSITION_X="465.7599892443151" ... />
@@ -130,13 +142,20 @@ public class XMLHelper {
                 <Edge SPOT_SOURCE_ID="177087" SPOT_TARGET_ID="177083" ... />
             </Track>
          */
+        double pixelWidth = 1;
         Node tracks = doc.getElementsByTagName("Model").item(0);
-        Calibration cal = videoFrame.getCalibration();
-
         String xmlUnit = tracks.getAttributes().getNamedItem("spatialunits").getNodeValue();
-        if (!Objects.equals(cal.getXUnit(), xmlUnit)) {
-            throw new Exception("Calibrate the image frame to match the XML file's space units: " + xmlUnit);
+        spacialUnit.append(xmlUnit);
+
+        if (videoFrame != null) {
+            Calibration cal = videoFrame.getCalibration();
+            pixelWidth = cal.pixelWidth;
+
+            if (!Objects.equals(cal.getXUnit(), xmlUnit)) {
+                throw new Exception("Calibrate the image frame to match the XML file's space units: " + xmlUnit);
+            }
         }
+
 
         // mapping ID to spot
         HashMap<Integer, XMLHelper.SpotData> spotMap = new HashMap<>();
@@ -170,7 +189,7 @@ public class XMLHelper {
                             Integer spotId = Integer.parseInt(attribute);
 
                             XMLHelper.SpotData spot = spotMap.get(spotId);
-                            scores.put(spot.frame, new XMLHelper.PointData(spot.x, spot.y, cal.pixelWidth));
+                            scores.put(spot.frame, new XMLHelper.PointData(spot.x, spot.y, pixelWidth));
                         }
                     }
 
@@ -185,7 +204,7 @@ public class XMLHelper {
 //            this.fixSpots = false; // this won't work in this case. see docs for info
             HashMap<Integer, XMLHelper.PointData> scores = new HashMap<>();
             for (XMLHelper.SpotData spot : spotMap.values()) {
-                scores.put(randId, new XMLHelper.PointData(spot.x, spot.y, cal.pixelWidth));
+                scores.put(randId, new XMLHelper.PointData(spot.x, spot.y, pixelWidth));
                 randId++;
             }
             trackScores.add(scores);
@@ -194,7 +213,7 @@ public class XMLHelper {
         return true;
     }
 
-    private static TrackingXMLData fixMissingSpots(ArrayList<HashMap<Integer, XMLHelper.PointData>> trackScores, boolean fixSpots) {
+    private static TrackingXMLData fixMissingSpots(ArrayList<HashMap<Integer, XMLHelper.PointData>> trackScores, boolean fixSpots, String spacialUnit) {
         if (fixSpots) {
             int biggestTime = trackScores.stream().mapToInt(hashmap ->
                     hashmap.keySet().stream().max(Comparator.naturalOrder()).get()).max().getAsInt(); // using this on a spotless track will crash it. dont do it ig
@@ -211,7 +230,7 @@ public class XMLHelper {
                 }
             }
         }
-        return new TrackingXMLData(trackScores.stream().map(hashmap -> new ArrayList<>(hashmap.values())).collect(Collectors.toList()), !fixSpots);
+        return new TrackingXMLData(trackScores.stream().map(hashmap -> new ArrayList<>(hashmap.values())).collect(Collectors.toList()), !fixSpots, spacialUnit);
     }
 
     private static Document getXML(File xmlFile) throws ParserConfigurationException, SAXException, IOException {
