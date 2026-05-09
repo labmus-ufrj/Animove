@@ -19,6 +19,9 @@ Two possible files can be used here:
 
 {% include "source-video-analysis.md" %}
 
+## Analysis Axis
+Choose which axis will be used to calculate the score of each spot. The Min/Max bars are updated accordingly.
+
 ## Fix Missing Spots
 When tracking with Trackmate, not all frames in a video will have spots. That's because your target might not be visible in those frames. It's usually not moving as well. An uneven number of frames will create an unreliable score overall. This option fixes the missing spots by using an available adjacent spot and copying its coordinates.
 
@@ -38,6 +41,9 @@ There's no prejudice in setting this to `True` if you have a perfect tracking, w
 ## Load Min/Max from XML
 Gathers and displays the min and max position values from the current XML.
 It is required to click this button to check for calibration issues.
+
+## Invert Min/Max values
+Inverts those values with ease.
 
 ## Change Max Score
 Allows the user to change the max value by clicking on the preview image.

@@ -40,9 +40,6 @@ public class SpotsPlotting implements Command, Interactive {
     @Parameter(label = "XML File", style = FileWidget.OPEN_STYLE, persist = false, required = false)
     private File xmlFile;
 
-    @Parameter(label = "Fix Missing Spots", persist = false)
-    private boolean fixSpots = true;
-
     @Parameter(label = "Invert X Axis", persist = false)
     private boolean invertX = false;
 
@@ -70,7 +67,7 @@ public class SpotsPlotting implements Command, Interactive {
 
         XMLHelper.TrackingXMLData trackingXMLData;
         try {
-            trackingXMLData = XMLHelper.iterateOverXML(xmlFile, null, fixSpots);
+            trackingXMLData = XMLHelper.iterateOverXML(xmlFile, null, false);
 
         } catch (Exception e) {
             log.error(e);
