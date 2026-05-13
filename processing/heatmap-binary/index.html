@@ -325,6 +325,29 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/reproducibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Reproducibility
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1022,6 +1045,29 @@
   
   
     <li class="md-nav__item">
+      <a href="../../analysis/spots-plotting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Plot Spots
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../analysis/quantify-heatmap/" class="md-nav__link">
         
   
@@ -1202,8 +1248,11 @@
 <p><img alt="Interface image" src="../img/gui-binary-heatmap.png" width="400em"></p>
 <h2 id="expected-output">Expected Output</h2>
 <p><img alt="Expected output image" src="../img/output-binary-heatmap.png" width="400em"></p>
+<p><a class="md-button" href="../../guide/reproducibility/#binary-heatmap-image">How to reproduce this?</a></p>
 <h2 id="input-video">Input Video</h2>
 <p>Any videos supported by ffmpeg. This includes most video formats in existence. Notably, one exclusion: AVI videos saved from ImageJ with compression set to "None" (codec rawvideo) will not work.</p>
+<p>This function expects a video with dark subjects over a bright background.
+If that does not correspond to your data, videos can be inverted using <a href="../../tools/ffmpeg/#invert-colors">FFmpeg's Invert Colors option</a> or the <a href="../../tools/invert-video/">Invert Video</a> tool.</p>
 <h2 id="open-frame">Open Frame</h2>
 <p>Opens the first frame of the video as a preview. Can be used to set the ROI in functions that require it. Ignores the file's EXIF rotation data.</p>
 <h2 id="output-image">Output Image</h2>

@@ -325,6 +325,29 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/reproducibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Reproducibility
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1004,6 +1027,29 @@
   
   
     <li class="md-nav__item">
+      <a href="../../analysis/spots-plotting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Plot Spots
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../analysis/quantify-heatmap/" class="md-nav__link">
         
   
@@ -1156,12 +1202,14 @@ It uses Top-Hat processing to subtract the background and adjusts brightness and
 <p>A TrackMate tutorial can be found <a href="https://imagej.net/plugins/trackmate/tutorials/getting-started">here</a>.</p>
 <div class="admonition warning">
 <p class="admonition-title">FPS reduction</p>
-<p>We found 10 fps to be suitable to track adult fish movement. It's possible to change the framerate using <a href="../../tools/ffmpeg/">this plugin's FFmpeg tool</a></p>
+<p>We found 10 fps to be suitable to track adult fish movement. It's possible to change the framerate using this plugin's <a href="../../tools/ffmpeg/">FFmpeg tool</a></p>
 </div>
 <h2 id="interface">Interface</h2>
 <p><img alt="Interface image" src="../img/gui-adults-tracking.png" width="400em"></p>
 <h2 id="input-video">Input Video</h2>
 <p>Any videos supported by ffmpeg. This includes most video formats in existence. Notably, one exclusion: AVI videos saved from ImageJ with compression set to "None" (codec rawvideo) will not work.</p>
+<p>This function expects a video with dark subjects over a bright background.
+If that does not correspond to your data, videos can be inverted using <a href="../../tools/ffmpeg/#invert-colors">FFmpeg's Invert Colors option</a> or the <a href="../../tools/invert-video/">Invert Video</a> tool.</p>
 <h2 id="output-file">Output File</h2>
 <p>The path to save the operation's output.</p>
 <h2 id="output-formats">Output Formats</h2>
