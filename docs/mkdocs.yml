@@ -46,6 +46,7 @@ nav:
       - 'Calculate Score Gradient': 'analysis/score-gradient.md'
       - 'Calculate Score Sectors': 'analysis/score-sectors.md'
       - 'Extract Tracking Frequency Data': 'analysis/frequency-data.md'
+      - 'Plot Spots': 'analysis/spots-plotting.md'
       - 'Quantify Binary Heatmap': 'analysis/quantify-heatmap.md'
       - 'Thigmotaxis': 'analysis/thigmotaxis.md'
 

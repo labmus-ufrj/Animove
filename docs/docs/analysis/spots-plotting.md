@@ -1,6 +1,6 @@
-# Spots Plotting
+# Plot Spots
 
-Plots each spot from a given Trackmate file to a scatter plot.
+Extract spots position data from a given Trackmate file. Outputs a scatter plot and a results table.
 
 [//]: # (TODO: finish this)
 {% include "excel-functions.md" %}
@@ -20,9 +20,9 @@ Two possible files can be used here:
 
 {% include "source-video-analysis.md" %}
 
-## Display Plots
+## Output
 * **Scatter Chart**: Simple chart to represent spot positions.
   ![Scatter Chart image](img/output-spots-plotting.png){ width="400em" }
 
 [//]: # (TODO: this)
-[How to reproduce this?](../guide/reproducibility.md#spots-plotting){ .md-button }
+[How to reproduce this?](../guide/reproducibility.md#plot-spots){ .md-button }

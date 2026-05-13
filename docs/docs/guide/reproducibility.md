@@ -83,6 +83,14 @@ Display Plots was left enabled.
 
 Generating the [plot shown](../analysis/frequency-data.md#display-plots).
 
+### Plot Spots
+
+`adults/tracking/full.xml` file was inputted into this analysis tool. 
+
+Both checkboxes for inverting axis were left unchecked.
+
+Generating the [plot shown](../analysis/spots-plotting.md#output).
+
 ### Quantify Binary Heatmap
 
 `larvae/larvae-long.mp4` file was inputted in the [Binary Heatmap Image](../processing/heatmap-binary.md) processing plugin.

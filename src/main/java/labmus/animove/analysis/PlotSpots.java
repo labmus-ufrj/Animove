@@ -35,7 +35,7 @@ import java.io.File;
 import java.util.ArrayList;
 
 @Plugin(type = Command.class, menuPath = ZFConfigs.spotsPlotting)
-public class SpotsPlotting implements Command, Interactive {
+public class PlotSpots implements Command, Interactive {
 
     @Parameter(label = "XML File", style = FileWidget.OPEN_STYLE, persist = false, required = false)
     private File xmlFile;

@@ -15,6 +15,8 @@ Each frame is then concatenated into a single video.
 
 {% include "input-video.md" %}
 
+{% include "dark-subjects.md" %}
+
 {% include "output-file.md" %}
 
 ## Lookup Table

@@ -1,0 +1,2 @@
+This function expects a video with dark subjects over a bright background.
+If that does not correspond to your data, videos can be inverted using [FFmpeg's Invert Colors option](../tools/ffmpeg.md#invert-colors) or the [Invert Video](../tools/invert-video.md) tool.

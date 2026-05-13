@@ -4,13 +4,13 @@ Generates an image using pixelwise addition of the selected frames. Processing s
 
 * **Background Reference Creation:** Performs an iteration over the frames to calculate the Average Z-projection of the raw footage.
 
-* **Background Subtraction:** Starts a second iteration over the frames. In this step, subtracts the generated average background from each frame.
+* **Background Subtraction:** Starts a second iteration over the frames. In this step, subtracts the generated average background from each frame. (This step is implemented by adding the inverted background reference to each frame)
 
-* **Brightness Adjust:** Increases the overall brightness.
+* **Brightness Adjustment:** Increases the overall brightness.
 
 * **Frame Sum:** Ending the second frame iteration, this operation sums all pixel values into a single 32-bit frame.
 
-* **Final Composition:** A simple B&C adjust is applied, stretching the histogram to its boundaries. After that, the selected Lookup table (LUT) is applied.
+* **Final Composition:** The sum is inverterd and a simple B&C adjust is applied, stretching the histogram to its boundaries. After that, the selected Lookup table (LUT) is applied.
 
 ## Interface
 ![Interface image](img/gui-heatmapImages.png){ width="400em" }
@@ -21,6 +21,8 @@ Generates an image using pixelwise addition of the selected frames. Processing s
 [How to reproduce this?](../guide/reproducibility.md#sum-heatmap-images){ .md-button }
 
 {% include "input-video.md" %}
+
+{% include "dark-subjects.md" %}
 
 ## Output Folder
 Where output images will be saved with `.tif` format.

@@ -15,6 +15,8 @@ A TrackMate tutorial can be found [here](https://imagej.net/plugins/trackmate/tu
 
 {% include "input-video.md" %}
 
+{% include "dark-subjects.md" %}
+
 {% include "output-file.md" %}
 
 {% include "output-formats.md" %}

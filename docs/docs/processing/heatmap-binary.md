@@ -21,6 +21,8 @@ Generates a binary heatmap image. Processing steps:
 
 {% include "input-video.md" %}
 
+{% include "dark-subjects.md" %}
+
 {% include "open-frame.md" %}
 
 {% include "output-image.md" %}
