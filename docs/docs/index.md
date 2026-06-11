@@ -1,5 +1,7 @@
 # Animove
 
+[![DOI](https://img.shields.io/badge/DOI-10.1016%2Fj.cmpb.2026.109477-green)](https://doi.org/10.1016/j.cmpb.2026.109477)
+
 ## Goals
 
 This plugin aims to make it possible to process large amounts of video data with low-spec hardware, specifically to quantify and analyze zebrafish kinetic activity. 

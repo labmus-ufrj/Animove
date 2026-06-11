@@ -1,6 +1,6 @@
 ## Test Data
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19393669.svg)](https://doi.org/10.5281/zenodo.19393669)
+[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.19393669-blue)](https://doi.org/10.5281/zenodo.19393669)
 
 Test data is available in [this repository](https://doi.org/10.5281/zenodo.19393669).
 Notably:
