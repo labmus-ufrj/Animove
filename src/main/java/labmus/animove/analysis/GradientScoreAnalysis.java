@@ -381,8 +381,8 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
                 return null;
             } else {
                 List<ArrayList<Float>> resultScores = new ArrayList<>();
-                float calMin = (float) (isX ? cal.getX(min) : cal.getY(min));
-                float calMax = (float) (isX ? cal.getX(max) : cal.getY(max));
+                float calMin = (float) min;
+                float calMax = (float) max;
 
                 for (ArrayList<XMLHelper.PointData> track : trackingData.data) {
                     ArrayList<Float> trackScores = new ArrayList<>();
