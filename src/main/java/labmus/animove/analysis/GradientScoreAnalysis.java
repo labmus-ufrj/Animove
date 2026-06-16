@@ -34,7 +34,11 @@ import org.scijava.ui.DialogPrompt;
 import org.scijava.ui.UIService;
 import org.scijava.widget.Button;
 import org.scijava.widget.FileWidget;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
+import javax.xml.parsers.DocumentBuilderFactory;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -122,6 +126,9 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
     }
 
     private void loadFromXML() {
+        if (videoFrame != null) {
+            applyXmlCalibration(xmlFile, videoFrame);
+        }
         iterateOverXML(true);
     }
 
@@ -397,9 +404,11 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
     }
 
     private void setMinMax(float localMin, float localMax, Calibration cal) {
-        double unitSize = axis.equals("X") ? cal.pixelWidth : cal.pixelHeight;
-        this.max = (int) (localMin / unitSize);
-        this.min = (int) (localMax / unitSize);
+        // PointData already divided the values by pixelWidth/pixelHeight in XMLHelper.
+        // Therefore, localMin and localMax are already in pixel coordinates.
+        this.max = (int) localMin;
+        this.min = (int) localMax;
+
         drawOverlay();
     }
 
@@ -423,6 +432,9 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
                 }
                 videoFrame = ZFHelperMethods.getFirstFrame(videoFile);
                 videoFrame.setTitle("Video frame");
+
+                applyXmlCalibration(xmlFile, videoFrame);
+
                 uiService.show(videoFrame);
 
                 // maybe get max and min from fish positions?
@@ -526,6 +538,70 @@ public class GradientScoreAnalysis implements Command, Interactive, MouseListene
         roi.setStroke(new BasicStroke(5));
         roi.setName(String.valueOf(coordinate));
         videoFrame.getOverlay().add(roi);
+    }
+
+
+    private void applyXmlCalibration(File xmlFile, ImagePlus img) {
+        if (xmlFile == null || !xmlFile.exists() || img == null) return;
+        try {
+            Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(xmlFile);
+            doc.getDocumentElement().normalize();
+
+            double pWidth = 1.0;
+            double pHeight = 1.0;
+            String unit = "";
+
+            NodeList imageDataList = doc.getElementsByTagName("ImageData");
+            if (imageDataList.getLength() > 0) {
+                Element imageData = (Element) imageDataList.item(0);
+                String pw = imageData.getAttribute("pixelwidth");
+                String ph = imageData.getAttribute("pixelheight");
+                String su = imageData.getAttribute("spatialunits");
+
+                if (pw != null && !pw.isEmpty()) {
+                    pWidth = Double.parseDouble(pw.replace(',', '.'));
+                }
+                if (ph != null && !ph.isEmpty()) {
+                    pHeight = Double.parseDouble(ph.replace(',', '.'));
+                }
+                if (su != null && !su.isEmpty()) {
+                    unit = su;
+                }
+            }
+
+            if (unit.isEmpty()) {
+                NodeList modelList = doc.getElementsByTagName("Model");
+                if (modelList.getLength() > 0) {
+                    unit = ((Element) modelList.item(0)).getAttribute("spatialunits");
+                }
+            }
+            if (unit.isEmpty()) {
+                NodeList trackList = doc.getElementsByTagName("Tracks");
+                if (trackList.getLength() > 0) {
+                    unit = ((Element) trackList.item(0)).getAttribute("spaceUnits");
+                }
+            }
+
+            if (unit == null || unit.isEmpty()) {
+                log.warn("No calibration unit found in XML. Using default: mm. This may be incorrect.");
+                unit = "mm";
+            }
+
+            Calibration cal = img.getCalibration();
+            if (cal == null) {
+                cal = new Calibration();
+                img.setCalibration(cal);
+            }
+            cal.pixelWidth = pWidth;
+            cal.pixelHeight = pHeight;
+            cal.setXUnit(unit);
+            cal.setYUnit(unit);
+
+            log.info("Successfully applied calibration: " + pWidth + "x" + pHeight + " " + unit);
+
+        } catch (Exception e) {
+            log.error("Calibration error: " + e.getMessage());
+        }
     }
 
     @Override
