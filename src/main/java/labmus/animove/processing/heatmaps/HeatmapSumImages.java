@@ -9,6 +9,7 @@ import labmus.animove.ZFHelperMethods;
 import labmus.animove.utils.functions.BrightnessLUTFunction;
 import labmus.animove.utils.functions.ImageCalculatorFunction;
 import labmus.animove.utils.functions.ZprojectFunction;
+import org.apache.commons.io.FilenameUtils;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.scijava.app.StatusService;
@@ -191,7 +192,7 @@ public class HeatmapSumImages extends DynamicCommand implements Interactive {
                 imp.show();
 
                 if (saveOutput && !doPreview){
-                    IJ.save(imp, outputDir.toPath().resolve(interval + ".tif").toString());
+                    IJ.save(imp, outputDir.toPath().resolve(FilenameUtils.getBaseName(inputFile.getName())+ "_" + interval + ".tif").toString());
 
                 }
                 if (doPreview) {
