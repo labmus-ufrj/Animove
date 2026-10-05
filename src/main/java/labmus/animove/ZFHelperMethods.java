@@ -301,6 +301,15 @@ public class ZFHelperMethods {
         return colors;
     }
 
+    /**
+     * Stretches the display range to the min/max of the image.
+     * <p>
+     * Careful with {@code useROI == false}: it runs "Select None", which deletes the ROI from the
+     * image and from the RoiManager. The following {@link #apply} call then needs an ROI or an
+     * overlay to build its mask and throws {@code IllegalArgumentException("ROI or overlay
+     * required")} when there is neither. Do not pass {@code false} while an ROI still has to
+     * survive on {@code imp}.
+     */
     public static void autoAdjustBrightnessStack(ImagePlus imp, boolean useROI) {
         if (!useROI) {
             IJ.run(imp, "Select None", "");

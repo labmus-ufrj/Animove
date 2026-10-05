@@ -59,6 +59,9 @@ public class HeatmapSumImages extends DynamicCommand implements Interactive {
     @Parameter(label = "Lookup Table", persist = false, initializer = "initLUT")
     private String lut = "";
 
+    @Parameter(label = "Brightness Tolerance (%)", min = "0", max = "100", persist = false)
+    private double tolerancePercent = 0.01;
+
     @Parameter(label = "Save output", persist = false)
     private boolean saveOutput = true;
 
@@ -183,7 +186,7 @@ public class HeatmapSumImages extends DynamicCommand implements Interactive {
                 ZFHelperMethods.iterateOverFrames(subtractFunction.andThen(bcFunction).andThen(ZFHelperMethods.InvertFunction).andThen(zprojectFunctionSum), inputFile, startFrame, endFrame, statusService);
                 Mat sumMat = zprojectFunctionSum.getResultMat();
 
-                BrightnessLUTFunction brightnessLUTFunction = new BrightnessLUTFunction(this.lastRoi, this.lut);
+                BrightnessLUTFunction brightnessLUTFunction = new BrightnessLUTFunction(this.lastRoi, this.lut, this.tolerancePercent);
                 brightnessLUTFunction.apply(sumMat);
 
                 ImagePlus imp = new ImagePlus(interval, brightnessLUTFunction.getLastBi());

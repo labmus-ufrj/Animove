@@ -30,6 +30,8 @@ Where output images will be saved with `.tif` format.
 ## Lookup Table
 The LUTs available are the ImageJ's built-in ones (found at Image → Lookup Tables).
 
+{% include "brightness-tolerance.md" %}
+
 ## Intervals
 The checkboxes either activate or deactivate the relative interval.
 

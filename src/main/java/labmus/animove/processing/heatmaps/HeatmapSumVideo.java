@@ -61,6 +61,9 @@ public class HeatmapSumVideo extends DynamicCommand implements Interactive {
     @Parameter(label = "Lookup Table", persist = false, initializer = "initLUT")
     private String lut = "";
 
+    @Parameter(label = "Brightness Tolerance (%)", min = "0", max = "100", persist = false)
+    private double tolerancePercent = 0.01;
+
     @Parameter(label = "Output Format", choices = {"AVI", "TIFF", "MP4"}, callback = "updateExtensionChoice", persist = false)
     String format = "AVI";
 
@@ -153,7 +156,7 @@ public class HeatmapSumVideo extends DynamicCommand implements Interactive {
             };
             ZprojectFunction zprojectFunctionSum = new ZprojectFunction(ZprojectFunction.OperationMode.SUM, true);
 
-            BrightnessLUTFunction brightnessLUTFunction = new BrightnessLUTFunction(this.lastRoi, this.lut);
+            BrightnessLUTFunction brightnessLUTFunction = new BrightnessLUTFunction(this.lastRoi, this.lut, this.tolerancePercent);
 
             double fps;
             try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(inputFile)) {

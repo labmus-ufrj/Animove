@@ -22,6 +22,8 @@ Each frame is then concatenated into a single video.
 ## Lookup Table
 The LUTs available are the ImageJ's built-in ones (found at Image → Lookup Tables). Leave as "Don't change" for RGB images if Convert to Grayscale is not checked.
 
+{% include "brightness-tolerance.md" %}
+
 {% include "start-end-frame.md" %}
 
 {% include "preview.md" %}
