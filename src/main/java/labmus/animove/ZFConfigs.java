@@ -37,6 +37,7 @@ public abstract class ZFConfigs {
 
     public static final String scoreGradientPath = analysisPath + "Calculate Score Gradient";
     public static final String scoreSectorPath = analysisPath + "Calculate Score Sectors";
+    public static final String cutTracksPath = analysisPath + "Cut Tracks";
     public static final String analyzeFrequencyLarvaePath = analysisPath + "Extract Frequency Data";
     public static final String quantifyLarvaePath = analysisPath + "Quantify Binary Heatmap";
     public static final String spotsPlotting = analysisPath + "Plot Spots";
