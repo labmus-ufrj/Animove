@@ -766,6 +766,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#brightness-tolerance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Brightness Tolerance (%)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#intervals" class="md-nav__link">
     <span class="md-ellipsis">
       Intervals
@@ -1004,6 +1013,29 @@
   
   
     <li class="md-nav__item">
+      <a href="../../analysis/cut-tracks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Cut Tracks
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../analysis/frequency-data/" class="md-nav__link">
         
   
@@ -1168,6 +1200,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#brightness-tolerance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Brightness Tolerance (%)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#intervals" class="md-nav__link">
     <span class="md-ellipsis">
       Intervals
@@ -1227,6 +1268,22 @@ If that does not correspond to your data, videos can be inverted using <a href="
 <p>Where output images will be saved with <code>.tif</code> format.</p>
 <h2 id="lookup-table">Lookup Table</h2>
 <p>The LUTs available are the ImageJ's built-in ones (found at Image → Lookup Tables).</p>
+<h2 id="brightness-tolerance">Brightness Tolerance (%)</h2>
+<p>Percentage of the ROI pixels allowed to sit above the brightness upper bound.</p>
+<p>The brightness adjustment stretches the accumulated signal over the available range so the
+result is not dominated by the darkest and brightest pixels inside the ROI. Bright pixels,
+however, are often single saturated spots: a sensor hit, a reflection, or a compressed video
+artifact. When the brightest pixel of the ROI is one of those, it becomes the upper bound and
+every other pixel gets squeezed towards black, which is what makes the adjustment appear to
+do nothing.</p>
+<p>This parameter sets an upper bound that ignores that kind of outlier. The bound becomes the
+<code>(100 - tolerance)</code>-th percentile of the ROI pixels, so <code>0.01</code> means "the 99.99th percentile":
+only the 0.01% brightest pixels of the ROI are disregarded. Since the percentile is taken over
+the ROI itself, the number of tolerated pixels scales with the ROI size, from a handful of
+pixels in a small ROI to a few hundreds in a large one.</p>
+<p>Pixels above the computed bound are not discarded: they saturate at the top of the range,
+exactly like a regular brightness and contrast upper limit would.</p>
+<p><code>0</code> disables the tolerance and uses the plain ROI maximum.</p>
 <h2 id="intervals">Intervals</h2>
 <p>The checkboxes either activate or deactivate the relative interval.</p>
 <p>Frame numbers should be presented as <code>initialFrame-endFrame</code>, both being inclusive, like ImageJ's built-in <strong>Image → Duplicate</strong> feature. </p>

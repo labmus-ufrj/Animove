@@ -789,6 +789,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#brightness-tolerance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Brightness Tolerance (%)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#start-and-end-frame" class="md-nav__link">
     <span class="md-ellipsis">
       Start and End frame
@@ -1013,6 +1022,29 @@
   
   
     <li class="md-nav__item">
+      <a href="../../analysis/cut-tracks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Cut Tracks
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../analysis/frequency-data/" class="md-nav__link">
         
   
@@ -1177,6 +1209,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#brightness-tolerance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Brightness Tolerance (%)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#start-and-end-frame" class="md-nav__link">
     <span class="md-ellipsis">
       Start and End frame
@@ -1230,6 +1271,22 @@ If that does not correspond to your data, videos can be inverted using <a href="
 <p>The path to save the operation's output.</p>
 <h2 id="lookup-table">Lookup Table</h2>
 <p>The LUTs available are the ImageJ's built-in ones (found at Image → Lookup Tables). Leave as "Don't change" for RGB images if Convert to Grayscale is not checked.</p>
+<h2 id="brightness-tolerance">Brightness Tolerance (%)</h2>
+<p>Percentage of the ROI pixels allowed to sit above the brightness upper bound.</p>
+<p>The brightness adjustment stretches the accumulated signal over the available range so the
+result is not dominated by the darkest and brightest pixels inside the ROI. Bright pixels,
+however, are often single saturated spots: a sensor hit, a reflection, or a compressed video
+artifact. When the brightest pixel of the ROI is one of those, it becomes the upper bound and
+every other pixel gets squeezed towards black, which is what makes the adjustment appear to
+do nothing.</p>
+<p>This parameter sets an upper bound that ignores that kind of outlier. The bound becomes the
+<code>(100 - tolerance)</code>-th percentile of the ROI pixels, so <code>0.01</code> means "the 99.99th percentile":
+only the 0.01% brightest pixels of the ROI are disregarded. Since the percentile is taken over
+the ROI itself, the number of tolerated pixels scales with the ROI size, from a handful of
+pixels in a small ROI to a few hundreds in a large one.</p>
+<p>Pixels above the computed bound are not discarded: they saturate at the top of the range,
+exactly like a regular brightness and contrast upper limit would.</p>
+<p><code>0</code> disables the tolerance and uses the plain ROI maximum.</p>
 <h2 id="start-and-end-frame">Start and End frame</h2>
 <p>Specify the frame number to begin and end the processing.</p>
 <p>The selection is inclusive, meaning both the start and end frames will be processed.</p>
